@@ -12,6 +12,7 @@ type config struct {
 	App        App
 	HttpServer HttpServer
 	Postgres   Postgres
+	JwtToken   JwtToken
 }
 
 var cfg *config
@@ -36,6 +37,14 @@ type Postgres interface {
 	MigrationsDir() string
 }
 
+type JwtToken interface {
+	AccessTokenSecretKey() string
+	AccessTokenTTL() time.Duration
+
+	RefreshTokenSecretKey() string
+	RefreshTokenTTL() time.Duration
+}
+
 func Load(paths ...string) error {
 	if len(paths) > 0 {
 		if err := godotenv.Load(paths...); err != nil {
@@ -58,10 +67,16 @@ func Load(paths ...string) error {
 		return errwrap.Wrap("postgres config", err)
 	}
 
+	jwtTokenConfig, err := env.NewJwtTokenConfig()
+	if err != nil {
+		return errwrap.Wrap("jwt token config", err)
+	}
+
 	cfg = &config{
 		App:        appConfig,
 		HttpServer: httpServerConfig,
 		Postgres:   postgresConfig,
+		JwtToken:   jwtTokenConfig,
 	}
 
 	return nil

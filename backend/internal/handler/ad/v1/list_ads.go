@@ -19,7 +19,7 @@ func (h *handler) listAds(c echo.Context) error {
 
 	out, err := h.service.ListAds(ctx, in)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	resp := listAdsResponse{Ads: adsToResponse(out.Ads), Total: out.Total}

@@ -16,7 +16,7 @@ func (h *handler) getAd(c echo.Context) error {
 	ctx := c.Request().Context()
 	ad, err := h.service.GetAd(ctx, adID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	resp := getAdResponse{Ad: adToResponse(ad)}

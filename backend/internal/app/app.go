@@ -6,8 +6,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/escoutdoor/kitypes/backend/internal/apperror"
+	"github.com/escoutdoor/kitypes/backend/internal/apperror/code"
 	"github.com/escoutdoor/kitypes/backend/internal/config"
 	ad_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/ad/v1"
+	auth_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/auth/v1"
+	user_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/user/v1"
 	"github.com/escoutdoor/kitypes/backend/pkg/closer"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 	"github.com/escoutdoor/kitypes/backend/pkg/logger"
@@ -74,8 +78,11 @@ func (a *App) initDeps(ctx context.Context) error {
 
 func (a *App) initHttpServer(ctx context.Context) error {
 	e := echo.New()
+
 	cv := validator.New()
 	e.Validator = cv
+
+	e.HTTPErrorHandler = customHttpErrorHandler
 
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
@@ -84,6 +91,12 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 	v1AdsGroup := v1Group.Group("/ads")
 	ad_v1.RegisterHandlers(v1AdsGroup, a.di.AdService(ctx), cv)
+
+	v1AuthGroup := v1Group.Group("/auth")
+	auth_v1.RegisterHandlers(v1AuthGroup, a.di.AuthService(ctx), cv)
+
+	v1UserGroup := v1Group.Group("/users")
+	user_v1.RegisterHandlers(v1UserGroup, a.di.UserService(ctx), cv)
 
 	s := &http.Server{
 		Addr:              config.Config().HttpServer.Address(),
@@ -107,4 +120,54 @@ func (a *App) runHttpServer() error {
 	}
 
 	return nil
+}
+
+func customHttpErrorHandler(err error, c echo.Context) {
+	ctx := c.Request().Context()
+	respCode := http.StatusInternalServerError
+	resp := map[string]any{
+		"message": "internal server error",
+	}
+
+	var appErr *apperror.Error
+	if errors.As(err, &appErr) {
+		switch appErr.Code {
+		case code.AdNotFound:
+		case code.UserNotFound:
+			respCode = http.StatusNotFound
+
+		case code.EmailAlreadyExists:
+			respCode = http.StatusConflict
+
+		case code.JwtTokenExpired:
+		case code.IncorrectCreadentials:
+		case code.InvalidJwtToken:
+			respCode = http.StatusUnauthorized
+		}
+
+		resp = map[string]any{
+			"message": appErr.Error(),
+		}
+
+		if respCode == http.StatusInternalServerError {
+			logger.Error(ctx, appErr.Error())
+		}
+	}
+
+	if he, ok := err.(*echo.HTTPError); ok {
+		respCode = he.Code
+		resp = map[string]interface{}{
+			"message": he.Message,
+		}
+	} else {
+		logger.Error(ctx, err.Error())
+	}
+
+	if !c.Response().Committed {
+		if c.Request().Method == http.MethodHead {
+			err = c.NoContent(respCode)
+		} else {
+			err = c.JSON(respCode, resp)
+		}
+	}
 }

@@ -16,7 +16,7 @@ func (h *handler) deleteAd(c echo.Context) error {
 
 	ctx := c.Request().Context()
 	if err := h.service.DeleteAd(ctx, adID); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.NoContent(http.StatusNoContent)

@@ -21,7 +21,7 @@ func (h *handler) createAd(c echo.Context) error {
 
 	ad, err := h.service.CreateAd(ctx, in)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	resp := createAdResponse{Ad: adToResponse(ad)}

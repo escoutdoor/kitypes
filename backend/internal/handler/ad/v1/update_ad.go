@@ -25,7 +25,7 @@ func (h *handler) updateAd(c echo.Context) error {
 
 	ad, err := h.service.UpdateAd(ctx, in)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	resp := updateAdResponse{Ad: adToResponse(ad)}
