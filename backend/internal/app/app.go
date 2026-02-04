@@ -146,9 +146,11 @@ func customHttpErrorHandler(err error, c echo.Context) {
 		switch appErr.Code {
 		case code.AdNotFound:
 		case code.UserNotFound:
+		case code.ConversationNotFound:
 			respCode = http.StatusNotFound
 
 		case code.EmailAlreadyExists:
+		case code.ConversationAlreadyExists:
 			respCode = http.StatusConflict
 
 		case code.JwtTokenExpired:
@@ -157,6 +159,7 @@ func customHttpErrorHandler(err error, c echo.Context) {
 			respCode = http.StatusUnauthorized
 
 		case code.PermissionDenied:
+		case code.CannotMessageYourself:
 			respCode = http.StatusForbidden
 		}
 
