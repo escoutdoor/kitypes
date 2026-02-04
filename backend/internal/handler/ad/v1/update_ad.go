@@ -4,39 +4,38 @@ import (
 	"net/http"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
-	ad_service "github.com/escoutdoor/kitypes/backend/internal/service/ad"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-func (h *handler) updateAd(c echo.Context) error {
+func (h *handler) update(c echo.Context) error {
 	adID := c.Param(idParam)
 	if err := uuid.Validate(adID); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid id param format")
 	}
 
-	req := new(updateAdRequest)
+	req := new(updateRequest)
 	if err := h.cv.BindValidate(c, req); err != nil {
 		return err
 	}
 
 	ctx := c.Request().Context()
-	in := updateAdRequestToInput(req, adID)
+	in := updateRequestToUpdate(req, adID)
 
-	ad, err := h.service.UpdateAd(ctx, in)
+	ad, err := h.service.Update(ctx, in)
 	if err != nil {
 		return err
 	}
 
-	resp := updateAdResponse{Ad: adToResponse(ad)}
+	resp := updateResponse{Ad: adToResponse(ad)}
 	return c.JSON(http.StatusOK, resp)
 }
 
-type updateAdResponse struct {
+type updateResponse struct {
 	Ad adResponse `json:"ad"`
 }
 
-type updateAdRequest struct {
+type updateRequest struct {
 	Title       *string `json:"title" validate:"omitempty,min=1"`
 	Description *string `json:"description" validate:"omitempty,min=1"`
 	ImageUrl    *string `json:"imageUrl" validate:"omitempty,url"`
@@ -52,8 +51,8 @@ type updateAdRequest struct {
 	Status *int32 `json:"status" validate:"omitempty,gte=1"`
 }
 
-func updateAdRequestToInput(req *updateAdRequest, adID string) ad_service.UpdateAdInput {
-	return ad_service.UpdateAdInput{
+func updateRequestToUpdate(req *updateRequest, adID string) entity.UpdateAd {
+	return entity.UpdateAd{
 		ID: adID,
 
 		Title:       req.Title,

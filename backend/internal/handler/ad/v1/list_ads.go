@@ -4,29 +4,28 @@ import (
 	"net/http"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
-	ad_service "github.com/escoutdoor/kitypes/backend/internal/service/ad"
 	"github.com/labstack/echo/v4"
 )
 
-func (h *handler) listAds(c echo.Context) error {
-	req := new(listAdsRequest)
+func (h *handler) list(c echo.Context) error {
+	req := new(listRequest)
 	if err := h.cv.BindValidate(c, req); err != nil {
 		return err
 	}
 
 	ctx := c.Request().Context()
-	in := listAdsRequestToInput(req)
+	in := listRequestToInput(req)
 
-	out, err := h.service.ListAds(ctx, in)
+	out, err := h.service.List(ctx, in)
 	if err != nil {
 		return err
 	}
 
-	resp := listAdsResponse{Ads: adsToResponse(out.Ads), Total: out.Total}
+	resp := listResponse{Ads: adsToResponse(out.Ads), Total: out.Total}
 	return c.JSON(http.StatusOK, resp)
 }
 
-type listAdsRequest struct {
+type listRequest struct {
 	Limit  int    `query:"limit" validate:"omitempty,gte=1,lte=50"`
 	Offset int    `query:"offset" validate:"omitempty,gte=0"`
 	SortBy string `query:"sortBy" validate:"omitempty,oneof=dateAsc dateDesc"`
@@ -44,13 +43,13 @@ type listAdsRequest struct {
 	MaxPetAgeMonth *int32 `query:"minPetAgeMonth" validate:"omitempty,gtefield=MaxPetAgeMonth"`
 }
 
-type listAdsResponse struct {
+type listResponse struct {
 	Ads   []adResponse `json:"advertisements"`
 	Total int          `json:"total"`
 }
 
-func listAdsRequestToInput(req *listAdsRequest) ad_service.ListAdsInput {
-	return ad_service.ListAdsInput{
+func listRequestToInput(req *listRequest) entity.ListAdsInput {
+	return entity.ListAdsInput{
 		Limit:  req.Limit,
 		Offset: req.Offset,
 		SortBy: req.SortBy,

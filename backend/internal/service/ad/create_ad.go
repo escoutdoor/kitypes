@@ -7,24 +7,16 @@ import (
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 )
 
-func (s *Service) CreateAd(ctx context.Context, in CreateAdInput) (entity.Ad, error) {
-	var ad entity.Ad
+func (s *Service) Create(ctx context.Context, in entity.Ad) (entity.Ad, error) {
 	in.Status = entity.AdStatusOpened
+	adID, err := s.adRepo.Create(ctx, in)
+	if err != nil {
+		return entity.Ad{}, errwrap.Wrap("create ad in repo", err)
+	}
 
-	if txErr := s.txManager.ReadCommited(ctx, func(ctx context.Context) error {
-		adID, err := s.adRepo.CreateAd(ctx, in)
-		if err != nil {
-			return errwrap.Wrap("create ad in repo", err)
-		}
-
-		ad, err = s.adRepo.GetAd(ctx, adID)
-		if err != nil {
-			return errwrap.Wrap("get just created ad from repo", err)
-		}
-
-		return nil
-	}); txErr != nil {
-		return entity.Ad{}, txErr
+	ad, err := s.adRepo.Get(ctx, adID)
+	if err != nil {
+		return entity.Ad{}, errwrap.Wrap("get just created ad from repo", err)
 	}
 
 	return ad, nil

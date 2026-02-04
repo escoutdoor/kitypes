@@ -7,8 +7,8 @@ import (
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 )
 
-func (s *Service) GetAd(ctx context.Context, adID string) (entity.Ad, error) {
-	ad, err := s.adRepo.GetAd(ctx, adID)
+func (s *Service) Get(ctx context.Context, adID string) (entity.Ad, error) {
+	ad, err := s.adRepo.Get(ctx, adID)
 	if err != nil {
 		return entity.Ad{}, errwrap.Wrap("get ad from repo", err)
 	}

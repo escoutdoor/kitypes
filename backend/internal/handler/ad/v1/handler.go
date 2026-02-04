@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
-	ad_service "github.com/escoutdoor/kitypes/backend/internal/service/ad"
 	"github.com/escoutdoor/kitypes/backend/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -15,11 +14,11 @@ const (
 )
 
 type adService interface {
-	GetAd(ctx context.Context, adID string) (entity.Ad, error)
-	CreateAd(ctx context.Context, in ad_service.CreateAdInput) (entity.Ad, error)
-	UpdateAd(ctx context.Context, in ad_service.UpdateAdInput) (entity.Ad, error)
-	DeleteAd(ctx context.Context, adID string) error
-	ListAds(ctx context.Context, in ad_service.ListAdsInput) (ad_service.ListAdsOutput, error)
+	Get(ctx context.Context, adID string) (entity.Ad, error)
+	Create(ctx context.Context, in entity.Ad) (entity.Ad, error)
+	Update(ctx context.Context, in entity.UpdateAd) (entity.Ad, error)
+	Delete(ctx context.Context, userID string, adID string) error
+	List(ctx context.Context, in entity.ListAdsInput) (entity.ListAdsOutput, error)
 }
 
 type handler struct {
@@ -27,17 +26,22 @@ type handler struct {
 	cv      *validator.CustomValidator
 }
 
-func RegisterHandlers(e *echo.Group, adService adService, cv *validator.CustomValidator) {
-	ctl := &handler{service: adService, cv: cv}
+func RegisterHandlers(
+	e *echo.Group,
+	authMw echo.MiddlewareFunc,
+	adService adService,
+	cv *validator.CustomValidator,
+) {
+	h := &handler{service: adService, cv: cv}
 
-	e.POST("/", ctl.createAd)
+	e.POST("/", h.create, authMw)
 
-	e.GET("/", ctl.listAds)
-	e.GET("/:id", ctl.getAd)
+	e.GET("/", h.list)
+	e.GET("/:id", h.get)
 
-	e.PATCH("/:id", ctl.updateAd)
+	e.PATCH("/:id", h.update, authMw)
 
-	e.DELETE("/:id", ctl.deleteAd)
+	e.DELETE("/:id", h.delete, authMw)
 }
 
 type adResponse struct {

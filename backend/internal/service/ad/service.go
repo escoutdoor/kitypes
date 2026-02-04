@@ -8,11 +8,11 @@ import (
 )
 
 type adRepository interface {
-	GetAd(ctx context.Context, adID string) (entity.Ad, error)
-	CreateAd(ctx context.Context, in CreateAdInput) (string, error)
-	DeleteAd(ctx context.Context, adID string) error
-	UpdateAd(ctx context.Context, in UpdateAdInput) error
-	ListAds(ctx context.Context, in ListAdsInput) ([]entity.Ad, int, error)
+	Get(ctx context.Context, adID string) (entity.Ad, error)
+	Create(ctx context.Context, in entity.Ad) (string, error)
+	Delete(ctx context.Context, adID string) error
+	Update(ctx context.Context, in entity.UpdateAd) (entity.Ad, error)
+	List(ctx context.Context, in entity.ListAdsInput) (entity.ListAdsOutput, error)
 }
 
 type Service struct {

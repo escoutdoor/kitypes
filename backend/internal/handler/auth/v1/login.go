@@ -3,7 +3,7 @@ package v1
 import (
 	"net/http"
 
-	auth_service "github.com/escoutdoor/kitypes/backend/internal/service/auth"
+	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,7 +14,7 @@ func (h *handler) login(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	in := loginRequestToInput(req)
+	in := loginRequestToUser(req)
 
 	tokens, err := h.service.Login(ctx, in)
 	if err != nil {
@@ -34,8 +34,8 @@ type loginResponse struct {
 	Tokens authResponse `json:"tokens"`
 }
 
-func loginRequestToInput(req *loginRequest) auth_service.LoginInput {
-	return auth_service.LoginInput{
+func loginRequestToUser(req *loginRequest) entity.User {
+	return entity.User{
 		Email:    req.Email,
 		Password: req.Password,
 	}

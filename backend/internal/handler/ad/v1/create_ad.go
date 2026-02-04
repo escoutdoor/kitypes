@@ -4,35 +4,37 @@ import (
 	"net/http"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
-	ad_service "github.com/escoutdoor/kitypes/backend/internal/service/ad"
-	"github.com/google/uuid"
+	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
 	"github.com/labstack/echo/v4"
 )
 
-func (h *handler) createAd(c echo.Context) error {
-	req := new(createAdRequest)
+func (h *handler) create(c echo.Context) error {
+	req := new(createRequest)
 	if err := h.cv.BindValidate(c, req); err != nil {
 		return err
 	}
 
 	ctx := c.Request().Context()
-	// TODO: replace random uuid with the real extracted from ctx one
-	in := createAdRequestToInput(req, uuid.NewString())
+	userID, err := httpctx.GetUserID(c)
+	if err != nil {
+		return err
+	}
+	in := createRequestToAd(req, userID)
 
-	ad, err := h.service.CreateAd(ctx, in)
+	ad, err := h.service.Create(ctx, in)
 	if err != nil {
 		return err
 	}
 
-	resp := createAdResponse{Ad: adToResponse(ad)}
+	resp := createResponse{Ad: adToResponse(ad)}
 	return c.JSON(http.StatusCreated, resp)
 }
 
-type createAdResponse struct {
+type createResponse struct {
 	Ad adResponse `json:"advertisement"`
 }
 
-type createAdRequest struct {
+type createRequest struct {
 	Title       string `json:"title" validate:"required"`
 	Description string `json:"description" validate:"required"`
 	ImageUrl    string `json:"imageUrl" validate:"required,url"`
@@ -46,8 +48,8 @@ type createAdRequest struct {
 	City    string `json:"city" validate:"required"`
 }
 
-func createAdRequestToInput(req *createAdRequest, authorID string) ad_service.CreateAdInput {
-	return ad_service.CreateAdInput{
+func createRequestToAd(req *createRequest, authorID string) entity.Ad {
+	return entity.Ad{
 		AuthorID: authorID,
 
 		Title:       req.Title,

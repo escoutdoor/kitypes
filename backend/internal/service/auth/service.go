@@ -7,9 +7,9 @@ import (
 )
 
 type userRepository interface {
-	CreateUser(ctx context.Context, in CreateUserInput) (string, error)
-	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
-	GetUserByID(ctx context.Context, userID string) (entity.User, error)
+	Create(ctx context.Context, in entity.User) (string, error)
+	GetByEmail(ctx context.Context, email string) (entity.User, error)
+	GetByID(ctx context.Context, userID string) (entity.User, error)
 }
 
 type tokenProvider interface {

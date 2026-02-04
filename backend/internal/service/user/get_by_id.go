@@ -7,8 +7,8 @@ import (
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 )
 
-func (s *Service) GetUserByID(ctx context.Context, userID string) (entity.User, error) {
-	user, err := s.userRepo.GetUserByID(ctx, userID)
+func (s *Service) GetByID(ctx context.Context, userID string) (entity.User, error) {
+	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return entity.User{}, errwrap.Wrap("get user by id from repository", err)
 	}

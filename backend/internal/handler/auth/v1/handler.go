@@ -3,15 +3,15 @@ package v1
 import (
 	"context"
 
-	auth_service "github.com/escoutdoor/kitypes/backend/internal/service/auth"
+	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
 type authService interface {
-	Login(ctx context.Context, in auth_service.LoginInput) (auth_service.Tokens, error)
-	Register(ctx context.Context, in auth_service.CreateUserInput) (auth_service.Tokens, error)
-	RefreshToken(ctx context.Context, refreshToken string) (auth_service.Tokens, error)
+	Login(ctx context.Context, in entity.User) (entity.Tokens, error)
+	Register(ctx context.Context, in entity.User) (entity.Tokens, error)
+	RefreshToken(ctx context.Context, refreshToken string) (entity.Tokens, error)
 }
 
 type handler struct {
@@ -20,11 +20,11 @@ type handler struct {
 }
 
 func RegisterHandlers(e *echo.Group, authService authService, cv *validator.CustomValidator) {
-	ctl := &handler{service: authService, cv: cv}
+	h := &handler{service: authService, cv: cv}
 
-	e.POST("/login", ctl.login)
-	e.POST("/register", ctl.register)
-	e.POST("/refresh", ctl.refreshToken)
+	e.POST("/login", h.login)
+	e.POST("/register", h.register)
+	e.POST("/refresh", h.refreshToken)
 }
 
 type authResponse struct {
@@ -32,7 +32,7 @@ type authResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-func tokensToResponse(tokens auth_service.Tokens) authResponse {
+func tokensToResponse(tokens entity.Tokens) authResponse {
 	return authResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,

@@ -7,7 +7,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/escoutdoor/kitypes/backend/internal/apperror"
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
-	auth_service "github.com/escoutdoor/kitypes/backend/internal/service/auth"
 	"github.com/escoutdoor/kitypes/backend/pkg/database"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
@@ -20,6 +19,8 @@ const (
 	tableName = "users"
 
 	idColumn = "id"
+
+	avatarUrlColumn = "avatar_url"
 
 	firstNameColumn = "first_name"
 	lastNameColumn  = "last_name"
@@ -45,9 +46,10 @@ func New(db database.Client) *Repository {
 	}
 }
 
-func (r *Repository) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
+func (r *Repository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
 	sql, args, err := r.qb.Select(
 		idColumn,
+		avatarUrlColumn,
 		firstNameColumn,
 		lastNameColumn,
 		emailColumn,
@@ -64,7 +66,7 @@ func (r *Repository) GetUserByEmail(ctx context.Context, email string) (entity.U
 	}
 
 	q := database.Query{
-		Name: "user_repository.GetUserByEmail",
+		Name: "user_repository.GetByEmail",
 		Sql:  sql,
 	}
 	row, err := r.db.DB().QueryContext(ctx, q, args...)
@@ -85,9 +87,10 @@ func (r *Repository) GetUserByEmail(ctx context.Context, email string) (entity.U
 	return u.ToEntity(), nil
 }
 
-func (r *Repository) GetUserByID(ctx context.Context, userID string) (entity.User, error) {
+func (r *Repository) GetByID(ctx context.Context, userID string) (entity.User, error) {
 	sql, args, err := r.qb.Select(
 		idColumn,
+		avatarUrlColumn,
 		firstNameColumn,
 		lastNameColumn,
 		emailColumn,
@@ -104,7 +107,7 @@ func (r *Repository) GetUserByID(ctx context.Context, userID string) (entity.Use
 	}
 
 	q := database.Query{
-		Name: "user_repository.GetUserByID",
+		Name: "user_repository.GetByID",
 		Sql:  sql,
 	}
 	row, err := r.db.DB().QueryContext(ctx, q, args...)
@@ -125,7 +128,7 @@ func (r *Repository) GetUserByID(ctx context.Context, userID string) (entity.Use
 	return u.ToEntity(), nil
 }
 
-func (r *Repository) CreateUser(ctx context.Context, in auth_service.CreateUserInput) (string, error) {
+func (r *Repository) Create(ctx context.Context, in entity.User) (string, error) {
 	sql, args, err := r.qb.Insert(tableName).
 		Columns(
 			firstNameColumn,
@@ -158,4 +161,60 @@ func (r *Repository) CreateUser(ctx context.Context, in auth_service.CreateUserI
 	}
 
 	return createdUserID, nil
+}
+
+func (r *Repository) Update(ctx context.Context, in entity.UpdateUser) (entity.User, error) {
+	builder := r.qb.Update(tableName).
+		Where(sq.Eq{idColumn: in.ID}).
+		Suffix(`RETURNING 
+            id,
+            first_name,
+            last_name,
+            email,
+            phone_number,
+            password,
+            created_at,
+            updated_at
+        `)
+	if in.AvatarUrl != nil {
+		builder = builder.Set(avatarUrlColumn, *in.AvatarUrl)
+	}
+	if in.FirstName != nil {
+		builder = builder.Set(firstNameColumn, *in.FirstName)
+	}
+	if in.LastName != nil {
+		builder = builder.Set(lastNameColumn, *in.LastName)
+	}
+	if in.Email != nil {
+		builder = builder.Set(emailColumn, *in.Email)
+	}
+	if in.Password != nil {
+		builder = builder.Set(passwordColumn, *in.Password)
+	}
+	if in.PhoneNumber != nil {
+		builder = builder.Set(phoneNumberColumn, *in.PhoneNumber)
+	}
+
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		return entity.User{}, buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.Update",
+		Sql:  sql,
+	}
+
+	row, err := r.db.DB().QueryContext(ctx, q, args...)
+	if err != nil {
+		return entity.User{}, executeSQLError(err)
+	}
+	defer row.Close()
+
+	var u User
+	if err := pgxscan.ScanOne(&u, row); err != nil {
+		return entity.User{}, scanRowError(err)
+	}
+
+	return u.ToEntity(), nil
 }

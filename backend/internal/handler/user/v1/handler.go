@@ -14,7 +14,8 @@ const (
 )
 
 type userService interface {
-	GetUserByID(ctx context.Context, userID string) (entity.User, error)
+	GetByID(ctx context.Context, userID string) (entity.User, error)
+	Update(ctx context.Context, in entity.UpdateUser) (entity.User, error)
 }
 
 type handler struct {
@@ -22,14 +23,23 @@ type handler struct {
 	cv      *validator.CustomValidator
 }
 
-func RegisterHandlers(e *echo.Group, userService userService, cv *validator.CustomValidator) {
-	ctl := &handler{service: userService, cv: cv}
+func RegisterHandlers(
+	e *echo.Group,
+	authMw echo.MiddlewareFunc,
+	userService userService,
+	cv *validator.CustomValidator,
+) {
+	h := &handler{service: userService, cv: cv}
 
-	e.GET("/:id", ctl.getUserByID)
+	e.GET("/:id", h.getMe)
+
+	e.PATCH("/:id", h.updateUser, authMw)
 }
 
-type userResponse struct {
+type meResponse struct {
 	ID string `json:"id"`
+
+	AvatarUrl string `json:"avatarUrl"`
 
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -41,9 +51,11 @@ type userResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func userToResponse(user entity.User) userResponse {
-	return userResponse{
+func meToResponse(user entity.User) meResponse {
+	return meResponse{
 		ID: user.ID,
+
+		AvatarUrl: *user.AvatarUrl,
 
 		FirstName: user.FirstName,
 		LastName:  user.LastName,

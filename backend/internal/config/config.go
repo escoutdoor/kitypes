@@ -13,6 +13,7 @@ type config struct {
 	HttpServer HttpServer
 	Postgres   Postgres
 	JwtToken   JwtToken
+	Redis      Redis
 }
 
 var cfg *config
@@ -45,6 +46,16 @@ type JwtToken interface {
 	RefreshTokenTTL() time.Duration
 }
 
+type Redis interface {
+	Addr() string
+	DB() int
+	Password() string
+	MaxIdle() int
+	DialTimeout() time.Duration
+	ConnTimeout() time.Duration
+	TTL() time.Duration
+}
+
 func Load(paths ...string) error {
 	if len(paths) > 0 {
 		if err := godotenv.Load(paths...); err != nil {
@@ -72,11 +83,17 @@ func Load(paths ...string) error {
 		return errwrap.Wrap("jwt token config", err)
 	}
 
+	redisConfig, err := env.NewRedisConfig()
+	if err != nil {
+		return errwrap.Wrap("redis config", err)
+	}
+
 	cfg = &config{
 		App:        appConfig,
 		HttpServer: httpServerConfig,
 		Postgres:   postgresConfig,
 		JwtToken:   jwtTokenConfig,
+		Redis:      redisConfig,
 	}
 
 	return nil

@@ -11,13 +11,16 @@ import (
 	"github.com/escoutdoor/kitypes/backend/internal/config"
 	ad_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/ad/v1"
 	auth_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/auth/v1"
+	chat_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/chat/v1"
+	fav_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/favorite/v1"
 	user_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/user/v1"
+	"github.com/escoutdoor/kitypes/backend/internal/middleware"
 	"github.com/escoutdoor/kitypes/backend/pkg/closer"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 	"github.com/escoutdoor/kitypes/backend/pkg/logger"
 	"github.com/escoutdoor/kitypes/backend/pkg/validator"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/pressly/goose/v3"
 
 	"github.com/jackc/pgx/v5/stdlib"
@@ -52,6 +55,8 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Run(ctx context.Context) error {
+	go a.di.ChatHub(ctx).Run(ctx)
+
 	go func() {
 		logger.Info(ctx, "http server is running")
 		if err := a.runHttpServer(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -84,19 +89,26 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 	e.HTTPErrorHandler = customHttpErrorHandler
 
-	e.Use(middleware.RequestLogger())
-	e.Use(middleware.Recover())
+	e.Use(echo_middleware.RequestLogger())
+	e.Use(echo_middleware.Recover())
 
+	authMw := middleware.Auth(a.di.TokenProvider())
 	v1Group := e.Group("/v1")
 
 	v1AdsGroup := v1Group.Group("/ads")
-	ad_v1.RegisterHandlers(v1AdsGroup, a.di.AdService(ctx), cv)
+	ad_v1.RegisterHandlers(v1AdsGroup, authMw, a.di.AdService(ctx), cv)
 
 	v1AuthGroup := v1Group.Group("/auth")
 	auth_v1.RegisterHandlers(v1AuthGroup, a.di.AuthService(ctx), cv)
 
 	v1UserGroup := v1Group.Group("/users")
-	user_v1.RegisterHandlers(v1UserGroup, a.di.UserService(ctx), cv)
+	user_v1.RegisterHandlers(v1UserGroup, authMw, a.di.UserService(ctx), cv)
+
+	v1FavGroup := v1Group.Group("/favorites")
+	fav_v1.RegisterHandlers(v1FavGroup, authMw, a.di.FavoriteService(ctx), cv)
+
+	v1ChatGroup := v1Group.Group("/chats")
+	chat_v1.RegisterHandlers(v1ChatGroup, authMw, a.di.ChatService(ctx), cv, a.di.ChatHub(ctx))
 
 	s := &http.Server{
 		Addr:              config.Config().HttpServer.Address(),
@@ -143,6 +155,9 @@ func customHttpErrorHandler(err error, c echo.Context) {
 		case code.IncorrectCreadentials:
 		case code.InvalidJwtToken:
 			respCode = http.StatusUnauthorized
+
+		case code.PermissionDenied:
+			respCode = http.StatusForbidden
 		}
 
 		resp = map[string]any{

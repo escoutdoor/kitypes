@@ -45,3 +45,46 @@ const (
 	PetTypeCat
 	PetTypeOther
 )
+
+type UpdateAd struct {
+	ID     string
+	UserID string
+
+	Title       *string
+	Description *string
+	ImageUrl    *string
+
+	PetType     *PetType
+	PetGender   *PetGender
+	PetAgeMonth *int32
+	PetBreed    *string
+
+	Country *string
+	City    *string
+
+	Status *AdStatus
+}
+
+type ListAdsInput struct {
+	Limit  int
+	Offset int
+	SortBy string
+
+	Search *string
+
+	Status *AdStatus
+
+	Country *string
+	City    *string
+
+	PetType   *PetType
+	PetGender *PetGender
+
+	MinPetAgeMonth *int32
+	MaxPetAgeMonth *int32
+}
+
+type ListAdsOutput struct {
+	Ads   []Ad
+	Total int
+}

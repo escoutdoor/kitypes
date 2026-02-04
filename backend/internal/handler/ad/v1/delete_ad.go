@@ -3,19 +3,24 @@ package v1
 import (
 	"net/http"
 
+	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-func (h *handler) deleteAd(c echo.Context) error {
-	// TODO: w8n for author impl
+func (h *handler) delete(c echo.Context) error {
 	adID := c.Param(idParam)
 	if err := uuid.Validate(adID); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid id param format")
 	}
 
 	ctx := c.Request().Context()
-	if err := h.service.DeleteAd(ctx, adID); err != nil {
+	userID, err := httpctx.GetUserID(c)
+	if err != nil {
+		return err
+	}
+
+	if err := h.service.Delete(ctx, userID, adID); err != nil {
 		return err
 	}
 

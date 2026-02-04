@@ -2,6 +2,7 @@ package token
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/escoutdoor/kitypes/backend/internal/apperror"
@@ -74,6 +75,9 @@ func (p *TokenProvider) GenerateRefreshToken(userID string) (string, error) {
 
 func (p *TokenProvider) ValidateAccessToken(accessToken string) (string, error) {
 	jwtToken, err := jwt.ParseWithClaims(accessToken, &accessTokenClaims{}, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
 		return []byte(p.accessTokenSecretKey), nil
 	})
 	if err != nil {
@@ -98,6 +102,9 @@ func (p *TokenProvider) ValidateAccessToken(accessToken string) (string, error) 
 
 func (p *TokenProvider) ValidateRefreshToken(refreshToken string) (string, error) {
 	jwtToken, err := jwt.ParseWithClaims(refreshToken, &refreshTokenClaims{}, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
 		return []byte(p.refreshTokenSecretKey), nil
 	})
 	if err != nil {

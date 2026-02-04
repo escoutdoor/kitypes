@@ -3,8 +3,14 @@ package code
 type Code string
 
 const (
-	AdNotFound   = "AD_NOT_FOUND"
-	UserNotFound = "USER_NOT_FOUND"
+	AdNotFound           Code = "AD_NOT_FOUND"
+	UserNotFound         Code = "USER_NOT_FOUND"
+	ConversationNotFound Code = "CONVERSATION_NOT_FOUND"
+
+	PermissionDenied Code = "PERMISSION_DENIED"
+
+	ConversationAlreadyExists Code = "CONVERSATION_ALREADY_EXISTS"
+	CannotMessageYourself     Code = "CANNOT_MESSAGE_YOURSELF"
 
 	EmailAlreadyExists    Code = "EMAIL_ALREADY_EXISTS"
 	IncorrectCreadentials Code = "INCORRECT_CREADENTIALS"

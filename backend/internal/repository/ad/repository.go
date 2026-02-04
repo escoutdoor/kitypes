@@ -8,7 +8,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/escoutdoor/kitypes/backend/internal/apperror"
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
-	ad_service "github.com/escoutdoor/kitypes/backend/internal/service/ad"
 	"github.com/escoutdoor/kitypes/backend/pkg/database"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 	"github.com/georgysavva/scany/v2/pgxscan"
@@ -19,7 +18,7 @@ const (
 	defaultLimit  = 10
 	defaultOffset = 0
 
-	tableName = "adverisements"
+	tableName = "advertisements"
 
 	idColumn       = "id"
 	authorIDColumn = "author_id"
@@ -54,7 +53,7 @@ func New(db database.Client) *Repository {
 	}
 }
 
-func (r *Repository) GetAd(ctx context.Context, adID string) (entity.Ad, error) {
+func (r *Repository) Get(ctx context.Context, adID string) (entity.Ad, error) {
 	sql, args, err := r.qb.Select(
 		idColumn,
 		authorIDColumn,
@@ -79,7 +78,7 @@ func (r *Repository) GetAd(ctx context.Context, adID string) (entity.Ad, error) 
 	}
 
 	q := database.Query{
-		Name: "ad_repository.GetAd",
+		Name: "ad_repository.Get",
 		Sql:  sql,
 	}
 	row, err := r.db.DB().QueryContext(ctx, q, args...)
@@ -100,7 +99,7 @@ func (r *Repository) GetAd(ctx context.Context, adID string) (entity.Ad, error) 
 	return ad.ToEntity(), nil
 }
 
-func (r *Repository) CreateAd(ctx context.Context, in ad_service.CreateAdInput) (string, error) {
+func (r *Repository) Create(ctx context.Context, in entity.Ad) (string, error) {
 	builder := r.qb.Insert(tableName).
 		Columns(
 			authorIDColumn,
@@ -140,7 +139,7 @@ func (r *Repository) CreateAd(ctx context.Context, in ad_service.CreateAdInput) 
 	}
 
 	q := database.Query{
-		Name: "ad_repository.CreateAd",
+		Name: "ad_repository.Create",
 		Sql:  sql,
 	}
 
@@ -152,7 +151,7 @@ func (r *Repository) CreateAd(ctx context.Context, in ad_service.CreateAdInput) 
 	return createdAdID, nil
 }
 
-func (r *Repository) DeleteAd(ctx context.Context, adID string) error {
+func (r *Repository) Delete(ctx context.Context, adID string) error {
 	sql, args, err := r.qb.Delete(tableName).
 		From(tableName).
 		Where(sq.Eq{idColumn: adID}).
@@ -162,7 +161,7 @@ func (r *Repository) DeleteAd(ctx context.Context, adID string) error {
 	}
 
 	q := database.Query{
-		Name: "ad_repository.DeleteAd",
+		Name: "ad_repository.Delete",
 		Sql:  sql,
 	}
 	if _, err := r.db.DB().ExecContext(ctx, q, args...); err != nil {
@@ -172,10 +171,19 @@ func (r *Repository) DeleteAd(ctx context.Context, adID string) error {
 	return nil
 }
 
-func (r *Repository) UpdateAd(ctx context.Context, in ad_service.UpdateAdInput) error {
+func (r *Repository) Update(ctx context.Context, in entity.UpdateAd) (entity.Ad, error) {
 	builder := r.qb.Update(tableName).
 		Where(sq.Eq{idColumn: in.ID}).
-		Set(updatedAtColumn, time.Now())
+		Set(updatedAtColumn, time.Now()).
+		Suffix(`
+            RETURNING 
+                id, author_id,
+                title, description,
+                image_url, pet_type,
+                pet_gender, pet_age_month,
+                pet_breed, country, city,
+                status, updated_at, created_at
+        `)
 
 	if in.Title != nil {
 		builder = builder.Set(titleColumn, *in.Title)
@@ -210,21 +218,29 @@ func (r *Repository) UpdateAd(ctx context.Context, in ad_service.UpdateAdInput) 
 
 	sql, args, err := builder.ToSql()
 	if err != nil {
-		return buildSQLError(err)
+		return entity.Ad{}, buildSQLError(err)
 	}
 
 	q := database.Query{
-		Name: "ad_repository.UpdateAd",
+		Name: "ad_repository.Update",
 		Sql:  sql,
 	}
-	if _, err := r.db.DB().ExecContext(ctx, q, args...); err != nil {
-		return executeSQLError(err)
+
+	row, err := r.db.DB().QueryContext(ctx, q, args...)
+	if err != nil {
+		return entity.Ad{}, executeSQLError(err)
+	}
+	defer row.Close()
+
+	var ad Ad
+	if err := pgxscan.ScanOne(&ad, row); err != nil {
+		return entity.Ad{}, scanRowError(err)
 	}
 
-	return nil
+	return ad.ToEntity(), nil
 }
 
-func (r *Repository) ListAds(ctx context.Context, in ad_service.ListAdsInput) ([]entity.Ad, int, error) {
+func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.ListAdsOutput, error) {
 	var (
 		limit  = defaultLimit
 		offset = defaultOffset
@@ -263,10 +279,10 @@ func (r *Repository) ListAds(ctx context.Context, in ad_service.ListAdsInput) ([
 
 	total, err := r.countAds(ctx, builder.Columns("COUNT(*)"))
 	if err != nil {
-		return nil, 0, err
+		return entity.ListAdsOutput{}, err
 	}
 	if total == 0 {
-		return []entity.Ad{}, 0, nil
+		return entity.ListAdsOutput{}, nil
 	}
 
 	switch in.SortBy {
@@ -306,26 +322,29 @@ func (r *Repository) ListAds(ctx context.Context, in ad_service.ListAdsInput) ([
 		Offset(uint64(offset)).
 		ToSql()
 	if err != nil {
-		return nil, 0, errwrap.Wrap("list ads builder", buildSQLError(err))
+		return entity.ListAdsOutput{}, errwrap.Wrap("list ads builder", buildSQLError(err))
 	}
 
 	q := database.Query{
-		Name: "ad_repository.ListAds",
+		Name: "ad_repository.List",
 		Sql:  sql,
 	}
 
 	rows, err := r.db.DB().QueryContext(ctx, q, args...)
 	if err != nil {
-		return nil, 0, executeSQLError(err)
+		return entity.ListAdsOutput{}, executeSQLError(err)
 	}
 	defer rows.Close()
 
 	ads := make(Ads, 0, limit)
 	if err := pgxscan.ScanAll(&ads, rows); err != nil {
-		return nil, 0, scanRowsError(err)
+		return entity.ListAdsOutput{}, scanRowsError(err)
 	}
 
-	return ads.ToEntityList(), total, nil
+	return entity.ListAdsOutput{
+		Total: total,
+		Ads:   ads.ToEntityList(),
+	}, nil
 }
 
 func (r *Repository) countAds(ctx context.Context, builder sq.SelectBuilder) (int, error) {
