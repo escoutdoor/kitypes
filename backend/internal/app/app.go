@@ -89,6 +89,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 	e.HTTPErrorHandler = customHttpErrorHandler
 
+	e.Use(echo_middleware.RequestID())
 	e.Use(echo_middleware.RequestLogger())
 	e.Use(echo_middleware.Recover())
 
@@ -144,22 +145,16 @@ func customHttpErrorHandler(err error, c echo.Context) {
 	var appErr *apperror.Error
 	if errors.As(err, &appErr) {
 		switch appErr.Code {
-		case code.AdNotFound:
-		case code.UserNotFound:
-		case code.ConversationNotFound:
+		case code.NotFound:
 			respCode = http.StatusNotFound
 
-		case code.EmailAlreadyExists:
-		case code.ConversationAlreadyExists:
+		case code.AlreadyExists:
 			respCode = http.StatusConflict
 
-		case code.JwtTokenExpired:
-		case code.IncorrectCreadentials:
-		case code.InvalidJwtToken:
+		case code.JwtTokenExpired, code.IncorrectCreadentials, code.InvalidJwtToken:
 			respCode = http.StatusUnauthorized
 
-		case code.PermissionDenied:
-		case code.CannotMessageYourself:
+		case code.PermissionDenied, code.CannotMessageYourself:
 			respCode = http.StatusForbidden
 		}
 
@@ -174,7 +169,7 @@ func customHttpErrorHandler(err error, c echo.Context) {
 
 	if he, ok := err.(*echo.HTTPError); ok {
 		respCode = he.Code
-		resp = map[string]interface{}{
+		resp = map[string]any{
 			"message": he.Message,
 		}
 	} else {

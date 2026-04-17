@@ -9,10 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const (
-	idParam = "id"
-)
-
 type userService interface {
 	GetByID(ctx context.Context, userID string) (entity.User, error)
 	Update(ctx context.Context, in entity.UpdateUser) (entity.User, error)
@@ -30,10 +26,10 @@ func RegisterHandlers(
 	cv *validator.CustomValidator,
 ) {
 	h := &handler{service: userService, cv: cv}
+	e.Use(authMw)
 
-	e.GET("/:id", h.getMe)
-
-	e.PATCH("/:id", h.updateUser, authMw)
+	e.GET("/me", h.getMe)
+	e.PATCH("/me", h.updateUser)
 }
 
 type meResponse struct {
@@ -52,18 +48,20 @@ type meResponse struct {
 }
 
 func meToResponse(user entity.User) meResponse {
+	var avatar string
+
+	if user.AvatarUrl != nil {
+		avatar = *user.AvatarUrl
+	}
+
 	return meResponse{
-		ID: user.ID,
-
-		AvatarUrl: *user.AvatarUrl,
-
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-
+		ID:          user.ID,
+		AvatarUrl:   avatar,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
 		Email:       user.Email,
 		PhoneNumber: user.PhoneNumber,
-
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
 	}
 }

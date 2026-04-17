@@ -41,7 +41,7 @@ func (s *Service) SendMessage(ctx context.Context, in entity.Message, adID strin
 			receiverID = s.getReceiver(conv, in.SenderID)
 		} else {
 			appErr := new(apperror.Error)
-			if errors.As(err, &appErr) && appErr.Code == code.ConversationNotFound {
+			if errors.As(err, &appErr) && appErr.Code == code.NotFound {
 				ad, err := s.adRepo.Get(ctx, adID)
 				if err != nil {
 					return errwrap.Wrap("get ad", err)

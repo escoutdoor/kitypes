@@ -15,7 +15,7 @@ func (s *Service) Login(ctx context.Context, in entity.User) (entity.Tokens, err
 	user, err := s.userRepo.GetByEmail(ctx, in.Email)
 	if err != nil {
 		appErr := new(apperror.Error)
-		if errors.As(err, &appErr) && appErr.Code == code.UserNotFound {
+		if errors.As(err, &appErr) && appErr.Code == code.NotFound {
 			return entity.Tokens{}, apperror.ErrIncorrectCreadentials
 		}
 

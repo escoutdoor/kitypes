@@ -14,7 +14,7 @@ var (
 
 	AdAccessDenied = newError(code.PermissionDenied, "only author can manage this ad")
 
-	ErrConversationNotFound  = newError(code.ConversationNotFound, "conversation not found")
+	ErrConversationNotFound  = newError(code.NotFound, "conversation not found")
 	ConversationAccessDenied = newError(code.PermissionDenied, "you cannot manage this conversation")
 	ErrCannotMessageYourself = newError(code.CannotMessageYourself, "you cannot message yourself")
 )
@@ -37,25 +37,25 @@ func newError(code code.Code, err string) *Error {
 
 func AdNotFoundID(adID string) *Error {
 	msg := fmt.Sprintf("advertisement with id %q was not found", adID)
-	return newError(code.AdNotFound, msg)
+	return newError(code.NotFound, msg)
 }
 
 func UserNotFoundID(userID string) *Error {
 	msg := fmt.Sprintf("user with id %q was not found", userID)
-	return newError(code.UserNotFound, msg)
+	return newError(code.NotFound, msg)
 }
 
 func ConversationNotFoundID(convID string) *Error {
 	msg := fmt.Sprintf("conversation with id %q was not found", convID)
-	return newError(code.ConversationNotFound, msg)
+	return newError(code.NotFound, msg)
 }
 
 func UserNotFoundEmail(email string) *Error {
 	msg := fmt.Sprintf("user with email %q was not found", email)
-	return newError(code.UserNotFound, msg)
+	return newError(code.NotFound, msg)
 }
 
 func EmailAlreadyExists(email string) *Error {
 	msg := fmt.Sprintf("user with email '%q is already exists", email)
-	return newError(code.EmailAlreadyExists, msg)
+	return newError(code.AlreadyExists, msg)
 }

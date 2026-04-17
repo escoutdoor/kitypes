@@ -2,17 +2,16 @@ package code
 
 type Code string
 
+// TODO: refactor to more general view
 const (
-	AdNotFound           Code = "AD_NOT_FOUND"
-	UserNotFound         Code = "USER_NOT_FOUND"
-	ConversationNotFound Code = "CONVERSATION_NOT_FOUND"
+	NotFound Code = "NOT_FOUND"
+
+	AlreadyExists Code = "ALREADY_EXISTS"
 
 	PermissionDenied Code = "PERMISSION_DENIED"
 
-	ConversationAlreadyExists Code = "CONVERSATION_ALREADY_EXISTS"
-	CannotMessageYourself     Code = "CANNOT_MESSAGE_YOURSELF"
+	CannotMessageYourself Code = "CANNOT_MESSAGE_YOURSELF"
 
-	EmailAlreadyExists    Code = "EMAIL_ALREADY_EXISTS"
 	IncorrectCreadentials Code = "INCORRECT_CREADENTIALS"
 	JwtTokenExpired       Code = "JWT_TOKEN_EXPIRED"
 	InvalidJwtToken       Code = "INVALID_JWT_TOKEN"

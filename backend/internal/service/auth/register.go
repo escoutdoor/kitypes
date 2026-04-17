@@ -16,7 +16,7 @@ func (s *Service) Register(ctx context.Context, in entity.User) (entity.Tokens, 
 	if err != nil {
 		appErr := new(apperror.Error)
 		if errors.As(err, &appErr) {
-			if appErr.Code != code.UserNotFound {
+			if appErr.Code != code.NotFound {
 				return entity.Tokens{}, errwrap.Wrap("get user by email from repository", err)
 			}
 		} else {
