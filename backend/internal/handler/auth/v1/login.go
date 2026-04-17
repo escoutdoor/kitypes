@@ -21,17 +21,15 @@ func (h *handler) login(c echo.Context) error {
 		return err
 	}
 
-	resp := loginResponse{Tokens: tokensToResponse(tokens)}
+	c.SetCookie(createRefreshCookie(tokens.RefreshToken))
+
+	resp := accessTokenToResponse(tokens.AccessToken)
 	return c.JSON(http.StatusOK, resp)
 }
 
 type loginRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8,max=50"`
-}
-
-type loginResponse struct {
-	Tokens authResponse `json:"tokens"`
 }
 
 func loginRequestToUser(req *loginRequest) entity.User {

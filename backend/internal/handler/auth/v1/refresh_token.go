@@ -7,26 +7,19 @@ import (
 )
 
 func (h *handler) refreshToken(c echo.Context) error {
-	req := new(refreshTokenRequest)
-	if err := h.cv.BindValidate(c, req); err != nil {
-		return err
+	refreshTokenCookie, err := c.Cookie(refreshTokenCookieKey)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, "refresh token not found")
 	}
 
 	ctx := c.Request().Context()
-
-	tokens, err := h.service.RefreshToken(ctx, req.RefreshToken)
+	tokens, err := h.service.RefreshToken(ctx, refreshTokenCookie.Value)
 	if err != nil {
 		return err
 	}
 
-	resp := refreshTokenResponse{Tokens: tokensToResponse(tokens)}
+	c.SetCookie(createRefreshCookie(tokens.RefreshToken))
+
+	resp := accessTokenToResponse(tokens.AccessToken)
 	return c.JSON(http.StatusCreated, resp)
-}
-
-type refreshTokenRequest struct {
-	RefreshToken string `json:"refreshToken" validate:"required"`
-}
-
-type refreshTokenResponse struct {
-	Tokens authResponse `json:"tokens"`
 }

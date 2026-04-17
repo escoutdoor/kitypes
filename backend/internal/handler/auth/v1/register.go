@@ -21,7 +21,9 @@ func (h *handler) register(c echo.Context) error {
 		return err
 	}
 
-	resp := registerResponse{Tokens: tokensToResponse(tokens)}
+	c.SetCookie(createRefreshCookie(tokens.RefreshToken))
+
+	resp := accessTokenToResponse(tokens.AccessToken)
 	return c.JSON(http.StatusCreated, resp)
 }
 
@@ -33,10 +35,6 @@ type registerRequest struct {
 	PhoneNumber string `json:"phoneNumber" validate:"required,e164"`
 
 	Password string `json:"password" validate:"required,min=8,max=20"`
-}
-
-type registerResponse struct {
-	Tokens authResponse `json:"tokens"`
 }
 
 func registerRequestToUser(req *registerRequest) entity.User {
