@@ -1,60 +1,63 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios"
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios"
+import { useAuthStore } from "@/store/auth.store"
 
-interface RetryableRequest extends InternalAxiosRequestConfig {
-	_isRetry?: boolean
+export interface CustomRequestConfig extends AxiosRequestConfig {
+    _skipAuthRefresh?: boolean
 }
 
-const api = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_API_URL,
-	headers: {
-		"Content-Type": "application/json",
-	},
-	withCredentials: true,
+interface CustomInternalRequestConfig extends InternalAxiosRequestConfig {
+    _isRetry?: boolean
+    _skipAuthRefresh?: boolean
+}
+
+export const api = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    headers: {
+        "Content-Type": "application/json",
+    },
+    withCredentials: true,
 })
 
 api.interceptors.request.use(config => {
-	const token = localStorage.getItem("accessToken")
-	if (token) {
-		config.headers.Authorization = `Bearer ${token}`
-	}
+    const token = useAuthStore.getState().accessToken;
 
-	return config
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
 })
 
-interface RefreshResponse {
-	accessToken: string
-}
-
 api.interceptors.response.use(
-	config => config,
-	async (error: AxiosError) => {
-		const originalRequest = error.config as RetryableRequest
+    (config) => config,
+    async (error: AxiosError) => {
+        const originalRequest = error.config as CustomInternalRequestConfig;
+        if (originalRequest._skipAuthRefresh) {
+            return Promise.reject(error)
+        }
 
-		if (
-			error.response?.status === 401 &&
-			originalRequest &&
-			!originalRequest._isRetry
-		) {
-			originalRequest._isRetry = true
+        if (error.response?.status === 401 && originalRequest && !originalRequest._isRetry) {
+            originalRequest._isRetry = true;
 
-			try {
-				const response = await axios.post<RefreshResponse>(
-					`${process.env.NEXT_PUBLIC_API_URL}/v1/auth/refresh`,
-					{},
-					{ withCredentials: true },
-				)
+            try {
+                const response = await axios.post(
+                    `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/refresh`,
+                    {},
+                    { withCredentials: true }
+                );
 
-				localStorage.setItem("accessToken", response.data.accessToken)
-				originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`
+                const newToken = response.data.accessToken;
 
-				return api.request(originalRequest)
-			} catch (e) {
-				localStorage.removeItem("accessToken")
-				return Promise.reject(e)
-			}
-		}
-		throw error
-	},
-)
+                // update zustand
+                useAuthStore.getState().setAccessToken(newToken);
 
-export { api }
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                return api.request(originalRequest);
+            } catch (e) {
+                // failed to update - logout
+                useAuthStore.getState().setAccessToken(null);
+                return Promise.reject(e);
+            }
+        }
+        throw error;
+    }
+);

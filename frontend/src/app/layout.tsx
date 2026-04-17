@@ -1,22 +1,30 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { QueryProvider } from "@/provider/QueryProvider"
+import { AuthProvider } from "@/provider/AuthProvider"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-	title: "Kitypes",
-	description: "",
+    title: "Kitypes",
+    description: "",
 }
 
 export default function RootLayout({
-	children,
+    children,
 }: Readonly<{
-	children: React.ReactNode
+    children: React.ReactNode
 }>) {
-	return (
-		<html lang="uk">
-			<body className={inter.className}>{children}</body>
-		</html>
-	)
+    return (
+        <html lang="uk">
+            <body className={inter.className}>
+                <QueryProvider>
+                    <AuthProvider>
+                        {children}
+                    </AuthProvider>
+                </QueryProvider>
+            </body>
+        </html>
+    )
 }
