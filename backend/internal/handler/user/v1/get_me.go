@@ -19,7 +19,7 @@ func (h *handler) getMe(c echo.Context) error {
 		return err
 	}
 
-	resp := getMeResponse{User: meToResponse(user)}
+	resp := getMeResponse{User: h.meToResponse(user)}
 	return c.JSON(http.StatusOK, resp)
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/escoutdoor/kitypes/backend/internal/chat"
+	"github.com/escoutdoor/kitypes/backend/internal/client/s3"
 	"github.com/escoutdoor/kitypes/backend/internal/config"
 	ad_repository "github.com/escoutdoor/kitypes/backend/internal/repository/ad"
 	conversation_repository "github.com/escoutdoor/kitypes/backend/internal/repository/conversation"
@@ -26,6 +27,7 @@ import (
 
 type di struct {
 	dbClient      database.Client
+	s3Client      *s3.Client
 	txManager     database.TxManager
 	tokenProvider *token.TokenProvider
 
@@ -71,6 +73,26 @@ func (d *di) DBClient(ctx context.Context) database.Client {
 	return d.dbClient
 }
 
+func (d *di) S3Client(ctx context.Context) *s3.Client {
+	if d.s3Client == nil {
+		client, err := s3.NewClient(
+			ctx,
+			config.Config().S3.Region(),
+			config.Config().S3.AccessKey(),
+			config.Config().S3.SecretAccessKey(),
+			config.Config().S3.BucketName(),
+			config.Config().S3.PublicBaseURL(),
+		)
+		if err != nil {
+			logger.Fatal(ctx, "new s3 client", err)
+		}
+
+		d.s3Client = client
+	}
+
+	return d.s3Client
+}
+
 func (d *di) RedisClient(ctx context.Context) *redis.Client {
 	if d.redisClient == nil {
 		logger.Info(ctx, config.Config().Redis)
@@ -114,7 +136,7 @@ func (d *di) AdRepository(ctx context.Context) *ad_repository.Repository {
 
 func (d *di) AdService(ctx context.Context) *ad_service.Service {
 	if d.adService == nil {
-		d.adService = ad_service.New(d.AdRepository(ctx), d.TxManager(ctx))
+		d.adService = ad_service.New(d.AdRepository(ctx), d.TxManager(ctx), d.S3Client(ctx))
 	}
 
 	return d.adService
@@ -159,7 +181,7 @@ func (d *di) AuthService(ctx context.Context) *auth_service.Service {
 
 func (d *di) UserService(ctx context.Context) *user_service.Service {
 	if d.userService == nil {
-		d.userService = user_service.New(d.UserRepository(ctx))
+		d.userService = user_service.New(d.UserRepository(ctx), d.S3Client(ctx))
 	}
 
 	return d.userService

@@ -16,7 +16,7 @@ const (
 
 type authService interface {
 	Login(ctx context.Context, in entity.User) (entity.Tokens, error)
-	Register(ctx context.Context, in entity.User) (entity.Tokens, error)
+	Register(ctx context.Context, in entity.CreateUserInput) (entity.Tokens, error)
 	RefreshToken(ctx context.Context, refreshToken string) (entity.Tokens, error)
 }
 

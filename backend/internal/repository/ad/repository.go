@@ -18,14 +18,14 @@ const (
 	defaultLimit  = 10
 	defaultOffset = 0
 
-	tableName = "advertisements"
+	tableName       = "advertisements"
+	imagesTableName = "advertisement_images"
 
 	idColumn       = "id"
 	authorIDColumn = "author_id"
 
 	titleColumn       = "title"
 	descriptionColumn = "description"
-	imageUrlColumn    = "image_url"
 
 	petTypeColumn     = "pet_type"
 	petGenderColumn   = "pet_gender"
@@ -39,6 +39,10 @@ const (
 
 	createdAtColumn = "created_at"
 	updatedAtColumn = "updated_at"
+
+	// ad_images
+	adIDColumn     = "ad_id"
+	imageKeyColumn = "image_key"
 )
 
 type Repository struct {
@@ -59,7 +63,6 @@ func (r *Repository) Get(ctx context.Context, adID string) (entity.Ad, error) {
 		authorIDColumn,
 		titleColumn,
 		descriptionColumn,
-		imageUrlColumn,
 		petTypeColumn,
 		petGenderColumn,
 		petAgeMonthColumn,
@@ -96,16 +99,21 @@ func (r *Repository) Get(ctx context.Context, adID string) (entity.Ad, error) {
 		return entity.Ad{}, scanRowError(err)
 	}
 
+	keys, err := r.GetImageKeys(ctx, ad.ID)
+	if err != nil {
+		return entity.Ad{}, errwrap.Wrap("get images keys", err)
+	}
+
+	ad.ImageKeys = keys
 	return ad.ToEntity(), nil
 }
 
-func (r *Repository) Create(ctx context.Context, in entity.Ad) (string, error) {
+func (r *Repository) Create(ctx context.Context, in entity.CreateAdInput) (string, error) {
 	builder := r.qb.Insert(tableName).
 		Columns(
 			authorIDColumn,
 			titleColumn,
 			descriptionColumn,
-			imageUrlColumn,
 			petTypeColumn,
 			petGenderColumn,
 			countryColumn,
@@ -113,10 +121,9 @@ func (r *Repository) Create(ctx context.Context, in entity.Ad) (string, error) {
 			statusColumn,
 		).
 		Values(
-			in.AuthorID,
+			in.UserID,
 			in.Title,
 			in.Description,
-			in.ImageUrl,
 			in.PetType,
 			in.PetGender,
 			in.Country,
@@ -171,28 +178,16 @@ func (r *Repository) Delete(ctx context.Context, adID string) error {
 	return nil
 }
 
-func (r *Repository) Update(ctx context.Context, in entity.UpdateAd) (entity.Ad, error) {
+func (r *Repository) Update(ctx context.Context, in entity.UpdateAdInput) error {
 	builder := r.qb.Update(tableName).
 		Where(sq.Eq{idColumn: in.ID}).
-		Set(updatedAtColumn, time.Now()).
-		Suffix(`
-            RETURNING 
-                id, author_id,
-                title, description,
-                image_url, pet_type,
-                pet_gender, pet_age_month,
-                pet_breed, country, city,
-                status, updated_at, created_at
-        `)
+		Set(updatedAtColumn, time.Now())
 
 	if in.Title != nil {
 		builder = builder.Set(titleColumn, *in.Title)
 	}
 	if in.Description != nil {
 		builder = builder.Set(descriptionColumn, *in.Description)
-	}
-	if in.ImageUrl != nil {
-		builder = builder.Set(imageUrlColumn, *in.ImageUrl)
 	}
 	if in.PetType != nil {
 		builder = builder.Set(petTypeColumn, *in.PetType)
@@ -218,7 +213,7 @@ func (r *Repository) Update(ctx context.Context, in entity.UpdateAd) (entity.Ad,
 
 	sql, args, err := builder.ToSql()
 	if err != nil {
-		return entity.Ad{}, buildSQLError(err)
+		return buildSQLError(err)
 	}
 
 	q := database.Query{
@@ -226,18 +221,11 @@ func (r *Repository) Update(ctx context.Context, in entity.UpdateAd) (entity.Ad,
 		Sql:  sql,
 	}
 
-	row, err := r.db.DB().QueryContext(ctx, q, args...)
-	if err != nil {
-		return entity.Ad{}, executeSQLError(err)
-	}
-	defer row.Close()
-
-	var ad Ad
-	if err := pgxscan.ScanOne(&ad, row); err != nil {
-		return entity.Ad{}, scanRowError(err)
+	if _, err := r.db.DB().ExecContext(ctx, q, args...); err != nil {
+		return executeSQLError(err)
 	}
 
-	return ad.ToEntity(), nil
+	return nil
 }
 
 func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.ListAdsOutput, error) {
@@ -307,7 +295,6 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 			authorIDColumn,
 			titleColumn,
 			descriptionColumn,
-			imageUrlColumn,
 			petTypeColumn,
 			petGenderColumn,
 			petAgeMonthColumn,
@@ -341,6 +328,19 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 		return entity.ListAdsOutput{}, scanRowsError(err)
 	}
 
+	// get ad images
+	adIDs := make([]string, len(ads))
+	for i, a := range ads {
+		adIDs[i] = a.ID
+	}
+	imgMap, err := r.getImagesMapForAds(ctx, adIDs)
+	if err != nil {
+		return entity.ListAdsOutput{}, errwrap.Wrap("get images map for ads", err)
+	}
+	for i := range ads {
+		ads[i].ImageKeys = imgMap[ads[i].ID]
+	}
+
 	return entity.ListAdsOutput{
 		Total: total,
 		Ads:   ads.ToEntityList(),
@@ -364,4 +364,112 @@ func (r *Repository) countAds(ctx context.Context, builder sq.SelectBuilder) (in
 	}
 
 	return total, nil
+}
+
+func (r *Repository) GetImageKeys(ctx context.Context, adID string) ([]string, error) {
+	sql, args, err := r.qb.Select(imageKeyColumn).
+		From(imagesTableName).
+		Where(sq.Eq{adIDColumn: adID}).
+		ToSql()
+	if err != nil {
+		return nil, buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "ad_repository.GetImageKeys",
+		Sql:  sql,
+	}
+
+	rows, err := r.db.DB().QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, executeSQLError(err)
+	}
+	defer rows.Close()
+
+	var keys []string
+	if err := pgxscan.ScanAll(&keys, rows); err != nil {
+		return nil, scanRowsError(err)
+	}
+
+	return keys, nil
+}
+
+func (r *Repository) AddImages(ctx context.Context, adID string, keys []string) error {
+	builder := r.qb.Insert(imagesTableName).Columns(adIDColumn, imageKeyColumn)
+	for _, k := range keys {
+		builder = builder.Values(adID, k)
+	}
+
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "ad_repository.AddImages",
+		Sql:  sql,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return executeSQLError(err)
+	}
+
+	return nil
+}
+
+func (r *Repository) DeleteImages(ctx context.Context, adID string) error {
+	sql, args, err := r.qb.Delete(imagesTableName).Where(sq.Eq{adIDColumn: adID}).ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "ad_repository.DeleteImages",
+		Sql:  sql,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return executeSQLError(err)
+	}
+
+	return nil
+}
+
+func (r *Repository) getImagesMapForAds(ctx context.Context, adIDs []string) (map[string][]string, error) {
+	if len(adIDs) == 0 {
+		return make(map[string][]string), nil
+	}
+
+	sql, args, err := r.qb.Select(adIDColumn, imageKeyColumn).
+		From(imagesTableName).
+		Where(sq.Eq{adIDColumn: adIDs}).
+		ToSql()
+	if err != nil {
+		return nil, buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "ad_repository.getImagesMapForAds",
+		Sql:  sql,
+	}
+
+	rows, err := r.db.DB().QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, executeSQLError(err)
+	}
+	defer rows.Close()
+
+	var imgs []adImageMapping
+	if err := pgxscan.ScanAll(&imgs, rows); err != nil {
+		return nil, scanRowsError(err)
+	}
+
+	imgMap := make(map[string][]string)
+	for _, img := range imgs {
+		imgMap[img.AdID] = append(imgMap[img.AdID], img.Key)
+	}
+
+	return imgMap, nil
 }

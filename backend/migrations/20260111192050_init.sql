@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users
     first_name text not null,
     last_name text not null,
 
-    avatar_url text,
+    avatar_key text,
 
     email text unique not null,
     phone_number text unique,
@@ -39,6 +39,13 @@ CREATE TABLE IF NOT EXISTS advertisements
 
     created_at timestamptz default now(),
     updated_at timestamptz default now()
+);
+
+CREATE TABLE IF NOT EXISTS advertisement_images
+(
+    ad_id uuid not null references advertisements(id) on delete cascade,
+    image_key text not null,
+    created_at timestamptz default now()
 );
 
 CREATE TABLE IF NOT EXISTS favorite_ads(
@@ -82,6 +89,7 @@ CREATE TABLE IF NOT EXISTS conversation_messages
 DROP TABLE IF EXISTS conversation_messages;
 DROP TABLE IF EXISTS conversations;
 DROP TABLE IF EXISTS favorite_ads;
+DROP TABLE IF EXISTS ad_images;
 DROP TABLE IF EXISTS advertisements;
 DROP TABLE IF EXISTS users;
 -- +goose StatementEnd

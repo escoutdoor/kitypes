@@ -15,10 +15,13 @@ const (
 
 type adService interface {
 	Get(ctx context.Context, adID string) (entity.Ad, error)
-	Create(ctx context.Context, in entity.Ad) (entity.Ad, error)
-	Update(ctx context.Context, in entity.UpdateAd) (entity.Ad, error)
+	Create(ctx context.Context, in entity.CreateAdInput) (entity.Ad, error)
+	Update(ctx context.Context, in entity.UpdateAdInput) (entity.Ad, error)
 	Delete(ctx context.Context, userID string, adID string) error
 	List(ctx context.Context, in entity.ListAdsInput) (entity.ListAdsOutput, error)
+
+	GenerateUploadURL(ctx context.Context, ext string) (string, string, error)
+	BuildPublicURL(key string) string
 }
 
 type handler struct {
@@ -35,12 +38,11 @@ func RegisterHandlers(
 	h := &handler{service: adService, cv: cv}
 
 	e.POST("/", h.create, authMw)
+	e.GET("/upload-url", h.getUploadUrl, authMw)
 
 	e.GET("/", h.list)
 	e.GET("/:id", h.get)
-
 	e.PATCH("/:id", h.update, authMw)
-
 	e.DELETE("/:id", h.delete, authMw)
 }
 
@@ -48,9 +50,9 @@ type adResponse struct {
 	ID       string `json:"id"`
 	AuthorID string `json:"authorId"`
 
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	ImageUrl    string `json:"imageUrl"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	ImageUrls   []string `json:"imageUrls"`
 
 	PetType     int32   `json:"petType"`
 	PetGender   int32   `json:"petGender"`
@@ -66,14 +68,18 @@ type adResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func adToResponse(ad entity.Ad) adResponse {
-	return adResponse{
-		ID:       ad.ID,
-		AuthorID: ad.AuthorID,
+func (h *handler) adToResponse(ad entity.Ad) adResponse {
+	urls := make([]string, 0, len(ad.ImageKeys))
+	for _, key := range ad.ImageKeys {
+		urls = append(urls, h.service.BuildPublicURL(key))
+	}
 
+	return adResponse{
+		ID:          ad.ID,
+		AuthorID:    ad.AuthorID,
 		Title:       ad.Title,
 		Description: ad.Description,
-		ImageUrl:    ad.ImageUrl,
+		ImageUrls:   urls,
 
 		PetType:     int32(ad.PetType),
 		PetGender:   int32(ad.PetGender),
@@ -90,10 +96,10 @@ func adToResponse(ad entity.Ad) adResponse {
 	}
 }
 
-func adsToResponse(ads []entity.Ad) []adResponse {
+func (h *handler) adsToResponse(ads []entity.Ad) []adResponse {
 	list := make([]adResponse, 0, len(ads))
 	for _, a := range ads {
-		list = append(list, adToResponse(a))
+		list = append(list, h.adToResponse(a))
 	}
 
 	return list

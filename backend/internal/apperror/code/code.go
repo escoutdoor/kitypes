@@ -12,6 +12,8 @@ const (
 
 	CannotMessageYourself Code = "CANNOT_MESSAGE_YOURSELF"
 
+	EmptyUpdate Code = "EMPTY_UPDATE"
+
 	IncorrectCreadentials Code = "INCORRECT_CREADENTIALS"
 	JwtTokenExpired       Code = "JWT_TOKEN_EXPIRED"
 	InvalidJwtToken       Code = "INVALID_JWT_TOKEN"

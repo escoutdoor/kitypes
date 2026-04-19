@@ -19,14 +19,14 @@ func (h *handler) create(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	in := createRequestToAd(req, userID)
+	in := createRequestToInput(req, userID)
 
 	ad, err := h.service.Create(ctx, in)
 	if err != nil {
 		return err
 	}
 
-	resp := createResponse{Ad: adToResponse(ad)}
+	resp := createResponse{Ad: h.adToResponse(ad)}
 	return c.JSON(http.StatusCreated, resp)
 }
 
@@ -35,9 +35,9 @@ type createResponse struct {
 }
 
 type createRequest struct {
-	Title       string `json:"title" validate:"required"`
-	Description string `json:"description" validate:"required"`
-	ImageUrl    string `json:"imageUrl" validate:"required,url"`
+	Title       string   `json:"title" validate:"required"`
+	Description string   `json:"description" validate:"required"`
+	ImageKeys   []string `json:"imageKeys" validate:"required,min=1"`
 
 	PetType     int32   `json:"petType" validate:"required,gte=1"`
 	PetGender   int32   `json:"petGender" validate:"required,gte=0"`
@@ -48,13 +48,13 @@ type createRequest struct {
 	City    string `json:"city" validate:"required"`
 }
 
-func createRequestToAd(req *createRequest, authorID string) entity.Ad {
-	return entity.Ad{
-		AuthorID: authorID,
+func createRequestToInput(req *createRequest, userID string) entity.CreateAdInput {
+	return entity.CreateAdInput{
+		UserID: userID,
 
 		Title:       req.Title,
 		Description: req.Description,
-		ImageUrl:    req.ImageUrl,
+		ImageKeys:   req.ImageKeys,
 
 		PetType:     entity.PetType(req.PetType),
 		PetGender:   entity.PetGender(req.PetGender),

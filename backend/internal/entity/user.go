@@ -5,7 +5,7 @@ import "time"
 type User struct {
 	ID string
 
-	AvatarUrl *string
+	AvatarKey *string
 
 	FirstName string
 	LastName  string
@@ -24,10 +24,20 @@ type Tokens struct {
 	RefreshToken string
 }
 
-type UpdateUser struct {
+type CreateUserInput struct {
+	FirstName string
+	LastName  string
+
+	Email       string
+	PhoneNumber string
+
+	Password string
+}
+
+type UpdateUserInput struct {
 	ID string
 
-	AvatarUrl *string
+	AvatarKey *string
 
 	FirstName *string
 	LastName  *string

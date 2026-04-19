@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios"
-import { UpdateUserRequest, User, UserResponse } from "./user.interface"
+import { UpdateUserRequest, UploadUrlResponse, User, UserResponse } from "./user.interface"
 
 const USERS_URL = "/v1/users"
 
@@ -12,5 +12,10 @@ export class UserService {
     static async update(data: UpdateUserRequest): Promise<User> {
         const resp = await api.patch<UserResponse>(`${USERS_URL}/me`, data)
         return resp.data.user
+    }
+
+    static async getUploadUrl(ext: string): Promise<UploadUrlResponse> {
+        const resp = await api.get<UploadUrlResponse>(`${USERS_URL}/upload-url?ext=${ext}`)
+        return resp.data;
     }
 }

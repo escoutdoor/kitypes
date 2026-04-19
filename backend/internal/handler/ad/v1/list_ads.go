@@ -21,7 +21,7 @@ func (h *handler) list(c echo.Context) error {
 		return err
 	}
 
-	resp := listResponse{Ads: adsToResponse(out.Ads), Total: out.Total}
+	resp := listResponse{Ads: h.adsToResponse(out.Ads), Total: out.Total}
 	return c.JSON(http.StatusOK, resp)
 }
 

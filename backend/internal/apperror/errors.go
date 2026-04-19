@@ -17,6 +17,8 @@ var (
 	ErrConversationNotFound  = newError(code.NotFound, "conversation not found")
 	ConversationAccessDenied = newError(code.PermissionDenied, "you cannot manage this conversation")
 	ErrCannotMessageYourself = newError(code.CannotMessageYourself, "you cannot message yourself")
+
+	ErrEmptyUpdate = newError(code.EmptyUpdate, "nothing to update")
 )
 
 type Error struct {

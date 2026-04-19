@@ -14,6 +14,7 @@ type config struct {
 	Postgres   Postgres
 	JwtToken   JwtToken
 	Redis      Redis
+	S3         S3
 }
 
 var cfg *config
@@ -56,6 +57,14 @@ type Redis interface {
 	TTL() time.Duration
 }
 
+type S3 interface {
+	Region() string
+	AccessKey() string
+	SecretAccessKey() string
+	BucketName() string
+	PublicBaseURL() string
+}
+
 func Load(paths ...string) error {
 	if len(paths) > 0 {
 		if err := godotenv.Load(paths...); err != nil {
@@ -88,12 +97,18 @@ func Load(paths ...string) error {
 		return errwrap.Wrap("redis config", err)
 	}
 
+	s3Config, err := env.NewS3Config()
+	if err != nil {
+		return errwrap.Wrap("s3 config", err)
+	}
+
 	cfg = &config{
 		App:        appConfig,
 		HttpServer: httpServerConfig,
 		Postgres:   postgresConfig,
 		JwtToken:   jwtTokenConfig,
 		Redis:      redisConfig,
+		S3:         s3Config,
 	}
 
 	return nil

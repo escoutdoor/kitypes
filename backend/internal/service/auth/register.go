@@ -11,7 +11,7 @@ import (
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 )
 
-func (s *Service) Register(ctx context.Context, in entity.User) (entity.Tokens, error) {
+func (s *Service) Register(ctx context.Context, in entity.CreateUserInput) (entity.Tokens, error) {
 	user, err := s.userRepo.GetByEmail(ctx, in.Email)
 	if err != nil {
 		appErr := new(apperror.Error)

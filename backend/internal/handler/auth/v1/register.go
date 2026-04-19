@@ -14,7 +14,7 @@ func (h *handler) register(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	in := registerRequestToUser(req)
+	in := registerRequestToInput(req)
 
 	tokens, err := h.service.Register(ctx, in)
 	if err != nil {
@@ -37,8 +37,8 @@ type registerRequest struct {
 	Password string `json:"password" validate:"required,min=8,max=20"`
 }
 
-func registerRequestToUser(req *registerRequest) entity.User {
-	return entity.User{
+func registerRequestToInput(req *registerRequest) entity.CreateUserInput {
+	return entity.CreateUserInput{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 

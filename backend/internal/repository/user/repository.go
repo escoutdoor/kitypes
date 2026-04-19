@@ -20,7 +20,7 @@ const (
 
 	idColumn = "id"
 
-	avatarUrlColumn = "avatar_url"
+	avatarKeyColumn = "avatar_key"
 
 	firstNameColumn = "first_name"
 	lastNameColumn  = "last_name"
@@ -49,7 +49,7 @@ func New(db database.Client) *Repository {
 func (r *Repository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
 	sql, args, err := r.qb.Select(
 		idColumn,
-		avatarUrlColumn,
+		avatarKeyColumn,
 		firstNameColumn,
 		lastNameColumn,
 		emailColumn,
@@ -90,7 +90,7 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (entity.User,
 func (r *Repository) GetByID(ctx context.Context, userID string) (entity.User, error) {
 	sql, args, err := r.qb.Select(
 		idColumn,
-		avatarUrlColumn,
+		avatarKeyColumn,
 		firstNameColumn,
 		lastNameColumn,
 		emailColumn,
@@ -128,7 +128,7 @@ func (r *Repository) GetByID(ctx context.Context, userID string) (entity.User, e
 	return u.ToEntity(), nil
 }
 
-func (r *Repository) Create(ctx context.Context, in entity.User) (string, error) {
+func (r *Repository) Create(ctx context.Context, in entity.CreateUserInput) (string, error) {
 	sql, args, err := r.qb.Insert(tableName).
 		Columns(
 			firstNameColumn,
@@ -163,11 +163,12 @@ func (r *Repository) Create(ctx context.Context, in entity.User) (string, error)
 	return createdUserID, nil
 }
 
-func (r *Repository) Update(ctx context.Context, in entity.UpdateUser) (entity.User, error) {
+func (r *Repository) Update(ctx context.Context, in entity.UpdateUserInput) (entity.User, error) {
 	builder := r.qb.Update(tableName).
 		Where(sq.Eq{idColumn: in.ID}).
 		Suffix(`RETURNING 
             id,
+			avatar_key,
             first_name,
             last_name,
             email,
@@ -176,8 +177,8 @@ func (r *Repository) Update(ctx context.Context, in entity.UpdateUser) (entity.U
             created_at,
             updated_at
         `)
-	if in.AvatarUrl != nil {
-		builder = builder.Set(avatarUrlColumn, *in.AvatarUrl)
+	if in.AvatarKey != nil {
+		builder = builder.Set(avatarKeyColumn, *in.AvatarKey)
 	}
 	if in.FirstName != nil {
 		builder = builder.Set(firstNameColumn, *in.FirstName)

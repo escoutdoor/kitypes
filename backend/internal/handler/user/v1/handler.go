@@ -11,7 +11,10 @@ import (
 
 type userService interface {
 	GetByID(ctx context.Context, userID string) (entity.User, error)
-	Update(ctx context.Context, in entity.UpdateUser) (entity.User, error)
+	Update(ctx context.Context, in entity.UpdateUserInput) (entity.User, error)
+
+	GenerateUploadURL(ctx context.Context, ext string) (string, string, error)
+	BuildPublicURL(key string) string
 }
 
 type handler struct {
@@ -29,13 +32,14 @@ func RegisterHandlers(
 	e.Use(authMw)
 
 	e.GET("/me", h.getMe)
+	e.GET("/upload-url", h.getUploadUrl, authMw)
 	e.PATCH("/me", h.updateUser)
 }
 
 type meResponse struct {
 	ID string `json:"id"`
 
-	AvatarUrl string `json:"avatarUrl"`
+	AvatarUrl *string `json:"avatarUrl"`
 
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -47,16 +51,16 @@ type meResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func meToResponse(user entity.User) meResponse {
-	var avatar string
-
-	if user.AvatarUrl != nil {
-		avatar = *user.AvatarUrl
+func (h *handler) meToResponse(user entity.User) meResponse {
+	var avatarUrl *string
+	if user.AvatarKey != nil {
+		url := h.service.BuildPublicURL(*user.AvatarKey)
+		avatarUrl = &url
 	}
 
 	return meResponse{
 		ID:          user.ID,
-		AvatarUrl:   avatar,
+		AvatarUrl:   avatarUrl,
 		FirstName:   user.FirstName,
 		LastName:    user.LastName,
 		Email:       user.Email,

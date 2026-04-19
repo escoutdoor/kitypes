@@ -20,19 +20,19 @@ func (h *handler) updateUser(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	in := updateUserRequestToUpdate(req, userID)
+	in := updateUserRequestToInput(req, userID)
 
 	user, err := h.service.Update(ctx, in)
 	if err != nil {
 		return err
 	}
 
-	resp := updateUserResponse{User: meToResponse(user)}
+	resp := updateUserResponse{User: h.meToResponse(user)}
 	return c.JSON(http.StatusOK, resp)
 }
 
 type updateUserRequest struct {
-	AvatarUrl *string `json:"avatarUrl" validate:"omitempty,url"`
+	AvatarKey *string `json:"avatarKey" validate:"omitempty,min=20"`
 
 	FirstName *string `json:"firstName" validate:"omitempty,min=1,max=20"`
 	LastName  *string `json:"lastName" validate:"omitempty,min=1,max=20"`
@@ -47,11 +47,11 @@ type updateUserResponse struct {
 	User meResponse `json:"user"`
 }
 
-func updateUserRequestToUpdate(req *updateUserRequest, userID string) entity.UpdateUser {
-	return entity.UpdateUser{
+func updateUserRequestToInput(req *updateUserRequest, userID string) entity.UpdateUserInput {
+	return entity.UpdateUserInput{
 		ID: userID,
 
-		AvatarUrl: req.AvatarUrl,
+		AvatarKey: req.AvatarKey,
 
 		FirstName: req.FirstName,
 		LastName:  req.LastName,

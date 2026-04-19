@@ -3,12 +3,12 @@ package entity
 import "time"
 
 type Ad struct {
-	ID       string
-	AuthorID string
-
+	ID          string
+	AuthorID    string
 	Title       string
 	Description string
-	ImageUrl    string
+
+	ImageKeys []string
 
 	PetType     PetType
 	PetGender   PetGender
@@ -46,13 +46,31 @@ const (
 	PetTypeOther
 )
 
-type UpdateAd struct {
+type CreateAdInput struct {
+	UserID      string
+	Title       string
+	Description string
+
+	ImageKeys []string
+
+	PetType     PetType
+	PetGender   PetGender
+	PetAgeMonth *int32
+	PetBreed    *string
+
+	Country string
+	City    string
+
+	Status AdStatus
+}
+
+type UpdateAdInput struct {
 	ID     string
 	UserID string
 
 	Title       *string
 	Description *string
-	ImageUrl    *string
+	ImageKeys   []string
 
 	PetType     *PetType
 	PetGender   *PetGender

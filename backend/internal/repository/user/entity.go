@@ -10,7 +10,7 @@ import (
 type User struct {
 	ID string `db:"id"`
 
-	AvatarUrl *string `db:"avatar_url"`
+	AvatarKey *string `db:"avatar_key"`
 
 	FirstName string `db:"first_name"`
 	LastName  string `db:"last_name"`
@@ -28,7 +28,7 @@ func (u User) ToEntity() entity.User {
 	return entity.User{
 		ID: u.ID,
 
-		AvatarUrl: u.AvatarUrl,
+		AvatarKey: u.AvatarKey,
 
 		FirstName: u.FirstName,
 		LastName:  u.LastName,

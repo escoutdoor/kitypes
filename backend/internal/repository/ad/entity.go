@@ -11,9 +11,9 @@ type Ad struct {
 	ID       string `db:"id"`
 	AuthorID string `db:"author_id"`
 
-	Title       string `db:"title"`
-	Description string `db:"description"`
-	ImageUrl    string `db:"image_url"`
+	Title       string   `db:"title"`
+	Description string   `db:"description"`
+	ImageKeys   []string `db:"-"`
 
 	PetType     entity.PetType   `db:"pet_type"`
 	PetGender   entity.PetGender `db:"pet_gender"`
@@ -36,7 +36,7 @@ func (a Ad) ToEntity() entity.Ad {
 
 		Title:       a.Title,
 		Description: a.Description,
-		ImageUrl:    a.ImageUrl,
+		ImageKeys:   a.ImageKeys,
 
 		PetType:     a.PetType,
 		PetGender:   a.PetGender,
@@ -78,4 +78,9 @@ func scanRowError(err error) error {
 
 func scanRowsError(err error) error {
 	return errwrap.Wrap("scan rows", err)
+}
+
+type adImageMapping struct {
+	AdID string `db:"ad_id"`
+	Key  string `db:"image_key"`
 }

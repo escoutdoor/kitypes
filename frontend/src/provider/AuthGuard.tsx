@@ -5,19 +5,19 @@ import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "next/navigation";
 import { Loader } from "@/components/ui/loader";
 
-export function GuestGuard({ children }: { children: React.ReactNode }) {
+export function AuthGuard({ children }: { children: React.ReactNode }) {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const isInitializing = useAuthStore((state) => state.isInitializing);
     const router = useRouter();
 
     useEffect(() => {
-        if (!isInitializing && isAuthenticated) {
-            // user is logged in
-            router.replace("/");
+        // initialized but not logged in
+        if (!isInitializing && !isAuthenticated) {
+            router.replace("/login");
         }
     }, [isAuthenticated, isInitializing, router]);
 
-    if (isInitializing || isAuthenticated) {
+    if (isInitializing || !isAuthenticated) {
         return (
             <Loader fullScreen />
         );
