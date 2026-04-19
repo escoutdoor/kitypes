@@ -106,3 +106,8 @@ type ListAdsOutput struct {
 	Ads   []Ad
 	Total int
 }
+
+type AdImageUploadTarget struct {
+	UploadURL string
+	ImageKey  string
+}

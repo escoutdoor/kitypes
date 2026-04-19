@@ -35,12 +35,12 @@ type listRequest struct {
 	Country *string `query:"country"`
 	City    *string `query:"city"`
 
-	PetType   *int32 `query:"petType" validate:"omitempty,gte=1"`
-	PetGender *int32 `query:"petGender" validate:"omitempty,gte=1"`
-	Status    *int32 `query:"status" validate:"omitempty,gte=1"`
+	PetType   *int32 `query:"petType" validate:"omitempty,oneof=1 2 3"`
+	PetGender *int32 `query:"petGender" validate:"omitempty,oneof=1 2"`
+	Status    *int32 `query:"status" validate:"omitempty,oneof=1 2"`
 
 	MinPetAgeMonth *int32 `query:"minPetAgeMonth" validate:"omitempty,gte=0"`
-	MaxPetAgeMonth *int32 `query:"minPetAgeMonth" validate:"omitempty,gtefield=MaxPetAgeMonth"`
+	MaxPetAgeMonth *int32 `query:"maxPetAgeMonth" validate:"omitempty,gte=0"`
 }
 
 type listResponse struct {

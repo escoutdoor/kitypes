@@ -9,7 +9,7 @@ type s3Config struct {
 	S3AccessKey       string `env:"AWS_ACCESS_KEY,required"`
 	S3SecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY,required"`
 	S3BucketName      string `env:"AWS_S3_BUCKET_NAME,required"`
-	S3PublicBaseUrl   string `env:"AWS_PUBLIC_BASE_URL,required"`
+	S3PublicBaseURL   string `env:"AWS_PUBLIC_BASE_URL,required"`
 }
 
 func NewS3Config() (*s3Config, error) {
@@ -38,5 +38,5 @@ func (c *s3Config) BucketName() string {
 }
 
 func (c *s3Config) PublicBaseURL() string {
-	return c.S3PublicBaseUrl
+	return c.S3PublicBaseURL
 }

@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	ErrJwtTokenExpired       = newError(code.JwtTokenExpired, "jwt token is already expired")
-	ErrInvalidJwtToken       = newError(code.InvalidJwtToken, "invalid jwt token")
-	ErrIncorrectCreadentials = newError(code.IncorrectCreadentials, "incorrect creadentials")
+	ErrJwtTokenExpired      = newError(code.JwtTokenExpired, "jwt token is already expired")
+	ErrInvalidJwtToken      = newError(code.InvalidJwtToken, "invalid jwt token")
+	ErrIncorrectCredentials = newError(code.IncorrectCreadentials, "incorrect credentials")
 
 	AdAccessDenied = newError(code.PermissionDenied, "only author can manage this ad")
 
@@ -19,6 +19,10 @@ var (
 	ErrCannotMessageYourself = newError(code.CannotMessageYourself, "you cannot message yourself")
 
 	ErrEmptyUpdate = newError(code.EmptyUpdate, "nothing to update")
+
+	ErrInvalidPetAgeMonthRange = newError(code.InvalidRequest, "invalid pet age month range")
+
+	ErrInvalidUploadBatchSize = newError(code.InvalidRequest, "files count must be between 1 and 10")
 )
 
 type Error struct {
@@ -28,6 +32,10 @@ type Error struct {
 
 func (e *Error) Error() string {
 	return e.Err.Error()
+}
+
+func (e *Error) Unwrap() error {
+	return e.Err
 }
 
 func newError(code code.Code, err string) *Error {
@@ -58,6 +66,11 @@ func UserNotFoundEmail(email string) *Error {
 }
 
 func EmailAlreadyExists(email string) *Error {
-	msg := fmt.Sprintf("user with email '%q is already exists", email)
+	msg := fmt.Sprintf("user with email %q is already exists", email)
+
 	return newError(code.AlreadyExists, msg)
+}
+
+func UnsupportedImageExtension(ext string) *Error {
+	return newError(code.InvalidRequest, fmt.Sprintf("unsupported image extension %q, allowed: .jpg, .jpeg, .png, .webp", ext))
 }

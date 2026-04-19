@@ -32,14 +32,14 @@ func RegisterHandlers(
 	e.Use(authMw)
 
 	e.GET("/me", h.getMe)
-	e.GET("/upload-url", h.getUploadUrl, authMw)
+	e.GET("/upload-url", h.getUploadURL, authMw)
 	e.PATCH("/me", h.updateUser)
 }
 
 type meResponse struct {
 	ID string `json:"id"`
 
-	AvatarUrl *string `json:"avatarUrl"`
+	AvatarURL *string `json:"avatarUrl"`
 
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -52,15 +52,15 @@ type meResponse struct {
 }
 
 func (h *handler) meToResponse(user entity.User) meResponse {
-	var avatarUrl *string
+	var avatarURL *string
 	if user.AvatarKey != nil {
 		url := h.service.BuildPublicURL(*user.AvatarKey)
-		avatarUrl = &url
+		avatarURL = &url
 	}
 
 	return meResponse{
 		ID:          user.ID,
-		AvatarUrl:   avatarUrl,
+		AvatarURL:   avatarURL,
 		FirstName:   user.FirstName,
 		LastName:    user.LastName,
 		Email:       user.Email,

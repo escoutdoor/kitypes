@@ -35,17 +35,17 @@ type createResponse struct {
 }
 
 type createRequest struct {
-	Title       string   `json:"title" validate:"required"`
-	Description string   `json:"description" validate:"required"`
+	Title       string   `json:"title" validate:"required,min=1"`
+	Description string   `json:"description" validate:"required,min=1"`
 	ImageKeys   []string `json:"imageKeys" validate:"required,min=1"`
 
-	PetType     int32   `json:"petType" validate:"required,gte=1"`
-	PetGender   int32   `json:"petGender" validate:"required,gte=0"`
+	PetType     int32   `json:"petType" validate:"required,oneof=1 2 3"`
+	PetGender   int32   `json:"petGender" validate:"required,oneof=1 2"`
 	PetAgeMonth *int32  `json:"petAgeMonth,omitempty" validate:"omitempty,gte=0"`
-	PetBreed    *string `json:"petBreed,omitempty"`
+	PetBreed    *string `json:"petBreed,omitempty" validate:"omitempty,min=1"`
 
-	Country string `json:"country" validate:"required"`
-	City    string `json:"city" validate:"required"`
+	Country string `json:"country" validate:"required,min=1"`
+	City    string `json:"city" validate:"required,min=1"`
 }
 
 func createRequestToInput(req *createRequest, userID string) entity.CreateAdInput {

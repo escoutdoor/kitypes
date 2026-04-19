@@ -20,7 +20,7 @@ type adService interface {
 	Delete(ctx context.Context, userID string, adID string) error
 	List(ctx context.Context, in entity.ListAdsInput) (entity.ListAdsOutput, error)
 
-	GenerateUploadURL(ctx context.Context, ext string) (string, string, error)
+	GenerateUploadURLs(ctx context.Context, exts []string) ([]entity.AdImageUploadTarget, error)
 	BuildPublicURL(key string) string
 }
 
@@ -38,7 +38,7 @@ func RegisterHandlers(
 	h := &handler{service: adService, cv: cv}
 
 	e.POST("/", h.create, authMw)
-	e.GET("/upload-url", h.getUploadUrl, authMw)
+	e.POST("/upload-urls", h.getUploadURLs, authMw)
 
 	e.GET("/", h.list)
 	e.GET("/:id", h.get)
@@ -52,7 +52,7 @@ type adResponse struct {
 
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
-	ImageUrls   []string `json:"imageUrls"`
+	ImageURLs   []string `json:"imageUrls"`
 
 	PetType     int32   `json:"petType"`
 	PetGender   int32   `json:"petGender"`
@@ -79,7 +79,7 @@ func (h *handler) adToResponse(ad entity.Ad) adResponse {
 		AuthorID:    ad.AuthorID,
 		Title:       ad.Title,
 		Description: ad.Description,
-		ImageUrls:   urls,
+		ImageURLs:   urls,
 
 		PetType:     int32(ad.PetType),
 		PetGender:   int32(ad.PetGender),

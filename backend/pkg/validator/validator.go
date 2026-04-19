@@ -88,6 +88,8 @@ func msgForTag(err validator.FieldError) string {
 		return "This field must be a valid phone number"
 	case "required_without":
 		return fmt.Sprintf("This field is required if %s is missing", param)
+	case "oneof":
+		return fmt.Sprintf("This field must be one of: %s", param)
 	default:
 		return "This field is invalid"
 	}

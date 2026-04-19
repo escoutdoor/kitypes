@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (h *handler) getUploadUrl(c echo.Context) error {
-	var req getUploadUrlRequest
+func (h *handler) getUploadURL(c echo.Context) error {
+	var req getUploadURLRequest
 	if err := h.cv.BindValidate(c, &req); err != nil {
 		return err
 	}
@@ -26,16 +26,16 @@ func (h *handler) getUploadUrl(c echo.Context) error {
 		return err
 	}
 
-	resp := getUploadUrlResponse{UploadUrl: url, AvatarKey: key}
+	resp := getUploadURLResponse{UploadURL: url, AvatarKey: key}
 	return c.JSON(http.StatusOK, resp)
 }
 
-type getUploadUrlRequest struct {
+type getUploadURLRequest struct {
 	Ext string `query:"ext"`
 }
 
-type getUploadUrlResponse struct {
-	UploadUrl string `json:"uploadUrl"`
+type getUploadURLResponse struct {
+	UploadURL string `json:"uploadUrl"`
 	AvatarKey string `json:"avatarKey"`
 }
 

@@ -17,4 +17,6 @@ const (
 	IncorrectCreadentials Code = "INCORRECT_CREADENTIALS"
 	JwtTokenExpired       Code = "JWT_TOKEN_EXPIRED"
 	InvalidJwtToken       Code = "INVALID_JWT_TOKEN"
+
+	InvalidRequest Code = "INVALID_REQUEST"
 )

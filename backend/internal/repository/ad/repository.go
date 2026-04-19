@@ -109,38 +109,41 @@ func (r *Repository) Get(ctx context.Context, adID string) (entity.Ad, error) {
 }
 
 func (r *Repository) Create(ctx context.Context, in entity.CreateAdInput) (string, error) {
-	builder := r.qb.Insert(tableName).
-		Columns(
-			authorIDColumn,
-			titleColumn,
-			descriptionColumn,
-			petTypeColumn,
-			petGenderColumn,
-			countryColumn,
-			cityColumn,
-			statusColumn,
-		).
-		Values(
-			in.UserID,
-			in.Title,
-			in.Description,
-			in.PetType,
-			in.PetGender,
-			in.Country,
-			in.City,
-			in.Status,
-		).
-		Suffix("RETURNING id")
-	if in.PetAgeMonth != nil {
-		builder = builder.Columns(petAgeMonthColumn)
-		builder = builder.Values(*in.PetAgeMonth)
+	columns := []string{
+		authorIDColumn,
+		titleColumn,
+		descriptionColumn,
+		petTypeColumn,
+		petGenderColumn,
+		countryColumn,
+		cityColumn,
+		statusColumn,
 	}
-	if in.PetBreed != nil {
-		builder = builder.Columns(petBreedColumn)
-		builder = builder.Values(*in.PetBreed)
+	values := []any{
+		in.UserID,
+		in.Title,
+		in.Description,
+		in.PetType,
+		in.PetGender,
+		in.Country,
+		in.City,
+		in.Status,
 	}
 
-	sql, args, err := builder.ToSql()
+	if in.PetAgeMonth != nil {
+		columns = append(columns, petAgeMonthColumn)
+		values = append(values, *in.PetAgeMonth)
+	}
+	if in.PetBreed != nil {
+		columns = append(columns, petBreedColumn)
+		values = append(values, *in.PetBreed)
+	}
+
+	sql, args, err := r.qb.Insert(tableName).
+		Columns(columns...).
+		Values(values...).
+		Suffix("RETURNING id").
+		ToSql()
 	if err != nil {
 		return "", buildSQLError(err)
 	}

@@ -38,7 +38,7 @@ func (h *handler) update(c echo.Context) error {
 }
 
 type updateResponse struct {
-	Ad adResponse `json:"ad"`
+	Ad adResponse `json:"advertisement"`
 }
 
 type updateRequest struct {
@@ -46,15 +46,15 @@ type updateRequest struct {
 	Description *string  `json:"description" validate:"omitempty,min=1"`
 	ImageKeys   []string `json:"imageKeys" validate:"omitempty,min=1"`
 
-	PetType     *int32  `json:"petType" validate:"omitempty,gte=1"`
-	PetGender   *int32  `json:"petGender" validate:"omitempty,gte=1"`
-	PetAgeMonth *int32  `json:"petAgeMonth" validate:"omitempty,gte=1"`
-	PetBreed    *string `json:"petBreed" validate:"omitempty,gte=1"`
+	PetType     *int32  `json:"petType" validate:"omitempty,oneof=1 2 3"`
+	PetGender   *int32  `json:"petGender" validate:"omitempty,oneof=1 2"`
+	PetAgeMonth *int32  `json:"petAgeMonth" validate:"omitempty,gte=0"`
+	PetBreed    *string `json:"petBreed" validate:"omitempty,min=1"`
 
 	Country *string `json:"country"`
 	City    *string `json:"city"`
 
-	Status *int32 `json:"status" validate:"omitempty,gte=1"`
+	Status *int32 `json:"status" validate:"omitempty,oneof=1 2"`
 }
 
 func updateRequestToInput(req *updateRequest, adID string, userID string) entity.UpdateAdInput {
