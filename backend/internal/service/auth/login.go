@@ -16,14 +16,14 @@ func (s *Service) Login(ctx context.Context, in entity.User) (entity.Tokens, err
 	if err != nil {
 		appErr := new(apperror.Error)
 		if errors.As(err, &appErr) && appErr.Code == code.NotFound {
-			return entity.Tokens{}, apperror.ErrIncorrectCreadentials
+			return entity.Tokens{}, apperror.ErrIncorrectCredentials
 		}
 
 		return entity.Tokens{}, errwrap.Wrap("get user by email from repository", err)
 	}
 
 	if match := hasher.CompareHashAndPassword(user.Password, in.Password); !match {
-		return entity.Tokens{}, apperror.ErrIncorrectCreadentials
+		return entity.Tokens{}, apperror.ErrIncorrectCredentials
 	}
 
 	accessToken, err := s.tokenProvider.GenerateAccessToken(user.ID)
