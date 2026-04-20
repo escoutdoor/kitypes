@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS advertisements
     
     title text not null,
     description text not null,
-    image_url text not null,
 
     pet_type int not null,
     pet_gender int not null,
@@ -45,7 +44,9 @@ CREATE TABLE IF NOT EXISTS advertisement_images
 (
     ad_id uuid not null references advertisements(id) on delete cascade,
     image_key text not null,
-    created_at timestamptz default now()
+    created_at timestamptz default now(),
+
+    PRIMARY KEY (ad_id, image_key)
 );
 
 CREATE TABLE IF NOT EXISTS favorite_ads(
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS conversation_messages
 DROP TABLE IF EXISTS conversation_messages;
 DROP TABLE IF EXISTS conversations;
 DROP TABLE IF EXISTS favorite_ads;
-DROP TABLE IF EXISTS ad_images;
+DROP TABLE IF EXISTS advertisement_images;
 DROP TABLE IF EXISTS advertisements;
 DROP TABLE IF EXISTS users;
 -- +goose StatementEnd

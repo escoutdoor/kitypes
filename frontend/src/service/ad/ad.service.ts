@@ -1,64 +1,47 @@
 import { api } from "@/lib/axios"
-import { CreateAd, ListAdsParams } from "./ad.interface"
-import { Ad, ListAds } from "@/type/ad"
+import {
+    Ad,
+    CreateAdRequest,
+    UpdateAdRequest,
+    ListAdsParams,
+    ListAdsResponse,
+    SingleAdResponse,
+    GetUploadUrlsRequest,
+    GetUploadUrlsResponse
+} from "./ad.interface"
 
 const ADS_PREFIX = "/v1/ads"
 
-export class AdsService {
-	static async create(input: CreateAd): Promise<Ad> {
-		interface requestResponse {
-			advertisement: Ad
-		}
+export class AdService {
+    static async getUploadUrls(data: GetUploadUrlsRequest): Promise<GetUploadUrlsResponse> {
+        const resp = await api.post<GetUploadUrlsResponse>(`${ADS_PREFIX}/upload-urls`, data)
+        return resp.data
+    }
 
-		const resp = await api<requestResponse>({
-			method: "POST",
-			url: `${ADS_PREFIX}`,
-			data: {
-				title: input.title,
-				description: input.description,
-				imageUrl: input.imageUrl,
+    static async create(data: CreateAdRequest): Promise<Ad> {
+        const resp = await api.post<SingleAdResponse>(`${ADS_PREFIX}/`, data)
+        return resp.data.advertisement
+    }
 
-				petType: input.petType,
-				petGender: input.petGender,
-				petAgeMonth: input.petAgeMonth,
-				petBreed: input.petBreed,
+    static async get(adId: string): Promise<Ad> {
+        const resp = await api.get<SingleAdResponse>(`${ADS_PREFIX}/${adId}`)
+        return resp.data.advertisement
+    }
 
-				country: input.country,
-				city: input.city,
-			},
-		})
+    static async list(params?: ListAdsParams): Promise<ListAdsResponse> {
+        const resp = await api.get<ListAdsResponse>(`${ADS_PREFIX}/`, { params })
+        return {
+            advertisements: resp.data.advertisements,
+            total: resp.data.total,
+        }
+    }
 
-		return resp.data.advertisement
-	}
+    static async update(adId: string, data: UpdateAdRequest): Promise<Ad> {
+        const resp = await api.patch<SingleAdResponse>(`${ADS_PREFIX}/${adId}`, data)
+        return resp.data.advertisement
+    }
 
-	static async get(adId: string): Promise<Ad> {
-		interface requestResponse {
-			advertisement: Ad
-		}
-
-		const resp = await api<requestResponse>({
-			method: "GET",
-			url: `${ADS_PREFIX}/${adId}`,
-		})
-
-		return resp.data.advertisement
-	}
-
-	static async list(input: ListAdsParams): Promise<ListAds> {
-		interface requestResponse {
-			advertisements: Ad[]
-			total: number
-		}
-
-		// TODO: hande diff query parameters
-		const resp = await api<requestResponse>({
-			method: "GET",
-			url: `${ADS_PREFIX}`,
-		})
-
-		return {
-			advertisements: resp.data.advertisements,
-			total: resp.data.total,
-		}
-	}
+    static async delete(adId: string): Promise<void> {
+        await api.delete(`${ADS_PREFIX}/${adId}`)
+    }
 }

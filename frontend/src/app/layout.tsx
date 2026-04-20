@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="uk">
-            <body className={inter.className}>
+            <body className={`${inter.className} min-h-screen`}>
                 <QueryProvider>
                     <AuthProvider>
                         {children}
