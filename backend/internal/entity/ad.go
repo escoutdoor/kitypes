@@ -102,6 +102,8 @@ type ListAdsInput struct {
 
 	MinPetAgeMonth *int32
 	MaxPetAgeMonth *int32
+
+	AdIDs []string
 }
 
 type ListAdsOutput struct {

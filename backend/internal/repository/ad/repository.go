@@ -239,6 +239,9 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 
 	builder := r.qb.Select().From(tableName)
 
+	if len(in.AdIDs) > 0 {
+		builder = builder.Where(sq.Eq{idColumn: in.AdIDs})
+	}
 	if in.AuthorID != nil {
 		builder = builder.Where(sq.Eq{authorIDColumn: *in.AuthorID})
 	}

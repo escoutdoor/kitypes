@@ -189,7 +189,7 @@ func (d *di) UserService(ctx context.Context) *user_service.Service {
 
 func (d *di) FavoriteService(ctx context.Context) *fav_service.Service {
 	if d.favoriteService == nil {
-		d.favoriteService = fav_service.New(d.FavoriteRepository(ctx))
+		d.favoriteService = fav_service.New(d.FavoriteRepository(ctx), d.AdRepository(ctx), d.S3Client(ctx))
 	}
 
 	return d.favoriteService

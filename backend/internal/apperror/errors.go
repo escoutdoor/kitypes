@@ -23,6 +23,9 @@ var (
 	ErrInvalidPetAgeMonthRange = newError(code.InvalidRequest, "invalid pet age month range")
 
 	ErrInvalidUploadBatchSize = newError(code.InvalidRequest, "files count must be between 1 and 10")
+
+	ErrAdAlreadyFavorited = newError(code.AlreadyExists, "advertisement is already in favorites")
+	ErrFavoriteNotFound   = newError(code.NotFound, "advertisement is not in favorites")
 )
 
 type Error struct {
