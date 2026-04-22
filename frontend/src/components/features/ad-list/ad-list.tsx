@@ -11,8 +11,8 @@ import { useAds } from "@/hook/useAds"
 import { useDebounce } from "@/hook/useDebounce"
 
 import { AdCard } from "./ad-card"
-import { PaginationBar } from "./pagination-bar"
 import { AdsSidebar } from "./ad-sidebar"
+import { PaginationBar } from "@/components/shared/pagination-bar/pagination-bar"
 
 const LIMIT = 12
 type SortBy = "dateAsc" | "dateDesc"

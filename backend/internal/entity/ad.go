@@ -88,6 +88,8 @@ type ListAdsInput struct {
 	Offset int
 	SortBy string
 
+	AuthorID *string
+
 	Search *string
 
 	Status *AdStatus

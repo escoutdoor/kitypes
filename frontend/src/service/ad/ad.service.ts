@@ -36,6 +36,19 @@ export class AdService {
         }
     }
 
+    static async listMyAds(params?: ListAdsParams): Promise<ListAdsResponse> {
+        const resp = await api.get<ListAdsResponse>(`${ADS_PREFIX}/me`, { params })
+        return {
+            advertisements: resp.data.advertisements,
+            total: resp.data.total,
+        }
+    }
+
+    static async changeStatus(adId: string, status: number): Promise<Ad> {
+        const resp = await api.patch<SingleAdResponse>(`${ADS_PREFIX}/${adId}`, { status })
+        return resp.data.advertisement
+    }
+
     static async update(adId: string, data: UpdateAdRequest): Promise<Ad> {
         const resp = await api.patch<SingleAdResponse>(`${ADS_PREFIX}/${adId}`, data)
         return resp.data.advertisement

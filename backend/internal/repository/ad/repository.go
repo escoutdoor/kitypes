@@ -239,6 +239,9 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 
 	builder := r.qb.Select().From(tableName)
 
+	if in.AuthorID != nil {
+		builder = builder.Where(sq.Eq{authorIDColumn: *in.AuthorID})
+	}
 	if in.Search != nil {
 		term := "%" + *in.Search + "%"
 		builder = builder.Where(sq.Or{

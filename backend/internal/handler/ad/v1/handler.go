@@ -39,6 +39,7 @@ func RegisterHandlers(
 
 	e.POST("/", h.create, authMw)
 	e.POST("/upload-urls", h.getUploadURLs, authMw)
+	e.GET("/me", h.listMyAds, authMw)
 
 	e.GET("/", h.list)
 	e.GET("/:id", h.get)
