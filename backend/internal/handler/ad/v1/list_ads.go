@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
+	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -13,8 +14,13 @@ func (h *handler) list(c echo.Context) error {
 		return err
 	}
 
+	viewerID, err := httpctx.GetOptionalUserID(c)
+	if err != nil {
+		return err
+	}
+
 	ctx := c.Request().Context()
-	in := listRequestToInput(req)
+	in := listRequestToInput(req, viewerID)
 
 	out, err := h.service.List(ctx, in)
 	if err != nil {
@@ -48,7 +54,7 @@ type listResponse struct {
 	Total int          `json:"total"`
 }
 
-func listRequestToInput(req *listRequest) entity.ListAdsInput {
+func listRequestToInput(req *listRequest, viewerID *string) entity.ListAdsInput {
 	return entity.ListAdsInput{
 		Limit:  req.Limit,
 		Offset: req.Offset,
@@ -66,5 +72,7 @@ func listRequestToInput(req *listRequest) entity.ListAdsInput {
 
 		MinPetAgeMonth: req.MinPetAgeMonth,
 		MaxPetAgeMonth: req.MaxPetAgeMonth,
+
+		ViewerID: viewerID,
 	}
 }

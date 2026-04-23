@@ -19,7 +19,7 @@ type messageRepository interface {
 }
 
 type adRepository interface {
-	Get(ctx context.Context, adID string) (entity.Ad, error)
+	Get(ctx context.Context, adID string, viewerID *string) (entity.Ad, error)
 }
 
 type Service struct {

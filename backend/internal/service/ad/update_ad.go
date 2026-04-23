@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Service) Update(ctx context.Context, in entity.UpdateAdInput) (entity.Ad, error) {
-	ad, err := s.adRepo.Get(ctx, in.ID)
+	ad, err := s.adRepo.Get(ctx, in.ID, &in.UserID)
 	if err != nil {
 		return entity.Ad{}, errwrap.Wrap("get ad from repo", err)
 	}
@@ -54,7 +54,7 @@ func (s *Service) Update(ctx context.Context, in entity.UpdateAdInput) (entity.A
 		go s.deleteImages(keysToDelete)
 	}
 
-	updatedAd, err := s.adRepo.Get(ctx, in.ID)
+	updatedAd, err := s.adRepo.Get(ctx, in.ID, &in.UserID)
 	if err != nil {
 		return entity.Ad{}, errwrap.Wrap("get updated ad from repo", err)
 	}

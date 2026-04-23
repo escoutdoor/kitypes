@@ -102,6 +102,10 @@ const Header = () => {
                                         </DropdownMenuItem>
 
                                         <DropdownMenuItem asChild className="cursor-pointer">
+                                            <Link href="/favorites">Обрані</Link>
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuItem asChild className="cursor-pointer">
                                             <Link href="/profile/settings">Налаштування</Link>
                                         </DropdownMenuItem>
 

@@ -25,6 +25,8 @@ type Ad struct {
 
 	Status entity.AdStatus `db:"status"`
 
+	IsFavorite bool `db:"is_favorite"`
+
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -47,6 +49,8 @@ func (a Ad) ToEntity() entity.Ad {
 		City:    a.City,
 
 		Status: a.Status,
+
+		IsFavorite: a.IsFavorite,
 
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,

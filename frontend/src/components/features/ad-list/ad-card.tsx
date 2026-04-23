@@ -1,9 +1,10 @@
-"use client"
-
 import Link from "next/link"
 import { Calendar, MapPin, Mars, PawPrint, Venus } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Ad } from "@/service/ad/ad.interface"
+
+import { FavoriteButton } from "@/components/shared/favorite-button/favorite-button"
+import { formatPetAge } from "@/lib/utils"
 
 function formatDate(v: string) {
     const d = new Date(v)
@@ -17,6 +18,14 @@ export function AdCard({ ad }: { ad: Ad }) {
         <Link href={`/ads/${ad.id}`} className="group block min-w-0">
             <Card className="h-full min-w-0 border-none shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-2xl bg-white flex flex-col">
                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+
+                    <div className="absolute top-3 left-3 z-10">
+                        <FavoriteButton
+                            adId={ad.id}
+                            initialIsFavorite={!!ad.isFavorite}
+                        />
+                    </div>
+
                     {ad.imageUrls?.length ? (
                         <img
                             src={ad.imageUrls[0]}
@@ -64,8 +73,8 @@ export function AdCard({ ad }: { ad: Ad }) {
                         </div>
 
                         {typeof ad.petAgeMonth === "number" && (
-                            <span className="bg-gray-100 px-2 py-1 rounded-md">
-                                {ad.petAgeMonth === 0 ? "< 1 міс." : `${ad.petAgeMonth} міс.`}
+                            <span className="bg-gray-100 px-2 py-1 rounded-md text-gray-600">
+                                {formatPetAge(ad.petAgeMonth)}
                             </span>
                         )}
                     </div>

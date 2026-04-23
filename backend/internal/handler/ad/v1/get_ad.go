@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 
+	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -13,8 +14,13 @@ func (h *handler) get(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid id param format")
 	}
 
+	viewerID, err := httpctx.GetOptionalUserID(c)
+	if err != nil {
+		return err
+	}
+
 	ctx := c.Request().Context()
-	ad, err := h.service.Get(ctx, adID)
+	ad, err := h.service.Get(ctx, adID, viewerID)
 	if err != nil {
 		return err
 	}

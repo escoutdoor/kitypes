@@ -13,7 +13,9 @@ import {
     Pencil,
     AlertCircle,
     Mail,
-    Phone
+    Phone,
+    ShieldCheck,
+    User
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -24,6 +26,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 import { useAd } from "@/hook/useAd"
 import { useProfile } from "@/hook/useProfile"
+import { useAuthStore } from "@/store/auth.store"
+import { FavoriteButton } from "@/components/shared/favorite-button/favorite-button"
+import { formatPetAge } from "@/lib/utils"
 
 const PET_TYPES: Record<number, string> = { 1: "Песик", 2: "Котик", 3: "Інше" }
 const PET_GENDERS: Record<number, string> = { 1: "Хлопчик", 2: "Дівчинка" }
@@ -32,10 +37,12 @@ export function AdDetail({ adId }: { adId: string }) {
     const router = useRouter()
 
     const { user } = useProfile()
+    const { isAuthenticated } = useAuthStore()
     const { data: ad, isLoading, isError } = useAd(adId)
 
     const [activeImageIndex, setActiveImageIndex] = useState(0)
     const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({})
+    const [isPhoneRevealed, setIsPhoneRevealed] = useState(false)
 
     const isAuthor = Boolean(user && ad && user.id === ad.authorId)
 
@@ -46,6 +53,34 @@ export function AdDetail({ adId }: { adId: string }) {
         } catch {
             toast.error("Не вдалося скопіювати посилання.")
         }
+    }
+
+    const handleRevealPhone = () => {
+        if (!isAuthenticated) {
+            toast.info("Потрібна авторизація", {
+                description: "Будь ласка, увійдіть у свій акаунт, щоб переглянути контакти власника.",
+                action: {
+                    label: "Увійти",
+                    onClick: () => router.push("/login"),
+                },
+            })
+            return
+        }
+        setIsPhoneRevealed(true)
+    }
+
+    const handleSendMessage = () => {
+        if (!isAuthenticated) {
+            toast.info("Потрібна авторизація", {
+                description: "Увійдіть у свій акаунт, щоб написати власнику.",
+                action: {
+                    label: "Увійти",
+                    onClick: () => router.push("/login"),
+                },
+            })
+            return
+        }
+        toast.success("Функція внутрішнього чату в розробці!")
     }
 
     if (isLoading) {
@@ -75,7 +110,7 @@ export function AdDetail({ adId }: { adId: string }) {
                 <div className="p-5 bg-gray-100 rounded-full mb-6 text-gray-400"><AlertCircle className="h-12 w-12" /></div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-3">Оголошення не знайдено</h1>
                 <p className="text-gray-500 mb-8 max-w-md">Можливо, воно було видалено автором або переміщено в архів.</p>
-                <Button onClick={() => router.push("/ads")} size="lg" className="rounded-full shadow-sm">Переглянути інші</Button>
+                <Button onClick={() => router.push("/ads")} size="lg" className="rounded-full shadow-sm cursor-pointer">Переглянути інші</Button>
             </div>
         )
     }
@@ -87,10 +122,10 @@ export function AdDetail({ adId }: { adId: string }) {
         <div className="max-w-6xl mx-auto py-8 px-4 md:px-8 pb-32 animate-in fade-in duration-500">
 
             <div className="flex items-center justify-between mb-6">
-                <Button variant="ghost" className="text-muted-foreground hover:text-gray-900 -ml-4" onClick={() => router.back()}>
+                <Button variant="ghost" className="text-muted-foreground hover:text-gray-900 -ml-4 cursor-pointer" onClick={() => router.back()}>
                     <ChevronLeft className="h-5 w-5 mr-1" /> Назад
                 </Button>
-                {isAuthor && ad.status === 2 && (
+                {ad.status === 2 && (
                     <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold uppercase tracking-wider">
                         В архіві
                     </span>
@@ -99,7 +134,8 @@ export function AdDetail({ adId }: { adId: string }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
-                <div className="lg:col-span-8 space-y-10">
+                <div className="lg:col-span-7 xl:col-span-8 space-y-10">
+
                     <div className="space-y-4">
                         <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] bg-black/5 rounded-3xl overflow-hidden border border-gray-200/50 flex items-center justify-center group">
                             {images.length > 0 && !imgErrors[activeImageUrl] ? (
@@ -150,71 +186,109 @@ export function AdDetail({ adId }: { adId: string }) {
                             {ad.description}
                         </div>
                     </section>
+
+                    <section className="bg-blue-50/50 rounded-3xl p-6 sm:p-8 border border-blue-100/50">
+                        <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                            <ShieldCheck className="h-5 w-5 text-blue-500" /> Поради щодо безпечної адопції
+                        </h3>
+                        <ul className="space-y-3 text-sm text-blue-800/80">
+                            <li className="flex gap-2"><div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" /> Зустрічайтеся з власником у безпечних публічних місцях.</li>
+                            <li className="flex gap-2"><div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" /> Завжди оглядайте тваринку перед тим, як забрати додому.</li>
+                            <li className="flex gap-2"><div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" /> Розпитайте про наявність щеплень, паспортів та звичок хвостика.</li>
+                        </ul>
+                    </section>
                 </div>
 
-                <div className="lg:col-span-4">
+                <div className="lg:col-span-5 xl:col-span-4">
                     <div className="sticky top-24 space-y-6">
 
-                        <Card className="border-gray-200/60 shadow-md rounded-3xl overflow-hidden">
+                        <Card className="border-gray-200/60 shadow-md rounded-3xl overflow-hidden bg-white">
                             <CardContent className="p-6 sm:p-8 space-y-6">
-                                <div>
-                                    <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight mb-3">
-                                        {ad.title}
-                                    </h1>
-                                    <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
-                                        <MapPin className="h-4 w-4 text-primary shrink-0" />
-                                        {ad.city}, {ad.country}
+
+                                <div className="flex justify-between items-start gap-4">
+                                    <div>
+                                        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight mb-3">
+                                            {ad.title}
+                                        </h1>
+                                        <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+                                            <MapPin className="h-4 w-4 text-primary shrink-0" />
+                                            {ad.city}, {ad.country}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium mt-2">
+                                            <Calendar className="h-4 w-4 shrink-0" />
+                                            Опубліковано: {new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "long", year: "numeric" }).format(new Date(ad.createdAt))}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium mt-2">
-                                        <Calendar className="h-4 w-4 shrink-0" />
-                                        {/* Використовуємо нативний Intl.DateTimeFormat */}
-                                        Опубліковано: {new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "long", year: "numeric" }).format(new Date(ad.createdAt))}
-                                    </div>
+
+                                    <FavoriteButton adId={ad.id} initialIsFavorite={!!ad.isFavorite} className="shrink-0 bg-gray-50 border border-gray-100" />
                                 </div>
 
                                 <Separator className="bg-gray-100" />
 
                                 <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                                     <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Вид</p>
-                                        <p className="font-medium text-gray-900">{PET_TYPES[ad.petType] || "Невідомо"}</p>
+                                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Вид</p>
+                                        <p className="font-semibold text-gray-900">{PET_TYPES[ad.petType] || "Невідомо"}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Стать</p>
-                                        <p className="font-medium text-gray-900">{PET_GENDERS[ad.petGender] || "Невідомо"}</p>
+                                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Стать</p>
+                                        <p className="font-semibold text-gray-900">{PET_GENDERS[ad.petGender] || "Невідомо"}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Вік</p>
-                                        <p className="font-medium text-gray-900">
-                                            {ad.petAgeMonth !== undefined && ad.petAgeMonth !== null
-                                                ? `${ad.petAgeMonth} міс.`
-                                                : "Невідомо"}
+                                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Вік</p>
+                                        <p className="font-semibold text-gray-900">
+                                            {formatPetAge(ad.petAgeMonth)}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Порода</p>
-                                        <p className="font-medium text-gray-900 line-clamp-1" title={ad.petBreed}>{ad.petBreed || "Без породи"}</p>
+                                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Порода</p>
+                                        <p className="font-semibold text-gray-900 line-clamp-1" title={ad.petBreed}>{ad.petBreed || "Без породи"}</p>
                                     </div>
                                 </div>
 
-                                <div className="pt-4 space-y-3">
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-gray-200/60 shadow-sm rounded-3xl overflow-hidden bg-white">
+                            <CardContent className="p-6 sm:p-8 space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-14 w-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
+                                        <User className="h-6 w-6 text-gray-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500 font-medium mb-0.5">Власник</p>
+                                        <p className="font-bold text-gray-900 text-lg">Користувач платформи</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
                                     {isAuthor ? (
                                         <>
-                                            <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 mb-4 text-center">
+                                            <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 mb-2 text-center">
                                                 <p className="text-sm font-medium text-primary">🐾 Це ваше оголошення</p>
                                             </div>
                                             <Button asChild size="lg" className="w-full text-base font-semibold shadow-md cursor-pointer rounded-xl">
                                                 <Link href={`/my-ads/${ad.id}/edit`}>
-                                                    <Pencil className="h-5 w-5 mr-2" /> Редагувати оголошення
+                                                    <Pencil className="h-5 w-5 mr-2" /> Редагувати
                                                 </Link>
                                             </Button>
                                         </>
                                     ) : (
                                         <>
-                                            <Button size="lg" className="w-full text-base font-semibold shadow-md rounded-xl cursor-pointer">
-                                                <Phone className="h-5 w-5 mr-2" /> Показати контакти
+                                            <Button
+                                                size="lg"
+                                                className="w-full text-base font-semibold shadow-md rounded-xl cursor-pointer"
+                                                onClick={handleRevealPhone}
+                                            >
+                                                <Phone className="h-5 w-5 mr-2" />
+                                                {isPhoneRevealed ? "+38 099 123 45 67" : "Показати контакти"}
                                             </Button>
-                                            <Button size="lg" variant="outline" className="w-full text-base font-semibold bg-white rounded-xl cursor-pointer">
+                                            <Button
+                                                size="lg"
+                                                variant="outline"
+                                                className="w-full text-base font-semibold bg-white rounded-xl cursor-pointer border-gray-200"
+                                                onClick={handleSendMessage}
+                                            >
                                                 <Mail className="h-5 w-5 mr-2" /> Написати повідомлення
                                             </Button>
                                         </>
@@ -223,13 +297,14 @@ export function AdDetail({ adId }: { adId: string }) {
                                     <Button
                                         onClick={handleShare}
                                         variant="ghost"
-                                        className="w-full text-muted-foreground hover:text-gray-900 rounded-xl cursor-pointer"
+                                        className="w-full text-muted-foreground hover:text-gray-900 rounded-xl cursor-pointer mt-2"
                                     >
                                         <Share2 className="h-4 w-4 mr-2" /> Поділитися
                                     </Button>
                                 </div>
                             </CardContent>
                         </Card>
+
                     </div>
                 </div>
             </div>

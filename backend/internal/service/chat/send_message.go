@@ -42,7 +42,7 @@ func (s *Service) SendMessage(ctx context.Context, in entity.Message, adID strin
 		} else {
 			appErr := new(apperror.Error)
 			if errors.As(err, &appErr) && appErr.Code == code.NotFound {
-				ad, err := s.adRepo.Get(ctx, adID)
+				ad, err := s.adRepo.Get(ctx, adID, &in.SenderID)
 				if err != nil {
 					return errwrap.Wrap("get ad", err)
 				}

@@ -57,8 +57,16 @@ func New(db database.Client) *Repository {
 	}
 }
 
-func (r *Repository) Get(ctx context.Context, adID string) (entity.Ad, error) {
-	sql, args, err := r.qb.Select(
+func (r *Repository) Get(ctx context.Context, adID string, viewerID *string) (entity.Ad, error) {
+	builder := r.qb.Select().From(tableName).Where(sq.Eq{idColumn: adID})
+
+	if viewerID != nil {
+		builder = builder.Column(sq.Expr("EXISTS (SELECT 1 FROM favorite_ads WHERE ad_id = advertisements.id AND user_id = ?) AS is_favorite", *viewerID))
+	} else {
+		builder = builder.Column("false AS is_favorite")
+	}
+
+	builder = builder.Columns(
 		idColumn,
 		authorIDColumn,
 		titleColumn,
@@ -72,10 +80,9 @@ func (r *Repository) Get(ctx context.Context, adID string) (entity.Ad, error) {
 		statusColumn,
 		createdAtColumn,
 		updatedAtColumn,
-	).
-		From(tableName).
-		Where(sq.Eq{idColumn: adID}).
-		ToSql()
+	)
+
+	sql, args, err := builder.ToSql()
 	if err != nil {
 		return entity.Ad{}, buildSQLError(err)
 	}
@@ -298,22 +305,29 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 		offset = in.Offset
 	}
 
+	builder = builder.Columns(
+		idColumn,
+		authorIDColumn,
+		titleColumn,
+		descriptionColumn,
+		petTypeColumn,
+		petGenderColumn,
+		petAgeMonthColumn,
+		petBreedColumn,
+		countryColumn,
+		cityColumn,
+		statusColumn,
+		createdAtColumn,
+		updatedAtColumn,
+	)
+
+	if in.ViewerID != nil {
+		builder = builder.Column(sq.Expr("EXISTS (SELECT 1 FROM favorite_ads WHERE ad_id = advertisements.id AND user_id = ?) AS is_favorite", *in.ViewerID))
+	} else {
+		builder = builder.Column("false AS is_favorite")
+	}
+
 	sql, args, err := builder.
-		Columns(
-			idColumn,
-			authorIDColumn,
-			titleColumn,
-			descriptionColumn,
-			petTypeColumn,
-			petGenderColumn,
-			petAgeMonthColumn,
-			petBreedColumn,
-			countryColumn,
-			cityColumn,
-			statusColumn,
-			createdAtColumn,
-			updatedAtColumn,
-		).
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).
 		ToSql()

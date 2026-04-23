@@ -94,10 +94,11 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	e.Use(echo_middleware.Recover())
 
 	authMw := middleware.Auth(a.di.TokenProvider())
+	optionalAuthMw := middleware.OptionalAuth(a.di.TokenProvider())
 	v1Group := e.Group("/v1")
 
 	v1AdsGroup := v1Group.Group("/ads")
-	ad_v1.RegisterHandlers(v1AdsGroup, authMw, a.di.AdService(ctx), cv)
+	ad_v1.RegisterHandlers(v1AdsGroup, authMw, optionalAuthMw, a.di.AdService(ctx), cv)
 
 	v1AuthGroup := v1Group.Group("/auth")
 	auth_v1.RegisterHandlers(v1AuthGroup, a.di.AuthService(ctx), cv)

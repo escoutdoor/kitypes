@@ -27,3 +27,17 @@ func GetUserID(c echo.Context) (string, error) {
 
 	return id, nil
 }
+
+func GetOptionalUserID(c echo.Context) (*string, error) {
+	val := c.Get(UserIDContextKey)
+	if val == nil {
+		return nil, nil
+	}
+
+	typedVal, ok := val.(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid type for user id in context, expected string")
+	}
+
+	return &typedVal, nil
+}

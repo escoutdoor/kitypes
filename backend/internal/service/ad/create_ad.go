@@ -22,7 +22,7 @@ func (s *Service) Create(ctx context.Context, in entity.CreateAdInput) (entity.A
 			return errwrap.Wrap("add images to ad in repo", err)
 		}
 
-		createdAd, err = s.adRepo.Get(txCtx, adID)
+		createdAd, err = s.adRepo.Get(txCtx, adID, &in.UserID)
 		if err != nil {
 			return errwrap.Wrap("get created ad from repo", err)
 		}

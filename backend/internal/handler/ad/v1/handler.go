@@ -14,7 +14,7 @@ const (
 )
 
 type adService interface {
-	Get(ctx context.Context, adID string) (entity.Ad, error)
+	Get(ctx context.Context, adID string, viewerID *string) (entity.Ad, error)
 	Create(ctx context.Context, in entity.CreateAdInput) (entity.Ad, error)
 	Update(ctx context.Context, in entity.UpdateAdInput) (entity.Ad, error)
 	Delete(ctx context.Context, userID string, adID string) error
@@ -32,6 +32,7 @@ type handler struct {
 func RegisterHandlers(
 	e *echo.Group,
 	authMw echo.MiddlewareFunc,
+	optionalAuthMw echo.MiddlewareFunc,
 	adService adService,
 	cv *validator.CustomValidator,
 ) {
@@ -41,8 +42,9 @@ func RegisterHandlers(
 	e.POST("/upload-urls", h.getUploadURLs, authMw)
 	e.GET("/me", h.listMyAds, authMw)
 
-	e.GET("/", h.list)
-	e.GET("/:id", h.get)
+	e.GET("/", h.list, optionalAuthMw)
+	e.GET("/:id", h.get, optionalAuthMw)
+
 	e.PATCH("/:id", h.update, authMw)
 	e.DELETE("/:id", h.delete, authMw)
 }
@@ -64,6 +66,8 @@ type adResponse struct {
 	City    string `json:"city"`
 
 	Status int32 `json:"status"`
+
+	IsFavorite bool `json:"isFavorite"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -91,6 +95,8 @@ func (h *handler) adToResponse(ad entity.Ad) adResponse {
 		City:    ad.City,
 
 		Status: int32(ad.Status),
+
+		IsFavorite: ad.IsFavorite,
 
 		CreatedAt: ad.CreatedAt,
 		UpdatedAt: ad.UpdatedAt,

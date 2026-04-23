@@ -11,6 +11,7 @@ export interface Ad {
     country: string
     city: string
     status: number
+    isFavorite: boolean
     createdAt: string
     updatedAt: string
 }

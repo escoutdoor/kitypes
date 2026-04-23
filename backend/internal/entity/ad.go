@@ -20,6 +20,8 @@ type Ad struct {
 
 	Status AdStatus
 
+	IsFavorite bool
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -104,6 +106,8 @@ type ListAdsInput struct {
 	MaxPetAgeMonth *int32
 
 	AdIDs []string
+
+	ViewerID *string
 }
 
 type ListAdsOutput struct {

@@ -36,6 +36,31 @@ func Auth(tokenProvider tokenProvider) echo.MiddlewareFunc {
 	}
 }
 
+func OptionalAuth(tokenProvider tokenProvider) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			authHeader := c.Request().Header.Get(authorizationHeader)
+			if authHeader == "" {
+				// no header -> skip validation below
+				return next(c)
+			}
+
+			if !strings.HasPrefix(authHeader, authorizationHeaderPrefix) {
+				return newUnauthorized("invalid authorization header format")
+			}
+			token := authHeader[len(authorizationHeaderPrefix):]
+
+			userID, err := tokenProvider.ValidateAccessToken(token)
+			if err != nil {
+				return err
+			}
+
+			c.Set(httpctx.UserIDContextKey, userID)
+			return next(c)
+		}
+	}
+}
+
 func newUnauthorized(msg string) error {
 	return echo.NewHTTPError(http.StatusUnauthorized, msg)
 }

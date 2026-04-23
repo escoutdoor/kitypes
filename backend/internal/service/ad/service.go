@@ -10,7 +10,7 @@ import (
 )
 
 type adRepository interface {
-	Get(ctx context.Context, adID string) (entity.Ad, error)
+	Get(ctx context.Context, adID string, viewerID *string) (entity.Ad, error)
 	Create(ctx context.Context, in entity.CreateAdInput) (string, error)
 	Delete(ctx context.Context, adID string) error
 	Update(ctx context.Context, in entity.UpdateAdInput) error
