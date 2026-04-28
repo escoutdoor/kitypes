@@ -25,10 +25,10 @@ func (h *handler) get(c echo.Context) error {
 		return err
 	}
 
-	resp := getResponse{Ad: h.adToResponse(ad)}
+	resp := getResponse{Ad: h.enrichedAdToResponse(ad)}
 	return c.JSON(http.StatusOK, resp)
 }
 
 type getResponse struct {
-	Ad adResponse `json:"advertisement"`
+	Ad enrichedAdResponse `json:"advertisement"`
 }

@@ -17,7 +17,7 @@ interface FavoriteButtonProps {
 export function FavoriteButton({ adId, initialIsFavorite, className = "" }: FavoriteButtonProps) {
     const router = useRouter()
     const { mutate: toggleFavorite } = useToggleFavorite()
-    const { isAuthenticated } = useAuthStore() // Дістаємо статус авторизації
+    const { isAuthenticated } = useAuthStore()
 
     const [isFav, setIsFav] = useState(initialIsFavorite)
 

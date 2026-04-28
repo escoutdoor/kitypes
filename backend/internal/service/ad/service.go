@@ -21,6 +21,10 @@ type adRepository interface {
 	DeleteImages(ctx context.Context, adID string) error
 }
 
+type userRepository interface {
+	GetByID(ctx context.Context, userID string) (entity.User, error)
+}
+
 type s3Client interface {
 	GeneratePresignedUploadURL(ctx context.Context, key string, lifetime time.Duration) (string, error)
 	BuildPublicURL(key string) string
@@ -29,13 +33,15 @@ type s3Client interface {
 
 type Service struct {
 	adRepo    adRepository
+	userRepo  userRepository
 	txManager database.TxManager
 	s3Client  s3Client
 }
 
-func New(adRepo adRepository, txManager database.TxManager, s3Client s3Client) *Service {
+func New(adRepo adRepository, userRepo userRepository, txManager database.TxManager, s3Client s3Client) *Service {
 	return &Service{
 		adRepo:    adRepo,
+		userRepo:  userRepo,
 		txManager: txManager,
 		s3Client:  s3Client,
 	}

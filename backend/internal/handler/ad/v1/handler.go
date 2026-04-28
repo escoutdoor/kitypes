@@ -14,7 +14,8 @@ const (
 )
 
 type adService interface {
-	Get(ctx context.Context, adID string, viewerID *string) (entity.Ad, error)
+	Get(ctx context.Context, adID string, viewerID *string) (entity.EnrichedAd, error)
+	GetPhone(ctx context.Context, adID string) (string, error)
 	Create(ctx context.Context, in entity.CreateAdInput) (entity.Ad, error)
 	Update(ctx context.Context, in entity.UpdateAdInput) (entity.Ad, error)
 	Delete(ctx context.Context, userID string, adID string) error
@@ -44,15 +45,15 @@ func RegisterHandlers(
 
 	e.GET("/", h.list, optionalAuthMw)
 	e.GET("/:id", h.get, optionalAuthMw)
+	e.GET("/:id/phone", h.getPhone, authMw)
 
 	e.PATCH("/:id", h.update, authMw)
 	e.DELETE("/:id", h.delete, authMw)
 }
 
 type adResponse struct {
-	ID       string `json:"id"`
-	AuthorID string `json:"authorId"`
-
+	ID          string   `json:"id"`
+	AuthorID    string   `json:"authorId"`
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	ImageURLs   []string `json:"imageUrls"`
@@ -64,13 +65,19 @@ type adResponse struct {
 
 	Country string `json:"country"`
 	City    string `json:"city"`
-
-	Status int32 `json:"status"`
+	Status  int32  `json:"status"`
 
 	IsFavorite bool `json:"isFavorite"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type enrichedAdResponse struct {
+	adResponse
+
+	AuthorName      string  `json:"authorName"`
+	AuthorAvatarURL *string `json:"authorAvatarUrl,omitempty"`
 }
 
 func (h *handler) adToResponse(ad entity.Ad) adResponse {
@@ -85,21 +92,16 @@ func (h *handler) adToResponse(ad entity.Ad) adResponse {
 		Title:       ad.Title,
 		Description: ad.Description,
 		ImageURLs:   urls,
-
 		PetType:     int32(ad.PetType),
 		PetGender:   int32(ad.PetGender),
 		PetAgeMonth: ad.PetAgeMonth,
 		PetBreed:    ad.PetBreed,
-
-		Country: ad.Country,
-		City:    ad.City,
-
-		Status: int32(ad.Status),
-
-		IsFavorite: ad.IsFavorite,
-
-		CreatedAt: ad.CreatedAt,
-		UpdatedAt: ad.UpdatedAt,
+		Country:     ad.Country,
+		City:        ad.City,
+		Status:      int32(ad.Status),
+		IsFavorite:  ad.IsFavorite,
+		CreatedAt:   ad.CreatedAt,
+		UpdatedAt:   ad.UpdatedAt,
 	}
 }
 
@@ -110,4 +112,20 @@ func (h *handler) adsToResponse(ads []entity.Ad) []adResponse {
 	}
 
 	return list
+}
+
+func (h *handler) enrichedAdToResponse(enriched entity.EnrichedAd) enrichedAdResponse {
+	base := h.adToResponse(enriched.Ad)
+
+	var avatarURL *string
+	if enriched.AuthorAvatarKey != nil && *enriched.AuthorAvatarKey != "" {
+		url := h.service.BuildPublicURL(*enriched.AuthorAvatarKey)
+		avatarURL = &url
+	}
+
+	return enrichedAdResponse{
+		adResponse:      base,
+		AuthorName:      enriched.AuthorName,
+		AuthorAvatarURL: avatarURL,
+	}
 }

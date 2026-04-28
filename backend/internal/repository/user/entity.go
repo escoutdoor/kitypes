@@ -43,6 +43,17 @@ func (u User) ToEntity() entity.User {
 	}
 }
 
+type Users []User
+
+func (e Users) ToEntities() []entity.User {
+	list := make([]entity.User, 0, len(e))
+	for _, u := range e {
+		list = append(list, u.ToEntity())
+	}
+
+	return list
+}
+
 func buildSQLError(err error) error {
 	return errwrap.Wrap("build sql", err)
 }

@@ -136,7 +136,7 @@ func (d *di) AdRepository(ctx context.Context) *ad_repository.Repository {
 
 func (d *di) AdService(ctx context.Context) *ad_service.Service {
 	if d.adService == nil {
-		d.adService = ad_service.New(d.AdRepository(ctx), d.TxManager(ctx), d.S3Client(ctx))
+		d.adService = ad_service.New(d.AdRepository(ctx), d.UserRepository(ctx), d.TxManager(ctx), d.S3Client(ctx))
 	}
 
 	return d.adService

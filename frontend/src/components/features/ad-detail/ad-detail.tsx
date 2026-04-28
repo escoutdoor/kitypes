@@ -15,7 +15,8 @@ import {
     Mail,
     Phone,
     ShieldCheck,
-    User
+    User,
+    Loader2
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -27,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useAd } from "@/hook/useAd"
 import { useProfile } from "@/hook/useProfile"
 import { useAuthStore } from "@/store/auth.store"
+import { usePhone } from "@/hook/usePhone"
 import { FavoriteButton } from "@/components/shared/favorite-button/favorite-button"
 import { formatPetAge } from "@/lib/utils"
 
@@ -39,10 +41,11 @@ export function AdDetail({ adId }: { adId: string }) {
     const { user } = useProfile()
     const { isAuthenticated } = useAuthStore()
     const { data: ad, isLoading, isError } = useAd(adId)
+    const { mutateAsync: fetchPhone, isPending: isLoadingPhone } = usePhone()
 
     const [activeImageIndex, setActiveImageIndex] = useState(0)
     const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({})
-    const [isPhoneRevealed, setIsPhoneRevealed] = useState(false)
+    const [revealedPhone, setRevealedPhone] = useState<string | null>(null)
 
     const isAuthor = Boolean(user && ad && user.id === ad.authorId)
 
@@ -55,7 +58,7 @@ export function AdDetail({ adId }: { adId: string }) {
         }
     }
 
-    const handleRevealPhone = () => {
+    const handleRevealPhone = async () => {
         if (!isAuthenticated) {
             toast.info("Потрібна авторизація", {
                 description: "Будь ласка, увійдіть у свій акаунт, щоб переглянути контакти власника.",
@@ -66,7 +69,16 @@ export function AdDetail({ adId }: { adId: string }) {
             })
             return
         }
-        setIsPhoneRevealed(true)
+
+        if (revealedPhone) return
+
+        try {
+            const data = await fetchPhone(adId)
+            setRevealedPhone(data.phone)
+        } catch (error) {
+            console.error(error)
+            toast.error("Не вдалося завантажити контакти власника.")
+        }
     }
 
     const handleSendMessage = () => {
@@ -117,6 +129,8 @@ export function AdDetail({ adId }: { adId: string }) {
 
     const images = ad.imageUrls && ad.imageUrls.length > 0 ? ad.imageUrls : []
     const activeImageUrl = images[activeImageIndex]
+
+    const authorName = ad.authorName || "Користувач платформи"
 
     return (
         <div className="max-w-6xl mx-auto py-8 px-4 md:px-8 pb-32 animate-in fade-in duration-500">
@@ -252,12 +266,20 @@ export function AdDetail({ adId }: { adId: string }) {
                         <Card className="border-gray-200/60 shadow-sm rounded-3xl overflow-hidden bg-white">
                             <CardContent className="p-6 sm:p-8 space-y-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="h-14 w-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
-                                        <User className="h-6 w-6 text-gray-400" />
+                                    <div className="h-14 w-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
+                                        {ad.authorAvatarUrl ? (
+                                            <img
+                                                src={ad.authorAvatarUrl}
+                                                alt={authorName}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <User className="h-6 w-6 text-gray-400" />
+                                        )}
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500 font-medium mb-0.5">Власник</p>
-                                        <p className="font-bold text-gray-900 text-lg">Користувач платформи</p>
+                                        <p className="font-bold text-gray-900 text-lg">{authorName}</p>
                                     </div>
                                 </div>
 
@@ -275,14 +297,43 @@ export function AdDetail({ adId }: { adId: string }) {
                                         </>
                                     ) : (
                                         <>
-                                            <Button
-                                                size="lg"
-                                                className="w-full text-base font-semibold shadow-md rounded-xl cursor-pointer"
-                                                onClick={handleRevealPhone}
-                                            >
-                                                <Phone className="h-5 w-5 mr-2" />
-                                                {isPhoneRevealed ? "+38 099 123 45 67" : "Показати контакти"}
-                                            </Button>
+                                            {revealedPhone ? (
+                                                <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl animate-in fade-in zoom-in-95 duration-200 w-full">
+                                                    <div className="p-2 bg-white rounded-lg shadow-sm shrink-0 flex items-center justify-center">
+                                                        <Phone className="h-4 w-4 text-gray-700" />
+                                                    </div>
+
+                                                    <span className="flex-1 text-base font-bold text-gray-900 select-all tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">
+                                                        {revealedPhone}
+                                                    </span>
+
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(revealedPhone)
+                                                            toast.success("Номер скопійовано!")
+                                                        }}
+                                                        className="shrink-0 text-xs font-medium cursor-pointer"
+                                                    >
+                                                        Копіювати
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    size="lg"
+                                                    className="w-full text-base font-semibold shadow-md rounded-xl cursor-pointer"
+                                                    onClick={handleRevealPhone}
+                                                    disabled={isLoadingPhone}
+                                                >
+                                                    {isLoadingPhone ? (
+                                                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                                                    ) : (
+                                                        <Phone className="h-5 w-5 mr-2" />
+                                                    )}
+                                                    {isLoadingPhone ? "Завантаження..." : "Показати контакти"}
+                                                </Button>
+                                            )}
                                             <Button
                                                 size="lg"
                                                 variant="outline"

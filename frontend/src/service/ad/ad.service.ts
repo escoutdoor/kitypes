@@ -7,7 +7,9 @@ import {
     ListAdsResponse,
     SingleAdResponse,
     GetUploadUrlsRequest,
-    GetUploadUrlsResponse
+    GetUploadUrlsResponse,
+    SingleEnrichedAdResponse,
+    EnrichedAd
 } from "./ad.interface"
 
 const ADS_PREFIX = "/v1/ads"
@@ -23,9 +25,14 @@ export class AdService {
         return resp.data.advertisement
     }
 
-    static async get(adId: string): Promise<Ad> {
-        const resp = await api.get<SingleAdResponse>(`${ADS_PREFIX}/${adId}`)
+    static async get(adId: string): Promise<EnrichedAd> {
+        const resp = await api.get<SingleEnrichedAdResponse>(`${ADS_PREFIX}/${adId}`)
         return resp.data.advertisement
+    }
+
+    static async getPhone(adId: string): Promise<{ phone: string }> {
+        const resp = await api.get<{ phone: string }>(`${ADS_PREFIX}/${adId}/phone`)
+        return resp.data
     }
 
     static async list(params?: ListAdsParams): Promise<ListAdsResponse> {

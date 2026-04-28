@@ -16,6 +16,11 @@ export interface Ad {
     updatedAt: string
 }
 
+export interface EnrichedAd extends Ad {
+    authorName: string
+    authorAvatarUrl?: string
+}
+
 export interface GetUploadUrlsRequest {
     files: { ext: string }[]
 }
@@ -61,6 +66,10 @@ export interface GetUploadUrlsResponse {
 
 export interface SingleAdResponse {
     advertisement: Ad
+}
+
+export interface SingleEnrichedAdResponse {
+    advertisement: EnrichedAd
 }
 
 export interface ListAdsResponse {

@@ -24,7 +24,7 @@ func (s *Service) Register(ctx context.Context, in entity.CreateUserInput) (enti
 		}
 	}
 	if user.Email != "" {
-		return entity.Tokens{}, apperror.EmailAlreadyExists(in.Email)
+		return entity.Tokens{}, apperror.UserEmailAlreadyExists(in.Email)
 	}
 
 	pw, err := hasher.HashPassword(in.Password)

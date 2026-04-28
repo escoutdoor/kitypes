@@ -26,6 +26,13 @@ type Ad struct {
 	UpdatedAt time.Time
 }
 
+type EnrichedAd struct {
+	Ad
+
+	AuthorName      string
+	AuthorAvatarKey *string
+}
+
 type (
 	AdStatus  int32
 	PetGender int32

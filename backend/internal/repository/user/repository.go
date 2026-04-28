@@ -9,13 +9,12 @@ import (
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/pkg/database"
 	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 const (
-	defaultLimit  = 10
-	defaultOffset = 0
-
 	tableName = "users"
 
 	idColumn = "id"
@@ -32,6 +31,11 @@ const (
 
 	createdAtColumn = "created_at"
 	updatedAtColumn = "updated_at"
+)
+
+const (
+	constraintUsersEmailKey       = "users_email_key"
+	constraintUsersPhoneNumberKey = "users_phone_number_key"
 )
 
 type Repository struct {
@@ -128,6 +132,48 @@ func (r *Repository) GetByID(ctx context.Context, userID string) (entity.User, e
 	return u.ToEntity(), nil
 }
 
+func (r *Repository) GetByIDs(ctx context.Context, userIDs []string) ([]entity.User, error) {
+	if len(userIDs) == 0 {
+		return []entity.User{}, nil
+	}
+
+	sql, args, err := r.qb.Select(
+		idColumn,
+		avatarKeyColumn,
+		firstNameColumn,
+		lastNameColumn,
+		emailColumn,
+		phoneNumberColumn,
+		passwordColumn,
+		createdAtColumn,
+		updatedAtColumn,
+	).
+		From(tableName).
+		Where(sq.Eq{idColumn: userIDs}).
+		ToSql()
+	if err != nil {
+		return nil, buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.GetByIDs",
+		Sql:  sql,
+	}
+
+	rows, err := r.db.DB().QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, executeSQLError(err)
+	}
+	defer rows.Close()
+
+	var users Users
+	if err := pgxscan.ScanAll(&users, rows); err != nil {
+		return nil, scanRowsError(err)
+	}
+
+	return users.ToEntities(), nil
+}
+
 func (r *Repository) Create(ctx context.Context, in entity.CreateUserInput) (string, error) {
 	sql, args, err := r.qb.Insert(tableName).
 		Columns(
@@ -157,6 +203,20 @@ func (r *Repository) Create(ctx context.Context, in entity.CreateUserInput) (str
 
 	var createdUserID string
 	if err := r.db.DB().QueryRowContext(ctx, q, args...).Scan(&createdUserID); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case pgerrcode.UniqueViolation:
+				if pgErr.ConstraintName == constraintUsersEmailKey {
+					return "", apperror.UserEmailAlreadyExists(in.Email)
+				}
+
+				if pgErr.ConstraintName == constraintUsersPhoneNumberKey {
+					return "", apperror.UserPhoneAlreadyExists(in.PhoneNumber)
+				}
+			}
+		}
+
 		return "", scanRowError(err)
 	}
 

@@ -68,8 +68,14 @@ func UserNotFoundEmail(email string) *Error {
 	return newError(code.NotFound, msg)
 }
 
-func EmailAlreadyExists(email string) *Error {
-	msg := fmt.Sprintf("user with email %q is already exists", email)
+func UserEmailAlreadyExists(email string) *Error {
+	msg := fmt.Sprintf("user with email %q already exists", email)
+
+	return newError(code.AlreadyExists, msg)
+}
+
+func UserPhoneAlreadyExists(phone string) *Error {
+	msg := fmt.Sprintf("user with phone number %q already exists", phone)
 
 	return newError(code.AlreadyExists, msg)
 }

@@ -10,6 +10,7 @@ import (
 type userRepository interface {
 	GetByEmail(ctx context.Context, email string) (entity.User, error)
 	GetByID(ctx context.Context, userID string) (entity.User, error)
+
 	Update(ctx context.Context, in entity.UpdateUserInput) (entity.User, error)
 }
 

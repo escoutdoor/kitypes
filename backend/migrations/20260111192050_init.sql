@@ -9,13 +9,16 @@ CREATE TABLE IF NOT EXISTS users
 
     avatar_key text,
 
-    email text unique not null,
-    phone_number text unique,
+    email text not null,
+    phone_number text,
     
     password text not null,
 
     created_at timestamptz default now(),
-    updated_at timestamptz default now()
+    updated_at timestamptz default now(),
+
+    CONSTRAINT users_email_key UNIQUE (email),
+    CONSTRAINT users_phone_number_key UNIQUE (phone_number)
 );
 
 CREATE TABLE IF NOT EXISTS advertisements
@@ -56,7 +59,8 @@ CREATE TABLE IF NOT EXISTS favorite_ads(
     ad_id uuid not null references advertisements(id) on delete cascade,
 
     created_at timestamptz not null default now(),
-    UNIQUE(user_id, ad_id)
+    
+    CONSTRAINT favorite_ads_user_id_ad_id_key UNIQUE(user_id, ad_id)
 );
 
 CREATE TABLE IF NOT EXISTS conversations
@@ -68,7 +72,8 @@ CREATE TABLE IF NOT EXISTS conversations
     adopter_id uuid references users(id) on delete cascade,
 
     created_at timestamptz not null default now(),
-    UNIQUE(ad_id, adopter_id)
+    
+    CONSTRAINT conversations_ad_id_adopter_id_key UNIQUE(ad_id, adopter_id)
 );
 
 CREATE TABLE IF NOT EXISTS conversation_messages
