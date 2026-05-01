@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -11,96 +10,81 @@ import (
 	"github.com/escoutdoor/kitypes/backend/internal/apperror/code"
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
-	"github.com/escoutdoor/kitypes/backend/pkg/logger"
 )
 
 func (s *Service) SendMessage(ctx context.Context, in entity.Message, adID string) error {
-	if len(in.ConversationID) == 0 && len(adID) == 0 {
+	if in.ConversationID == "" && adID == "" {
 		return fmt.Errorf("conversationId or adId should be passed")
 	}
 
-	var convID string
-	var receiverID string
-
-	if in.ConversationID != "" {
-		conv, err := s.conversationRepo.GetByID(ctx, in.ConversationID)
-		if err != nil {
-			return errwrap.Wrap("get conversation by id", err)
-		}
-
-		if conv.OwnerID != in.SenderID && conv.AdopterID != in.SenderID {
-			return apperror.ConversationAccessDenied
-		}
-
-		convID = conv.ID
-		receiverID = s.getReceiver(conv, in.SenderID)
-	} else if adID != "" {
-		conv, err := s.conversationRepo.GetByAdID(ctx, in.SenderID, adID)
-		if err == nil {
-			convID = conv.ID
-			receiverID = s.getReceiver(conv, in.SenderID)
-		} else {
-			appErr := new(apperror.Error)
-			if errors.As(err, &appErr) && appErr.Code == code.NotFound {
-				ad, err := s.adRepo.Get(ctx, adID, &in.SenderID)
-				if err != nil {
-					return errwrap.Wrap("get ad", err)
-				}
-
-				if ad.AuthorID == in.SenderID {
-					return apperror.ErrCannotMessageYourself
-				}
-
-				newConv := entity.Conversation{
-					AdID:      adID,
-					OwnerID:   ad.AuthorID,
-					AdopterID: in.SenderID,
-				}
-				newID, err := s.conversationRepo.Create(ctx, newConv)
-				if err != nil {
-					return errwrap.Wrap("create conversation", err)
-				}
-
-				convID = newID
-				receiverID = ad.AuthorID
-			} else {
-				return errwrap.Wrap("get conversattion by ad id", err)
-			}
-		}
+	conv, err := s.resolveConversation(ctx, in.SenderID, in.ConversationID, adID)
+	if err != nil {
+		return err
 	}
 
-	in.ConversationID = convID
+	in.ConversationID = conv.ID
+	in.CreatedAt = time.Now()
 
-	if err := s.messageRepo.Create(ctx, in); err != nil {
+	messageID, err := s.messageRepo.Create(ctx, in)
+	if err != nil {
 		return errwrap.Wrap("create message", err)
 	}
+	in.ID = messageID
 
-	in.CreatedAt = time.Now()
-	msgBytes, err := json.Marshal(in)
-	if err != nil {
-		return errwrap.Wrap("marshal message", err)
-	}
+	receiverID := s.getReceiver(conv, in.SenderID)
+	s.publishMessageEvent(ctx, receiverID, in)
 
-	event := entity.MessageEvent{
-		ReceiverID: receiverID,
-		Content:    json.RawMessage(msgBytes),
-	}
-
-	payload, err := json.Marshal(event)
-	if err != nil {
-		return errwrap.Wrap("marshal message event", err)
-	}
-
-	if err := s.redisClient.Publish(ctx, "chat", payload).Err(); err != nil {
-		logger.ErrorKV(ctx, "redis client push message", "err", err.Error())
-	}
 	return nil
 }
 
-func (s *Service) getReceiver(conv entity.Conversation, senderID string) string {
-	if conv.OwnerID == senderID {
-		return conv.AdopterID
+func (s *Service) resolveConversation(ctx context.Context, senderID, convID, adID string) (entity.Conversation, error) {
+	if convID != "" {
+		conv, err := s.conversationRepo.GetByID(ctx, convID)
+		if err != nil {
+			return entity.Conversation{}, errwrap.Wrap("get conversation by id", err)
+		}
+		if conv.OwnerID != senderID && conv.AdopterID != senderID {
+			return entity.Conversation{}, apperror.ConversationAccessDenied
+		}
+		return conv, nil
 	}
 
-	return conv.OwnerID
+	conv, err := s.conversationRepo.GetByAdID(ctx, senderID, adID)
+	if err == nil {
+		return conv, nil // chat already exists
+	}
+
+	var appErr *apperror.Error
+	if !errors.As(err, &appErr) || appErr.Code != code.NotFound {
+		return entity.Conversation{}, errwrap.Wrap("get conversation by ad id", err)
+	}
+
+	ad, err := s.adRepo.Get(ctx, adID, &senderID)
+	if err != nil {
+		return entity.Conversation{}, errwrap.Wrap("get ad", err)
+	}
+	if ad.AuthorID == senderID {
+		return entity.Conversation{}, apperror.ErrCannotMessageYourself
+	}
+
+	newConv := entity.Conversation{
+		AdID:      adID,
+		OwnerID:   ad.AuthorID,
+		AdopterID: senderID,
+	}
+
+	createdID, err := s.conversationRepo.Create(ctx, newConv)
+	if err != nil {
+		if errors.Is(err, apperror.ErrConversationAlreadyExists) {
+			existingConv, getErr := s.conversationRepo.GetByAdID(ctx, senderID, adID)
+			if getErr != nil {
+				return entity.Conversation{}, errwrap.Wrap("get conversation after race condition", getErr)
+			}
+			return existingConv, nil
+		}
+		return entity.Conversation{}, errwrap.Wrap("create conversation", err)
+	}
+
+	newConv.ID = createdID
+	return newConv, nil
 }

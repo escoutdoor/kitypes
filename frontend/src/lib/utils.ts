@@ -36,3 +36,23 @@ export function formatPetAge(months: number | null | undefined): string {
 
     return parts.join(" ")
 }
+
+export function formatChatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return ""
+
+    try {
+        const d = new Date(dateStr)
+        const now = new Date()
+
+        const isToday = d.getDate() === now.getDate() &&
+            d.getMonth() === now.getMonth() &&
+            d.getFullYear() === now.getFullYear()
+
+        if (isToday) {
+            return new Intl.DateTimeFormat("uk-UA", { hour: "2-digit", minute: "2-digit" }).format(d)
+        }
+        return new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "short" }).format(d)
+    } catch {
+        return ""
+    }
+}

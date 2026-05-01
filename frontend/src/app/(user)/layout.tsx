@@ -3,6 +3,7 @@ import Header from "@/components/shared/header/header";
 import { AuthGuard } from "@/provider/AuthGuard";
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
+
     return (
         <AuthGuard>
             <div className="flex min-h-screen flex-col">

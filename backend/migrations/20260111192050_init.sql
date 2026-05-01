@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS users
 (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
 
     first_name text not null,
     last_name text not null,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS advertisements
 (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
     author_id uuid not null references users(id) on delete cascade,
     
     title text not null,
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS advertisement_images
 );
 
 CREATE TABLE IF NOT EXISTS favorite_ads(
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
 
     user_id uuid not null references users(id) on delete cascade,
     ad_id uuid not null references advertisements(id) on delete cascade,
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS favorite_ads(
 
 CREATE TABLE IF NOT EXISTS conversations
 (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
     ad_id uuid not null references advertisements(id) on delete cascade,
 
     owner_id uuid references users(id) on delete cascade,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS conversations
 
 CREATE TABLE IF NOT EXISTS conversation_messages
 (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
 
     conversation_id uuid not null references conversations(id) on delete cascade,
     sender_id uuid not null references users(id) on delete cascade,
@@ -88,6 +88,8 @@ CREATE TABLE IF NOT EXISTS conversation_messages
 
     created_at timestamptz not null default now()
 );
+
+CREATE INDEX idx_messages_conversation_id_id ON conversation_messages(conversation_id, id DESC);
 -- +goose StatementEnd
 
 -- +goose Down

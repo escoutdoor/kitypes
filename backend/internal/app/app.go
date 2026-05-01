@@ -93,6 +93,15 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	e.Use(echo_middleware.RequestLogger())
 	e.Use(echo_middleware.Recover())
 
+	e.Use(echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"http://127.0.0.0:3000",
+		},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		AllowCredentials: true,
+	}))
+
 	authMw := middleware.Auth(a.di.TokenProvider())
 	optionalAuthMw := middleware.OptionalAuth(a.di.TokenProvider())
 	v1Group := e.Group("/v1")
@@ -109,7 +118,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	v1FavGroup := v1Group.Group("/favorites")
 	fav_v1.RegisterHandlers(v1FavGroup, authMw, a.di.FavoriteService(ctx), cv)
 
-	v1ChatGroup := v1Group.Group("/chats")
+	v1ChatGroup := v1Group.Group("/conversations")
 	chat_v1.RegisterHandlers(v1ChatGroup, authMw, a.di.ChatService(ctx), cv, a.di.ChatHub(ctx))
 
 	s := &http.Server{

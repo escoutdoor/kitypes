@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"context"
+	"net/http"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
@@ -21,13 +21,16 @@ func (h *handler) publish(c echo.Context) error {
 
 	in := publishRequestToMessage(req, userID)
 	ctx := c.Request().Context()
-	h.publishLimiter.Wait(context.Background())
+
+	if err := h.publishLimiter.Wait(ctx); err != nil {
+		return err
+	}
 
 	if err := h.service.SendMessage(ctx, in, req.AdID); err != nil {
 		return err
 	}
 
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }
 
 type publishRequest struct {

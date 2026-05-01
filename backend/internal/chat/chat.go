@@ -12,13 +12,13 @@ import (
 type Chat struct {
 	mu sync.RWMutex
 
-	subs        map[string]*Subscriber
+	subs        map[string]map[*Subscriber]struct{}
 	redisClient *redis.Client
 }
 
 func NewChat(redisClient *redis.Client) *Chat {
 	c := &Chat{
-		subs:        make(map[string]*Subscriber),
+		subs:        make(map[string]map[*Subscriber]struct{}),
 		redisClient: redisClient,
 	}
 
@@ -30,14 +30,15 @@ func (c *Chat) Run(ctx context.Context) {
 	ch := s.Channel()
 
 	for msg := range ch {
-		var event entity.MessageEvent
-		if err := json.Unmarshal([]byte(msg.Payload), &event); err != nil {
+		var envelope entity.EventEnvelope
+		if err := json.Unmarshal([]byte(msg.Payload), &envelope); err != nil {
 			continue
 		}
 
-		sub, ok := c.GetSub(event.ReceiverID)
-		if ok {
-			sub.send(event.Content)
+		if subs, ok := c.GetSubs(envelope.ReceiverID); ok {
+			for s := range subs {
+				s.send([]byte(msg.Payload))
+			}
 		}
 	}
 }
@@ -55,19 +56,27 @@ func (c *Chat) AddSub(userID string) *Subscriber {
 	defer c.mu.Unlock()
 
 	sub := newSub()
-	c.subs[userID] = sub
+	if c.subs[userID] == nil {
+		c.subs[userID] = make(map[*Subscriber]struct{})
+	}
+	c.subs[userID][sub] = struct{}{}
 
 	return sub
 }
 
-func (c *Chat) DeleteSub(userID string) {
+func (c *Chat) DeleteSub(userID string, sub *Subscriber) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	delete(c.subs, userID)
+	if _, ok := c.subs[userID]; ok {
+		delete(c.subs[userID], sub)
+		if len(c.subs[userID]) == 0 {
+			delete(c.subs, userID)
+		}
+	}
 }
 
-func (c *Chat) GetSub(userID string) (*Subscriber, bool) {
+func (c *Chat) GetSubs(userID string) (map[*Subscriber]struct{}, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 

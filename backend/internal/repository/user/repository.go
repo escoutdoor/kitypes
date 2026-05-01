@@ -132,7 +132,7 @@ func (r *Repository) GetByID(ctx context.Context, userID string) (entity.User, e
 	return u.ToEntity(), nil
 }
 
-func (r *Repository) GetByIDs(ctx context.Context, userIDs []string) ([]entity.User, error) {
+func (r *Repository) ListByIDs(ctx context.Context, userIDs []string) ([]entity.User, error) {
 	if len(userIDs) == 0 {
 		return []entity.User{}, nil
 	}
@@ -156,7 +156,7 @@ func (r *Repository) GetByIDs(ctx context.Context, userIDs []string) ([]entity.U
 	}
 
 	q := database.Query{
-		Name: "user_repository.GetByIDs",
+		Name: "user_repository.ListByIDs",
 		Sql:  sql,
 	}
 

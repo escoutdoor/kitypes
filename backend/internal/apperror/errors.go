@@ -26,6 +26,10 @@ var (
 
 	ErrAdAlreadyFavorited = newError(code.AlreadyExists, "advertisement is already in favorites")
 	ErrFavoriteNotFound   = newError(code.NotFound, "advertisement is not in favorites")
+
+	ErrConversationAlreadyExists = newError(code.AlreadyExists, "conversation already exists")
+
+	ErrInvalidPageToken = newError(code.InvalidRequest, "invalid page token")
 )
 
 type Error struct {

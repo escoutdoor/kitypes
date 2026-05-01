@@ -4,6 +4,10 @@ import (
 	"context"
 	"time"
 
+	"encoding/base64"
+	"github.com/escoutdoor/kitypes/backend/internal/apperror"
+	"github.com/google/uuid"
+
 	"github.com/escoutdoor/kitypes/backend/internal/chat"
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/pkg/validator"
@@ -11,8 +15,20 @@ import (
 	"golang.org/x/time/rate"
 )
 
+const (
+	idParam = "id"
+
+	defaultPageLimit = 20
+	maxPageLimit     = 100
+)
+
 type chatService interface {
 	SendMessage(ctx context.Context, in entity.Message, adID string) error
+	ListConversations(ctx context.Context, userID string, limit int, cursor string) ([]entity.EnrichedConversation, string, error)
+	ListMessages(ctx context.Context, userID, convID string, limit int, cursor string) ([]entity.Message, string, error)
+	MarkAsRead(ctx context.Context, convID string, userID string, lastReadMsgID string) error
+
+	BuildPublicURL(key string) string
 }
 
 type handler struct {
@@ -41,4 +57,34 @@ func RegisterHandlers(
 
 	e.GET("/subscribe", h.subscribe)
 	e.POST("/publish", h.publish)
+
+	e.GET("/", h.listConversations)
+	e.GET("/:id/messages", h.listConversationMessages)
+
+	e.PATCH("/:id/read", h.markMessageAsRead)
+}
+
+func encodePageToken(cursor string) string {
+	if cursor == "" {
+		return ""
+	}
+	return base64.URLEncoding.EncodeToString([]byte(cursor))
+}
+
+func decodePageToken(token string) (string, error) {
+	if token == "" {
+		return "", nil
+	}
+	decoded, err := base64.URLEncoding.DecodeString(token)
+
+	if err != nil {
+		return "", apperror.ErrInvalidPageToken
+	}
+
+	cursorID := string(decoded)
+	if err := uuid.Validate(cursorID); err != nil {
+		return "", apperror.ErrInvalidPageToken
+	}
+
+	return cursorID, nil
 }

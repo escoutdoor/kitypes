@@ -200,7 +200,9 @@ func (d *di) ChatService(ctx context.Context) *chat_service.Service {
 			d.ConversationRepository(ctx),
 			d.MessageRepository(ctx),
 			d.AdRepository(ctx),
+			d.UserRepository(ctx),
 			d.RedisClient(ctx),
+			d.S3Client(ctx),
 		)
 	}
 	return d.chatService

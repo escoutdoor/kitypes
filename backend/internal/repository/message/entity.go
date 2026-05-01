@@ -7,24 +7,39 @@ import (
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 )
 
-type Conversation struct {
-	ID   string `db:"id"`
-	AdID string `db:"ad_id"`
+type Message struct {
+	ID             string `db:"id"`
+	ConversationID string `db:"conversation_id"`
+	SenderID       string `db:"sender_id"`
 
-	OwnerID   string `db:"owner_id"`
-	AdopterID string `db:"adopter_id"`
+	Content string `db:"content"`
 
+	IsRead    bool      `db:"is_read"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
-func (c *Conversation) ToEntity() entity.Conversation {
-	return entity.Conversation{
-		ID:        c.ID,
-		AdID:      c.AdID,
-		OwnerID:   c.OwnerID,
-		AdopterID: c.AdopterID,
-		CreatedAt: c.CreatedAt,
+func (e Message) ToEntity() entity.Message {
+	return entity.Message{
+		ID:             e.ID,
+		ConversationID: e.ConversationID,
+		SenderID:       e.SenderID,
+
+		Content: e.Content,
+
+		IsRead:    e.IsRead,
+		CreatedAt: e.CreatedAt,
 	}
+}
+
+type Messages []Message
+
+func (e Messages) ToEntities() []entity.Message {
+	list := make([]entity.Message, 0, len(e))
+	for _, m := range e {
+		list = append(list, m.ToEntity())
+	}
+
+	return list
 }
 
 func buildSQLError(err error) error {

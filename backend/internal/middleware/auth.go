@@ -13,17 +13,22 @@ const (
 	authorizationHeaderPrefix = "Bearer "
 )
 
+func extractToken(c echo.Context) string {
+	authHeader := c.Request().Header.Get(authorizationHeader)
+	if strings.HasPrefix(authHeader, authorizationHeaderPrefix) {
+		return authHeader[len(authorizationHeaderPrefix):]
+	}
+
+	return c.QueryParam("token")
+}
+
 func Auth(tokenProvider tokenProvider) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			authHeader := c.Request().Header.Get(authorizationHeader)
-			if authHeader == "" {
-				return newUnauthorized("authorization header not provided")
+			token := extractToken(c)
+			if token == "" {
+				return newUnauthorized("authorization token not provided")
 			}
-			if !strings.HasPrefix(authHeader, authorizationHeaderPrefix) {
-				return newUnauthorized("invalid authorization header format")
-			}
-			token := authHeader[len(authorizationHeaderPrefix):]
 
 			userID, err := tokenProvider.ValidateAccessToken(token)
 			if err != nil {
@@ -39,16 +44,11 @@ func Auth(tokenProvider tokenProvider) echo.MiddlewareFunc {
 func OptionalAuth(tokenProvider tokenProvider) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			authHeader := c.Request().Header.Get(authorizationHeader)
-			if authHeader == "" {
-				// no header -> skip validation below
+			token := extractToken(c)
+			if token == "" {
+				// no header and no query param -> skip validation below
 				return next(c)
 			}
-
-			if !strings.HasPrefix(authHeader, authorizationHeaderPrefix) {
-				return newUnauthorized("invalid authorization header format")
-			}
-			token := authHeader[len(authorizationHeaderPrefix):]
 
 			userID, err := tokenProvider.ValidateAccessToken(token)
 			if err != nil {

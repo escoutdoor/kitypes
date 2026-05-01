@@ -12,7 +12,6 @@ import {
     PawPrint,
     Pencil,
     AlertCircle,
-    Mail,
     Phone,
     ShieldCheck,
     User,
@@ -31,6 +30,7 @@ import { useAuthStore } from "@/store/auth.store"
 import { usePhone } from "@/hook/usePhone"
 import { FavoriteButton } from "@/components/shared/favorite-button/favorite-button"
 import { formatPetAge } from "@/lib/utils"
+import { ContactAuthorForm } from "./contact-author-form"
 
 const PET_TYPES: Record<number, string> = { 1: "Песик", 2: "Котик", 3: "Інше" }
 const PET_GENDERS: Record<number, string> = { 1: "Хлопчик", 2: "Дівчинка" }
@@ -81,19 +81,6 @@ export function AdDetail({ adId }: { adId: string }) {
         }
     }
 
-    const handleSendMessage = () => {
-        if (!isAuthenticated) {
-            toast.info("Потрібна авторизація", {
-                description: "Увійдіть у свій акаунт, щоб написати власнику.",
-                action: {
-                    label: "Увійти",
-                    onClick: () => router.push("/login"),
-                },
-            })
-            return
-        }
-        toast.success("Функція внутрішнього чату в розробці!")
-    }
 
     if (isLoading) {
         return (
@@ -334,14 +321,7 @@ export function AdDetail({ adId }: { adId: string }) {
                                                     {isLoadingPhone ? "Завантаження..." : "Показати контакти"}
                                                 </Button>
                                             )}
-                                            <Button
-                                                size="lg"
-                                                variant="outline"
-                                                className="w-full text-base font-semibold bg-white rounded-xl cursor-pointer border-gray-200"
-                                                onClick={handleSendMessage}
-                                            >
-                                                <Mail className="h-5 w-5 mr-2" /> Написати повідомлення
-                                            </Button>
+                                            <ContactAuthorForm adId={adId} />
                                         </>
                                     )}
 

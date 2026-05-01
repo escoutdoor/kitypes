@@ -15,16 +15,16 @@ func (h *handler) subscribe(c echo.Context) error {
 		return err
 	}
 
-	conn, err := websocket.Accept(c.Response(), c.Request(), nil)
+	conn, err := websocket.Accept(c.Response(), c.Request(), &websocket.AcceptOptions{InsecureSkipVerify: true})
 	if err != nil {
 		return err
 	}
 	defer conn.CloseNow()
 
 	sub := h.chat.AddSub(userID)
-	defer h.chat.DeleteSub(userID)
+	defer h.chat.DeleteSub(userID, sub)
 
-	ctx := conn.CloseRead(context.Background())
+	ctx := conn.CloseRead(c.Request().Context())
 
 	for {
 		select {
