@@ -24,3 +24,13 @@ export interface UploadUrlResponse {
     uploadUrl: string
     avatarKey: string
 }
+
+export interface UpdateEmailRequest {
+    email: string
+    password: string
+}
+
+export interface UpdatePasswordRequest {
+    oldPassword: string
+    newPassword: string
+}

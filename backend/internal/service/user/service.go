@@ -12,6 +12,11 @@ type userRepository interface {
 	GetByID(ctx context.Context, userID string) (entity.User, error)
 
 	Update(ctx context.Context, in entity.UpdateUserInput) (entity.User, error)
+	UpdatePassword(ctx context.Context, userID string, password string) error
+	UpdateEmail(ctx context.Context, userID string, email string) error
+
+	Delete(ctx context.Context, userID string) error
+	DeleteAvatar(ctx context.Context, userID string) error
 }
 
 type s3Client interface {

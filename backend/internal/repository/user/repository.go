@@ -246,12 +246,6 @@ func (r *Repository) Update(ctx context.Context, in entity.UpdateUserInput) (ent
 	if in.LastName != nil {
 		builder = builder.Set(lastNameColumn, *in.LastName)
 	}
-	if in.Email != nil {
-		builder = builder.Set(emailColumn, *in.Email)
-	}
-	if in.Password != nil {
-		builder = builder.Set(passwordColumn, *in.Password)
-	}
 	if in.PhoneNumber != nil {
 		builder = builder.Set(phoneNumberColumn, *in.PhoneNumber)
 	}
@@ -274,8 +268,123 @@ func (r *Repository) Update(ctx context.Context, in entity.UpdateUserInput) (ent
 
 	var u User
 	if err := pgxscan.ScanOne(&u, row); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == pgerrcode.UniqueViolation {
+				switch pgErr.ConstraintName {
+				case constraintUsersPhoneNumberKey:
+					return entity.User{}, apperror.UserPhoneAlreadyExists(*in.PhoneNumber)
+				}
+			}
+		}
+
 		return entity.User{}, scanRowError(err)
 	}
 
 	return u.ToEntity(), nil
+}
+
+func (r *Repository) DeleteAvatar(ctx context.Context, userID string) error {
+	sql, args, err := r.qb.Update(tableName).
+		Set(avatarKeyColumn, nil).
+		Where(sq.Eq{idColumn: userID}).
+		ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.DeleteAvatar",
+		Sql:  sql,
+	}
+
+	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		return apperror.UserNotFoundID(userID)
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdatePassword(ctx context.Context, userID string, password string) error {
+	sql, args, err := r.qb.Update(tableName).
+		Set(passwordColumn, password).
+		Where(sq.Eq{idColumn: userID}).
+		ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.UpdatePassword",
+		Sql:  sql,
+	}
+
+	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		return apperror.UserNotFoundID(userID)
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateEmail(ctx context.Context, userID, email string) error {
+	sql, args, err := r.qb.Update(tableName).
+		Set(emailColumn, email).
+		Where(sq.Eq{idColumn: userID}).
+		ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.UpdateEmail",
+		Sql:  sql,
+	}
+
+	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			if pgErr.ConstraintName == constraintUsersEmailKey {
+				return apperror.UserEmailAlreadyExists(email)
+			}
+		}
+		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		return apperror.UserNotFoundID(userID)
+	}
+
+	return nil
+}
+
+func (r *Repository) Delete(ctx context.Context, userID string) error {
+	sql, args, err := r.qb.Delete(tableName).
+		Where(sq.Eq{idColumn: userID}).
+		ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.Delete",
+		Sql:  sql,
+	}
+
+	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		return apperror.UserNotFoundID(userID)
+	}
+
+	return nil
 }

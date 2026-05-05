@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios"
-import { UpdateUserRequest, UploadUrlResponse, User, UserResponse } from "./user.interface"
+import { UpdateEmailRequest, UpdatePasswordRequest, UpdateUserRequest, UploadUrlResponse, User, UserResponse } from "./user.interface"
 
 const USERS_URL = "/v1/users"
 
@@ -12,6 +12,22 @@ export class UserService {
     static async update(data: UpdateUserRequest): Promise<User> {
         const resp = await api.patch<UserResponse>(`${USERS_URL}/me`, data)
         return resp.data.user
+    }
+
+    static async updateEmail(data: UpdateEmailRequest): Promise<void> {
+        await api.patch(`${USERS_URL}/me/email`, data)
+    }
+
+    static async updatePassword(data: UpdatePasswordRequest): Promise<void> {
+        await api.patch(`${USERS_URL}/me/password`, data)
+    }
+
+    static async deleteAccount(): Promise<void> {
+        await api.delete(`${USERS_URL}/me`)
+    }
+
+    static async deleteAvatar(): Promise<void> {
+        await api.delete(`${USERS_URL}/me/avatar`)
     }
 
     static async getUploadUrl(ext: string): Promise<UploadUrlResponse> {

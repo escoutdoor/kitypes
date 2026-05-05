@@ -30,7 +30,6 @@ const Header = () => {
 
     const conversations = convData?.pages.flatMap(p => p.conversations) || []
 
-    // Рахуємо чи є хоча б одне непрочитане повідомлення від інших
     const unreadCount = conversations.filter(c =>
         c.lastMessage &&
         !c.lastMessage.isRead &&
@@ -77,7 +76,7 @@ const Header = () => {
 
                     <div className="flex items-center justify-start">
                         <Link href="/" className="flex items-center gap-2 font-bold text-xl leading-none">
-                            <PawPrint className="h-6 w-6" />
+                            <PawPrint className="h-6 w-6 text-primary" />
                             <span>Kitypes</span>
                         </Link>
                     </div>
@@ -96,10 +95,10 @@ const Header = () => {
                                     {route.href === "/messages" && unreadCount > 0 && (
                                         <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
                                             <span
-                                                className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-50"
+                                                className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/80 opacity-50"
                                                 style={{ animationDuration: '5s' }}
                                             ></span>
-                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
+                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                                         </span>
                                     )}
                                 </span>
@@ -115,7 +114,7 @@ const Header = () => {
                                         <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 transition-transform active:scale-95">
                                             <Avatar className="h-9 w-9 border border-gray-100 shadow-sm">
                                                 <AvatarImage src={user?.avatarUrl || undefined} alt={user?.firstName || "User avatar"} className="object-cover" />
-                                                <AvatarFallback className="bg-orange-50 text-orange-600 font-semibold">{initials}</AvatarFallback>
+                                                <AvatarFallback className="bg-primary/10 text-primary font-semibold">{initials}</AvatarFallback>
                                             </Avatar>
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -132,19 +131,19 @@ const Header = () => {
 
                                         <DropdownMenuSeparator />
 
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-orange-600">
+                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
                                             <Link href="/profile">Мій профіль</Link>
                                         </DropdownMenuItem>
 
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-orange-600">
+                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
                                             <Link href="/my-ads">Мої оголошення</Link>
                                         </DropdownMenuItem>
 
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-orange-600">
+                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
                                             <Link href="/favorites">Обрані</Link>
                                         </DropdownMenuItem>
 
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-orange-600">
+                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
                                             <Link href="/profile/settings">Налаштування</Link>
                                         </DropdownMenuItem>
 
@@ -157,7 +156,7 @@ const Header = () => {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             ) : (
-                                <Button asChild className="rounded-full px-6 shadow-sm hover:shadow-md transition-all bg-primary hover:bg-orange-600 text-white">
+                                <Button asChild className="rounded-full px-6 shadow-sm hover:shadow-md transition-all bg-primary hover:bg-primary/90 text-white">
                                     <Link href="/login">Увійти</Link>
                                 </Button>
                             )}
@@ -193,7 +192,7 @@ const Header = () => {
                                                     {route.label}
                                                     {route.href === "/messages" && unreadCount > 0 && (
                                                         <span className="absolute top-0.5 -right-0 flex h-1.5 w-1.5">
-                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-50" style={{ animationDuration: '3s' }}></span>
+                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/80 opacity-50" style={{ animationDuration: '3s' }}></span>
                                                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                                                         </span>
                                                     )}
@@ -207,10 +206,10 @@ const Header = () => {
                                     {isAuthenticated ? (
                                         <>
                                             <SheetClose asChild>
-                                                <Link href="/profile" className="flex items-center gap-3 text-lg font-medium hover:text-primary mb-4 p-2 rounded-xl hover:bg-orange-50 mr-4 transition-colors">
-                                                    <Avatar className="h-10 w-10 border border-orange-100 shadow-sm">
+                                                <Link href="/profile" className="flex items-center gap-3 text-lg font-medium hover:text-primary mb-4 p-2 rounded-xl hover:bg-primary/5 mr-4 transition-colors">
+                                                    <Avatar className="h-10 w-10 border border-primary/20 shadow-sm">
                                                         <AvatarImage src={user?.avatarUrl || undefined} alt={user?.firstName || "User avatar"} className="object-cover" />
-                                                        <AvatarFallback className="bg-orange-100 text-orange-600 font-bold">{initials}</AvatarFallback>
+                                                        <AvatarFallback className="bg-primary/10 text-primary font-bold">{initials}</AvatarFallback>
                                                     </Avatar>
                                                     <div className="flex flex-col">
                                                         <span className="text-base font-bold text-gray-900">
@@ -232,7 +231,7 @@ const Header = () => {
                                     ) : (
                                         <div className="flex flex-col gap-4 mt-auto mb-8 pr-4">
                                             <SheetClose asChild>
-                                                <Button asChild className="w-full rounded-full shadow-sm bg-primary hover:bg-orange-600 text-white">
+                                                <Button asChild className="w-full rounded-full shadow-sm bg-primary hover:bg-primary/90 text-white">
                                                     <Link href="/login">Увійти</Link>
                                                 </Button>
                                             </SheetClose>

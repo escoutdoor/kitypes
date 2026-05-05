@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (h *handler) getMe(c echo.Context) error {
+func (h *handler) get(c echo.Context) error {
 	userID, err := httpctx.GetUserID(c)
 	if err != nil {
 		return err
@@ -19,10 +19,10 @@ func (h *handler) getMe(c echo.Context) error {
 		return err
 	}
 
-	resp := getMeResponse{User: h.meToResponse(user)}
+	resp := getResponse{User: h.meToResponse(user)}
 	return c.JSON(http.StatusOK, resp)
 }
 
-type getMeResponse struct {
+type getResponse struct {
 	User meResponse `json:"user"`
 }

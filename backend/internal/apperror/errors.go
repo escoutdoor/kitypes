@@ -11,6 +11,7 @@ var (
 	ErrJwtTokenExpired      = newError(code.JwtTokenExpired, "jwt token is already expired")
 	ErrInvalidJwtToken      = newError(code.InvalidJwtToken, "invalid jwt token")
 	ErrIncorrectCredentials = newError(code.IncorrectCreadentials, "incorrect credentials")
+	ErrIncorrectPassword    = newError(code.InvalidRequest, "incorrect password")
 
 	AdAccessDenied = newError(code.PermissionDenied, "only author can manage this ad")
 

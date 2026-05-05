@@ -11,10 +11,15 @@ import (
 
 type userService interface {
 	GetByID(ctx context.Context, userID string) (entity.User, error)
-	Update(ctx context.Context, in entity.UpdateUserInput) (entity.User, error)
-
 	GenerateUploadURL(ctx context.Context, ext string) (string, string, error)
 	BuildPublicURL(key string) string
+
+	Update(ctx context.Context, in entity.UpdateUserInput) (entity.User, error)
+	UpdatePassword(ctx context.Context, in entity.UpdateUserPasswordInput) error
+	UpdateEmail(ctx context.Context, in entity.UpdateUserEmailInput) error
+
+	Delete(ctx context.Context, userID string) error
+	DeleteAvatar(ctx context.Context, userID string) error
 }
 
 type handler struct {
@@ -31,9 +36,15 @@ func RegisterHandlers(
 	h := &handler{service: userService, cv: cv}
 	e.Use(authMw)
 
-	e.GET("/me", h.getMe)
-	e.GET("/upload-url", h.getUploadURL, authMw)
-	e.PATCH("/me", h.updateUser)
+	e.GET("/me", h.get)
+	e.GET("/upload-url", h.getUploadURL)
+
+	e.DELETE("/me/avatar", h.deleteAvatar)
+	e.DELETE("/me", h.delete)
+
+	e.PATCH("/me", h.update)
+	e.PATCH("/me/password", h.updatePassword)
+	e.PATCH("/me/email", h.updateEmail)
 }
 
 type meResponse struct {

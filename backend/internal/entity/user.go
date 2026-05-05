@@ -42,8 +42,19 @@ type UpdateUserInput struct {
 	FirstName *string
 	LastName  *string
 
-	Email       *string
 	PhoneNumber *string
+}
 
-	Password *string
+type UpdateUserPasswordInput struct {
+	ID string
+
+	OldPassword string
+	NewPassword string
+}
+
+type UpdateUserEmailInput struct {
+	ID string
+
+	NewEmail string
+	Password string
 }
