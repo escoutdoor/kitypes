@@ -7,6 +7,7 @@ import (
 
 	"github.com/escoutdoor/kitypes/backend/internal/apperror"
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
+	"github.com/escoutdoor/kitypes/backend/internal/util/mimeutil"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 	"github.com/google/uuid"
 )
@@ -15,6 +16,8 @@ const (
 	objectKeyPrefix    = "ads/"
 	defaultImageExt    = ".jpg"
 	maxUploadURLsBatch = 10
+
+	uploadURLLifetime = 15 * time.Minute
 )
 
 var allowedImageExts = map[string]struct{}{
@@ -58,7 +61,8 @@ func (s *Service) generateUploadURL(ctx context.Context, ext string) (string, st
 	name := uuid.New().String() + ext
 	key := objectKeyPrefix + name
 
-	url, err := s.s3Client.GeneratePresignedUploadURL(ctx, key, 15*time.Minute)
+	contentType := mimeutil.TypeByExtension(ext)
+	url, err := s.s3Client.GeneratePresignedUploadURL(ctx, key, contentType, uploadURLLifetime)
 	if err != nil {
 		return "", "", errwrap.Wrap("generate presigned url", err)
 	}

@@ -20,7 +20,7 @@ type userRepository interface {
 }
 
 type s3Client interface {
-	GeneratePresignedUploadURL(ctx context.Context, key string, ttl time.Duration) (string, error)
+	GeneratePresignedUploadURL(ctx context.Context, key, contentType string, lifetime time.Duration) (string, error)
 	DeleteFiles(ctx context.Context, keys []string) error
 
 	BuildPublicURL(key string) string

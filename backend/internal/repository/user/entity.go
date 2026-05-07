@@ -8,7 +8,8 @@ import (
 )
 
 type User struct {
-	ID string `db:"id"`
+	ID   string          `db:"id"`
+	Role entity.UserRole `db:"role"`
 
 	AvatarKey *string `db:"avatar_key"`
 
@@ -26,7 +27,8 @@ type User struct {
 
 func (u User) ToEntity() entity.User {
 	return entity.User{
-		ID: u.ID,
+		ID:   u.ID,
+		Role: u.Role,
 
 		AvatarKey: u.AvatarKey,
 

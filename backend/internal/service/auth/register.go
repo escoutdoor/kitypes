@@ -38,11 +38,11 @@ func (s *Service) Register(ctx context.Context, in entity.CreateUserInput) (enti
 		return entity.Tokens{}, errwrap.Wrap("create user in repository", err)
 	}
 
-	accessToken, err := s.tokenProvider.GenerateAccessToken(userID)
+	accessToken, err := s.tokenProvider.GenerateAccessToken(userID, entity.RoleUser)
 	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("generate jwt access token", err)
 	}
-	refreshToken, err := s.tokenProvider.GenerateRefreshToken(userID)
+	refreshToken, err := s.tokenProvider.GenerateRefreshToken(userID, entity.RoleUser)
 	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("generate jwt refresh token", err)
 	}

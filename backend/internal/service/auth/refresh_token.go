@@ -8,20 +8,21 @@ import (
 )
 
 func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (entity.Tokens, error) {
-	userID, err := s.tokenProvider.ValidateRefreshToken(refreshToken)
+	tokenPayload, err := s.tokenProvider.ValidateRefreshToken(refreshToken)
 	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("validate refresh token", err)
 	}
 
-	if _, err := s.userRepo.GetByID(ctx, userID); err != nil {
+	user, err := s.userRepo.GetByID(ctx, tokenPayload.UserID)
+	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("get user by id from repository", err)
 	}
 
-	accessToken, err := s.tokenProvider.GenerateAccessToken(userID)
+	accessToken, err := s.tokenProvider.GenerateAccessToken(tokenPayload.UserID, user.Role)
 	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("generate jwt access token", err)
 	}
-	newRefreshToken, err := s.tokenProvider.GenerateRefreshToken(userID)
+	newRefreshToken, err := s.tokenProvider.GenerateRefreshToken(tokenPayload.UserID, user.Role)
 	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("generate jwt refresh token", err)
 	}

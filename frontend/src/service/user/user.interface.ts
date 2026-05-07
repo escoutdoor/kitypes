@@ -1,5 +1,8 @@
+export type UserRole = "user" | "volunteer" | "shelter" | "admin"
+
 export interface User {
     id: string
+    role: UserRole
     avatarUrl: string
     firstName: string
     lastName: string

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
+	"github.com/escoutdoor/kitypes/backend/internal/util/token"
 )
 
 type userRepository interface {
@@ -13,11 +14,11 @@ type userRepository interface {
 }
 
 type tokenProvider interface {
-	ValidateAccessToken(accessToken string) (string, error)
-	ValidateRefreshToken(refreshToken string) (string, error)
+	ValidateAccessToken(accessToken string) (token.TokenPayload, error)
+	ValidateRefreshToken(refreshToken string) (token.TokenPayload, error)
 
-	GenerateAccessToken(userID string) (string, error)
-	GenerateRefreshToken(userID string) (string, error)
+	GenerateAccessToken(userID string, role entity.UserRole) (string, error)
+	GenerateRefreshToken(userID string, role entity.UserRole) (string, error)
 }
 
 type Service struct {

@@ -1,5 +1,6 @@
 "use client"
 
+import { UserRole } from "@/service/user/user.interface"
 import { useEffect, useRef, useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -20,6 +21,25 @@ import { useDeleteAvatar } from "@/hook/useDeleteAvatar"
 import { UserService } from "@/service/user/user.service"
 import { S3Service } from "@/lib/s3"
 import { cn } from "@/lib/utils"
+
+const ROLE_CONFIG: Record<UserRole, { label: string; colorClass: string }> = {
+    user: {
+        label: "Користувач",
+        colorClass: "bg-gray-100 text-gray-600 border border-transparent"
+    },
+    volunteer: {
+        label: "Волонтер 💙",
+        colorClass: "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
+    },
+    shelter: {
+        label: "Притулок 🏡",
+        colorClass: "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm"
+    },
+    admin: {
+        label: "Адміністратор 👑",
+        colorClass: "bg-purple-50 text-purple-700 border border-purple-200 shadow-sm"
+    },
+}
 
 const profileSchema = z.object({
     firstName: z.string().min(2, "Ім'я має містити мінімум 2 символи").max(20, "Занадто довге ім'я"),
@@ -146,7 +166,6 @@ export default function Profile() {
 
             <div className="grid gap-8 md:grid-cols-[1fr_2.5fr] items-start">
 
-                {/* ЛІВА КОЛОНКА (Аватарка) */}
                 <Card className="overflow-hidden border-none shadow-md bg-white">
                     <div className="h-24 bg-gradient-to-r from-primary/40 to-primary/20 relative overflow-hidden">
                         <PawPrint className="absolute right-2 -bottom-4 h-16 w-16 text-white/40 rotate-12" />
@@ -168,13 +187,11 @@ export default function Profile() {
                                     <AvatarFallback className="text-4xl font-bold bg-primary/5 text-primary">{initials}</AvatarFallback>
                                 </Avatar>
 
-                                {/* Оверлей камери (pointer-events-none щоб не миготіло) */}
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                                     {isUploadingAvatar || isDeletingAvatar ? <Loader2 className="animate-spin text-white h-8 w-8" /> : <Camera className="text-white h-8 w-8" />}
                                 </div>
                             </div>
 
-                            {/* Кнопка видалення */}
                             {avatarSrc && !isUploadingAvatar && !isDeletingAvatar && (
                                 <button
                                     onClick={handleDeleteAvatar}
@@ -191,9 +208,14 @@ export default function Profile() {
                             <h3 className="font-bold text-xl text-gray-900 mb-1.5">
                                 {user?.firstName} {user?.lastName}
                             </h3>
-                            <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-[11px] font-bold uppercase tracking-wider mb-5">
-                                Користувач
-                            </span>
+                            {user?.role && (
+                                <span className={cn(
+                                    "inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-5 transition-colors",
+                                    ROLE_CONFIG[user.role].colorClass
+                                )}>
+                                    {ROLE_CONFIG[user.role].label}
+                                </span>
+                            )}
 
                             <div className="bg-primary/5 rounded-xl p-4 border border-primary/10 text-left w-full">
                                 <div className="flex items-center gap-2 mb-1.5">
@@ -208,7 +230,6 @@ export default function Profile() {
                     </CardContent>
                 </Card>
 
-                {/* ПРАВА КОЛОНКА (Форма) */}
                 <div className="space-y-6">
                     <Card className="relative overflow-hidden border-none shadow-md bg-white">
                         <div className="absolute -right-12 -top-12 opacity-[0.03] pointer-events-none select-none">
@@ -223,7 +244,6 @@ export default function Profile() {
                         <CardContent className="relative z-10 pt-7">
                             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
 
-                                {/* Підказка про телефон (всередині форми, щоб було логічно) */}
                                 <div className="bg-primary/5 rounded-2xl p-5 flex items-start gap-4 border border-primary/10">
                                     <div className="bg-white p-2 rounded-full text-primary shadow-sm shrink-0">
                                         <PhoneCall className="w-5 h-5" />
@@ -271,7 +291,6 @@ export default function Profile() {
                                         />
                                     </div>
 
-                                    {/* Прибрав max-w-md, тепер інпут на всю ширину */}
                                     <div className="pt-2">
                                         <Controller
                                             name="phoneNumber"

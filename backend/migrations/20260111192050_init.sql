@@ -1,8 +1,12 @@
 -- +goose Up
 -- +goose StatementBegin
+
+CREATE TYPE user_role AS ENUM('user', 'volunteer', 'shelter', 'admin');
+
 CREATE TABLE IF NOT EXISTS users
 (
     id uuid primary key default uuidv7(),
+    role user_role not null default 'user',
 
     first_name text not null,
     last_name text not null,
@@ -20,6 +24,37 @@ CREATE TABLE IF NOT EXISTS users
     CONSTRAINT users_email_key UNIQUE (email),
     CONSTRAINT users_phone_number_key UNIQUE (phone_number)
 );
+
+CREATE TYPE verification_request_status AS ENUM('pending', 'approved', 'rejected');
+
+CREATE TABLE verification_requests (
+    id uuid primary key default uuidv7(),
+    user_id uuid not null references users(id) on delete cascade,
+    requested_role user_role not null,
+    
+    status verification_request_status not null default 'pending',
+    admin_notes TEXT,
+    
+    created_at timestamptz default now(),
+    updated_at timestamptz default now(),
+
+    CONSTRAINT check_requested_role CHECK (requested_role IN ('volunteer'::user_role, 'shelter'::user_role))
+);
+
+CREATE TABLE IF NOT EXISTS verification_requests_documents
+(
+    request_id uuid not null references verification_requests(id) on delete cascade,
+    document_key text not null,
+    created_at timestamptz default now(),
+
+    PRIMARY KEY (request_id, document_key)
+);
+
+CREATE INDEX idx_verification_requests_user_id ON verification_requests(user_id);
+
+CREATE UNIQUE INDEX idx_one_pending_request_per_user
+ON verification_requests (user_id)
+WHERE status = 'pending';
 
 CREATE TABLE IF NOT EXISTS advertisements
 (
@@ -99,5 +134,10 @@ DROP TABLE IF EXISTS conversations;
 DROP TABLE IF EXISTS favorite_ads;
 DROP TABLE IF EXISTS advertisement_images;
 DROP TABLE IF EXISTS advertisements;
+
+DROP TABLE IF EXISTS verification_requests_documents;
+DROP TABLE IF EXISTS verification_requests;
 DROP TABLE IF EXISTS users;
+DROP TYPE IF EXISTS verification_request_status;
+DROP TYPE IF EXISTS user_role;
 -- +goose StatementEnd

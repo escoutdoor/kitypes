@@ -2,9 +2,12 @@ package middleware
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 
+	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
+	"github.com/escoutdoor/kitypes/backend/internal/util/token"
 	"github.com/labstack/echo/v4"
 )
 
@@ -30,13 +33,31 @@ func Auth(tokenProvider tokenProvider) echo.MiddlewareFunc {
 				return newUnauthorized("authorization token not provided")
 			}
 
-			userID, err := tokenProvider.ValidateAccessToken(token)
+			tokenPayload, err := tokenProvider.ValidateAccessToken(token)
 			if err != nil {
 				return err
 			}
 
-			c.Set(httpctx.UserIDContextKey, userID)
+			c.Set(httpctx.UserIDContextKey, tokenPayload.UserID)
+			c.Set(httpctx.RoleContextKey, tokenPayload.Role)
 			return next(c)
+		}
+	}
+}
+
+func RequireRoles(allowedRoles ...entity.UserRole) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			userRole, err := httpctx.GetUserRole(c)
+			if err != nil {
+				return newUnauthorized("user context is missing")
+			}
+
+			if slices.Contains(allowedRoles, userRole) {
+				return next(c)
+			}
+
+			return newForbidden("access denied")
 		}
 	}
 }
@@ -50,12 +71,13 @@ func OptionalAuth(tokenProvider tokenProvider) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			userID, err := tokenProvider.ValidateAccessToken(token)
+			tokenPayload, err := tokenProvider.ValidateAccessToken(token)
 			if err != nil {
 				return err
 			}
 
-			c.Set(httpctx.UserIDContextKey, userID)
+			c.Set(httpctx.UserIDContextKey, tokenPayload.UserID)
+			c.Set(httpctx.RoleContextKey, tokenPayload.Role)
 			return next(c)
 		}
 	}
@@ -65,6 +87,10 @@ func newUnauthorized(msg string) error {
 	return echo.NewHTTPError(http.StatusUnauthorized, msg)
 }
 
+func newForbidden(msg string) error {
+	return echo.NewHTTPError(http.StatusForbidden, msg)
+}
+
 type tokenProvider interface {
-	ValidateAccessToken(accessToken string) (string, error)
+	ValidateAccessToken(accessToken string) (token.TokenPayload, error)
 }

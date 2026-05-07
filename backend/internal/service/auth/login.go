@@ -26,11 +26,11 @@ func (s *Service) Login(ctx context.Context, in entity.User) (entity.Tokens, err
 		return entity.Tokens{}, apperror.ErrIncorrectCredentials
 	}
 
-	accessToken, err := s.tokenProvider.GenerateAccessToken(user.ID)
+	accessToken, err := s.tokenProvider.GenerateAccessToken(user.ID, user.Role)
 	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("generate jwt access token", err)
 	}
-	refreshToken, err := s.tokenProvider.GenerateRefreshToken(user.ID)
+	refreshToken, err := s.tokenProvider.GenerateRefreshToken(user.ID, user.Role)
 	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("generate jwt refresh token", err)
 	}

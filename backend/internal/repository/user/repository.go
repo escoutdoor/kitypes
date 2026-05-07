@@ -17,7 +17,8 @@ import (
 const (
 	tableName = "users"
 
-	idColumn = "id"
+	idColumn   = "id"
+	roleColumn = "role"
 
 	avatarKeyColumn = "avatar_key"
 
@@ -53,6 +54,7 @@ func New(db database.Client) *Repository {
 func (r *Repository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
 	sql, args, err := r.qb.Select(
 		idColumn,
+		roleColumn,
 		avatarKeyColumn,
 		firstNameColumn,
 		lastNameColumn,
@@ -94,6 +96,7 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (entity.User,
 func (r *Repository) GetByID(ctx context.Context, userID string) (entity.User, error) {
 	sql, args, err := r.qb.Select(
 		idColumn,
+		roleColumn,
 		avatarKeyColumn,
 		firstNameColumn,
 		lastNameColumn,
@@ -139,6 +142,7 @@ func (r *Repository) ListByIDs(ctx context.Context, userIDs []string) ([]entity.
 
 	sql, args, err := r.qb.Select(
 		idColumn,
+		roleColumn,
 		avatarKeyColumn,
 		firstNameColumn,
 		lastNameColumn,
@@ -177,6 +181,7 @@ func (r *Repository) ListByIDs(ctx context.Context, userIDs []string) ([]entity.
 func (r *Repository) Create(ctx context.Context, in entity.CreateUserInput) (string, error) {
 	sql, args, err := r.qb.Insert(tableName).
 		Columns(
+			roleColumn,
 			firstNameColumn,
 			lastNameColumn,
 			emailColumn,
@@ -184,6 +189,7 @@ func (r *Repository) Create(ctx context.Context, in entity.CreateUserInput) (str
 			passwordColumn,
 		).
 		Values(
+			entity.RoleUser,
 			in.FirstName,
 			in.LastName,
 			in.Email,
@@ -226,8 +232,10 @@ func (r *Repository) Create(ctx context.Context, in entity.CreateUserInput) (str
 func (r *Repository) Update(ctx context.Context, in entity.UpdateUserInput) (entity.User, error) {
 	builder := r.qb.Update(tableName).
 		Where(sq.Eq{idColumn: in.ID}).
+		Set(updatedAtColumn, sq.Expr("NOW()")).
 		Suffix(`RETURNING 
             id,
+			role,
 			avatar_key,
             first_name,
             last_name,
@@ -381,6 +389,32 @@ func (r *Repository) Delete(ctx context.Context, userID string) error {
 	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
 		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		return apperror.UserNotFoundID(userID)
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateRole(ctx context.Context, userID string, role entity.UserRole) error {
+	sql, args, err := r.qb.Update(tableName).
+		Set(roleColumn, role).
+		Set(updatedAtColumn, sq.Expr("NOW()")).
+		Where(sq.Eq{idColumn: userID}).
+		ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.UpdateRole",
+		Sql:  sql,
+	}
+
+	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return executeSQLError(err)
 	}
 	if cmd.RowsAffected() == 0 {
 		return apperror.UserNotFoundID(userID)

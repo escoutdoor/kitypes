@@ -40,14 +40,28 @@ func NewClient(ctx context.Context, region, accessKey, secretKey, bucket string,
 	}, nil
 }
 
-func (c *Client) GeneratePresignedUploadURL(ctx context.Context, key string, lifetime time.Duration) (string, error) {
+func (c *Client) GeneratePresignedUploadURL(ctx context.Context, key, contentType string, lifetime time.Duration) (string, error) {
 	req, err := c.presign.PresignPutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(c.bucket),
+		Key:         aws.String(key),
+		ContentType: aws.String(contentType),
+	}, s3.WithPresignExpires(lifetime))
+
+	if err != nil {
+		return "", errwrap.Wrap("presign put object", err)
+	}
+
+	return req.URL, nil
+}
+
+func (c *Client) GeneratePresignedDownloadURL(ctx context.Context, key string, lifetime time.Duration) (string, error) {
+	req, err := c.presign.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(c.bucket),
 		Key:    aws.String(key),
 	}, s3.WithPresignExpires(lifetime))
 
 	if err != nil {
-		return "", errwrap.Wrap("presign put object", err)
+		return "", errwrap.Wrap("presign get object", err)
 	}
 
 	return req.URL, nil
@@ -66,8 +80,7 @@ func (c *Client) DeleteFiles(ctx context.Context, keys []string) error {
 
 	var objectIds []types.ObjectIdentifier
 	for _, key := range keys {
-		cleanKey := strings.TrimPrefix(key, c.publicBaseURL)
-		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String(cleanKey)})
+		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String(key)})
 	}
 
 	_, err := c.s3Client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
@@ -78,5 +91,9 @@ func (c *Client) DeleteFiles(ctx context.Context, keys []string) error {
 		},
 	})
 
-	return err
+	if err != nil {
+		return errwrap.Wrap("delete objects from s3", err)
+	}
+
+	return nil
 }

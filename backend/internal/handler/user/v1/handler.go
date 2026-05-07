@@ -48,7 +48,8 @@ func RegisterHandlers(
 }
 
 type meResponse struct {
-	ID string `json:"id"`
+	ID   string          `json:"id"`
+	Role entity.UserRole `json:"role"`
 
 	AvatarURL *string `json:"avatarUrl"`
 
@@ -71,6 +72,7 @@ func (h *handler) meToResponse(user entity.User) meResponse {
 
 	return meResponse{
 		ID:          user.ID,
+		Role:        user.Role,
 		AvatarURL:   avatarURL,
 		FirstName:   user.FirstName,
 		LastName:    user.LastName,

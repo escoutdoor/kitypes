@@ -28,7 +28,16 @@ var (
 	ErrAdAlreadyFavorited = newError(code.AlreadyExists, "advertisement is already in favorites")
 	ErrFavoriteNotFound   = newError(code.NotFound, "advertisement is not in favorites")
 
-	ErrConversationAlreadyExists = newError(code.AlreadyExists, "conversation already exists")
+	ErrConversationAlreadyExists      = newError(code.AlreadyExists, "conversation already exists")
+	ErrVerificationRequestAlreadySent = newError(code.AlreadyExists, "verification request has already been sent")
+
+	ErrVerificationCooldown = newError(code.PermissionDenied, "you can send a new request only after 72 hours since the last rejection")
+	ErrUserAlreadyVerified  = newError(code.AlreadyExists, "user is already verified")
+
+	ErrInvalidRequestedRole = newError(code.InvalidRequest, "invalid requested role: you can only apply for volunteer or shelter")
+	ErrAdminNotesRequired   = newError(code.InvalidRequest, "admin notes are required when rejecting a request")
+
+	ErrRequestAlreadyProcessed = newError(code.InvalidRequest, "this verification request has already been processed")
 
 	ErrInvalidPageToken = newError(code.InvalidRequest, "invalid page token")
 )
@@ -44,6 +53,15 @@ func (e *Error) Error() string {
 
 func (e *Error) Unwrap() error {
 	return e.Err
+}
+
+func IsNotFound(err error) bool {
+	var appErr *Error
+	if errors.As(err, &appErr) {
+		return appErr.Code == code.NotFound
+	}
+
+	return false
 }
 
 func newError(code code.Code, err string) *Error {
@@ -87,4 +105,18 @@ func UserPhoneAlreadyExists(phone string) *Error {
 
 func UnsupportedImageExtension(ext string) *Error {
 	return newError(code.InvalidRequest, fmt.Sprintf("unsupported image extension %q, allowed: .jpg, .jpeg, .png, .webp", ext))
+}
+
+func VerificationRequestNotFoundID(requestID string) *Error {
+	msg := fmt.Sprintf("verification request with id %q was not found", requestID)
+	return newError(code.NotFound, msg)
+}
+
+func VerificationRequestNotFoundByUserID(userID string) *Error {
+	msg := fmt.Sprintf("verification request for user id %q was not found", userID)
+	return newError(code.NotFound, msg)
+}
+
+func UnsupportedDocumentExtension(ext string) *Error {
+	return newError(code.InvalidRequest, fmt.Sprintf("unsupported document extension %q, allowed: .jpg, .jpeg, .png, .webp, .pdf", ext))
 }

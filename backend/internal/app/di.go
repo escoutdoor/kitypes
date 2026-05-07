@@ -11,11 +11,13 @@ import (
 	favorite_repository "github.com/escoutdoor/kitypes/backend/internal/repository/favorite"
 	message_repository "github.com/escoutdoor/kitypes/backend/internal/repository/message"
 	user_repository "github.com/escoutdoor/kitypes/backend/internal/repository/user"
+	verification_repository "github.com/escoutdoor/kitypes/backend/internal/repository/verification"
 	ad_service "github.com/escoutdoor/kitypes/backend/internal/service/ad"
 	auth_service "github.com/escoutdoor/kitypes/backend/internal/service/auth"
 	chat_service "github.com/escoutdoor/kitypes/backend/internal/service/chat"
 	fav_service "github.com/escoutdoor/kitypes/backend/internal/service/favorite"
 	user_service "github.com/escoutdoor/kitypes/backend/internal/service/user"
+	verification_service "github.com/escoutdoor/kitypes/backend/internal/service/verification"
 	"github.com/escoutdoor/kitypes/backend/internal/util/token"
 	"github.com/escoutdoor/kitypes/backend/pkg/closer"
 	"github.com/escoutdoor/kitypes/backend/pkg/database"
@@ -38,12 +40,14 @@ type di struct {
 	favoriteRepository     *favorite_repository.Repository
 	conversationRepository *conversation_repository.Repository
 	messageRepository      *message_repository.Repository
+	verificationRepository *verification_repository.Repository
 
-	adService       *ad_service.Service
-	authService     *auth_service.Service
-	userService     *user_service.Service
-	favoriteService *fav_service.Service
-	chatService     *chat_service.Service
+	adService           *ad_service.Service
+	authService         *auth_service.Service
+	userService         *user_service.Service
+	favoriteService     *fav_service.Service
+	chatService         *chat_service.Service
+	verificationService *verification_service.Service
 
 	chatHub *chat.Chat
 }
@@ -171,6 +175,14 @@ func (d *di) MessageRepository(ctx context.Context) *message_repository.Reposito
 	return d.messageRepository
 }
 
+func (d *di) VerificationRepository(ctx context.Context) *verification_repository.Repository {
+	if d.verificationRepository == nil {
+		d.verificationRepository = verification_repository.New(d.DBClient(ctx))
+	}
+
+	return d.verificationRepository
+}
+
 func (d *di) AuthService(ctx context.Context) *auth_service.Service {
 	if d.authService == nil {
 		d.authService = auth_service.New(d.UserRepository(ctx), d.TokenProvider())
@@ -206,6 +218,18 @@ func (d *di) ChatService(ctx context.Context) *chat_service.Service {
 		)
 	}
 	return d.chatService
+}
+
+func (d *di) VerificationService(ctx context.Context) *verification_service.Service {
+	if d.verificationService == nil {
+		d.verificationService = verification_service.New(
+			d.VerificationRepository(ctx),
+			d.UserRepository(ctx),
+			d.TxManager(ctx),
+			d.S3Client(ctx),
+		)
+	}
+	return d.verificationService
 }
 
 func (d *di) TokenProvider() *token.TokenProvider {

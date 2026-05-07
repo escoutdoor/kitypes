@@ -10,10 +10,10 @@ const Footer = () => {
                     </p>
 
                     <div className="flex items-center gap-5 text-sm text-muted-foreground">
-                        <Link href="#" className="hover:text-foreground transition-colors">
+                        <Link href="/about" className="hover:text-foreground transition-colors">
                             Більше про нас
                         </Link>
-                        <Link href="#" className="hover:text-foreground transition-colors">
+                        <Link href="/contacts" className="hover:text-foreground transition-colors">
                             Контакти
                         </Link>
                     </div>

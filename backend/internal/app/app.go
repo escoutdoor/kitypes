@@ -14,6 +14,7 @@ import (
 	chat_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/chat/v1"
 	fav_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/favorite/v1"
 	user_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/user/v1"
+	verification_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/verification/v1"
 	"github.com/escoutdoor/kitypes/backend/internal/middleware"
 	"github.com/escoutdoor/kitypes/backend/pkg/closer"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
@@ -120,6 +121,13 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 	v1ChatGroup := v1Group.Group("/conversations")
 	chat_v1.RegisterHandlers(v1ChatGroup, authMw, a.di.ChatService(ctx), cv, a.di.ChatHub(ctx))
+
+	verification_v1.RegisterHandlers(
+		v1Group,
+		authMw,
+		a.di.VerificationService(ctx),
+		cv,
+	)
 
 	s := &http.Server{
 		Addr:              config.Config().HttpServer.Address(),

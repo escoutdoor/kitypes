@@ -2,8 +2,18 @@ package entity
 
 import "time"
 
+type UserRole string
+
+const (
+	RoleUser      UserRole = "user"
+	RoleVolunteer UserRole = "volunteer"
+	RoleShelter   UserRole = "shelter"
+	RoleAdmin     UserRole = "admin"
+)
+
 type User struct {
-	ID string
+	ID   string
+	Role UserRole
 
 	AvatarKey *string
 
