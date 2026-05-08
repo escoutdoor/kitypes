@@ -8,8 +8,10 @@ import (
 )
 
 type Ad struct {
-	ID       string `db:"id"`
-	AuthorID string `db:"author_id"`
+	ID string `db:"id"`
+
+	AuthorID   string          `db:"author_id"`
+	AuthorRole entity.UserRole `db:"author_role"`
 
 	Title       string   `db:"title"`
 	Description string   `db:"description"`
@@ -33,8 +35,10 @@ type Ad struct {
 
 func (a Ad) ToEntity() entity.Ad {
 	return entity.Ad{
-		ID:       a.ID,
-		AuthorID: a.AuthorID,
+		ID: a.ID,
+
+		AuthorID:   a.AuthorID,
+		AuthorRole: a.AuthorRole,
 
 		Title:       a.Title,
 		Description: a.Description,
@@ -87,4 +91,16 @@ func scanRowsError(err error) error {
 type adImageMapping struct {
 	AdID string `db:"ad_id"`
 	Key  string `db:"image_key"`
+}
+
+func prefixColumn(table string, col string) string {
+	return table + "." + col
+}
+
+func prefixColumns(table string, cols ...string) []string {
+	res := make([]string, len(cols))
+	for i, col := range cols {
+		res[i] = prefixColumn(table, col)
+	}
+	return res
 }

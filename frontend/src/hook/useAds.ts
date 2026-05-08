@@ -15,6 +15,7 @@ export const useAds = (params: ListAdsParams) => {
         status,
         minPetAgeMonth,
         maxPetAgeMonth,
+        verifiedOnly,
     } = params
 
     return useQuery({
@@ -31,6 +32,7 @@ export const useAds = (params: ListAdsParams) => {
             status ?? null,
             minPetAgeMonth ?? null,
             maxPetAgeMonth ?? null,
+            verifiedOnly ?? null,
         ],
         queryFn: () => AdService.list(params),
 

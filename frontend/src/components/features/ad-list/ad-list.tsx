@@ -50,6 +50,7 @@ export function AdList() {
     const [sortBy, setSortBy] = useState<SortBy>(
         sp.get("sortBy") === "dateAsc" ? "dateAsc" : "dateDesc"
     )
+    const [verifiedOnly, setVerifiedOnly] = useState<boolean>(sp.get("verifiedOnly") === "true")
     const [page, setPage] = useState(parseNum(sp.get("page"), 1))
 
     const debouncedSearch = useDebounce(search, 500)
@@ -66,6 +67,7 @@ export function AdList() {
         if (typeof minPetAgeMonth === "number") p.set("minPetAgeMonth", String(minPetAgeMonth))
         if (typeof maxPetAgeMonth === "number") p.set("maxPetAgeMonth", String(maxPetAgeMonth))
         if (sortBy !== "dateDesc") p.set("sortBy", sortBy)
+        if (verifiedOnly) p.set("verifiedOnly", "true")
         if (page > 1) p.set("page", String(page))
         return p.toString()
     }, [
@@ -96,6 +98,7 @@ export function AdList() {
         maxPetAgeMonth,
         status: 1,
         sortBy,
+        verifiedOnly: verifiedOnly || undefined,
     })
 
     const ads = data?.advertisements ?? []
@@ -111,6 +114,7 @@ export function AdList() {
         setMinPetAgeMonth(undefined)
         setMaxPetAgeMonth(undefined)
         setSortBy("dateDesc")
+        setVerifiedOnly(false)
         setPage(1)
     }
 
@@ -141,6 +145,7 @@ export function AdList() {
                     minPetAgeMonth={minPetAgeMonth}
                     maxPetAgeMonth={maxPetAgeMonth}
                     sortBy={sortBy}
+                    verifiedOnly={verifiedOnly}
                     onSearchChangeAction={(v) => { setSearch(v); setPage(1) }}
                     onCountryChangeAction={(v) => { setCountry(v); setPage(1) }}
                     onCityChangeAction={(v) => { setCity(v); setPage(1) }}
@@ -150,6 +155,7 @@ export function AdList() {
                     onMaxPetAgeChangeAction={(v) => { setMaxPetAgeMonth(v); setPage(1) }}
                     onSortByChangeAction={(v) => { setSortBy(v); setPage(1) }}
                     onClearFiltersAction={clearFilters}
+                    onVerifiedOnlyChangeAction={(v) => { setVerifiedOnly(v); setPage(1) }}
                 />
 
                 <main className="space-y-6 min-w-0 pb-16 md:pb-24">

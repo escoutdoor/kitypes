@@ -5,6 +5,7 @@ import type { Ad } from "@/service/ad/ad.interface"
 
 import { FavoriteButton } from "@/components/shared/favorite-button/favorite-button"
 import { formatPetAge } from "@/lib/utils"
+import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
 
 function formatDate(v: string) {
     const d = new Date(v)
@@ -55,9 +56,12 @@ export function AdCard({ ad }: { ad: Ad }) {
                 </div>
 
                 <CardContent className="p-4 flex flex-col flex-1">
-                    <h3 className="font-bold text-xl text-gray-900 line-clamp-1 mb-1 group-hover:text-primary transition-colors">
-                        {ad.title}
-                    </h3>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                        <h3 className="font-bold text-xl text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
+                            {ad.title}
+                        </h3>
+                        <VerificationBadge role={ad.authorRole} className="mt-0.5" />
+                    </div>
 
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
                         <MapPin className="h-3.5 w-3.5 shrink-0" />

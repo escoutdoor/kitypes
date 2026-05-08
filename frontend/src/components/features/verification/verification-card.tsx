@@ -73,25 +73,32 @@ export function VerificationCard({ item }: { item: MyVerificationItem }) {
                     <div>
                         <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
                             <FileText className="w-4 h-4 text-gray-400" />
-                            Прикріплені документи ({item.documentUrls?.length || 0})
+                            Прикріплені документи {item.status === "pending" && `(${item.documentUrls?.length || 0})`}
                         </h4>
-                        {item.documentUrls && item.documentUrls.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                                {item.documentUrls.map((url, idx) => (
-                                    <a
-                                        key={idx}
-                                        href={url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-primary/5 border border-gray-200 hover:border-primary/30 text-sm font-medium text-gray-700 hover:text-primary rounded-xl transition-colors cursor-pointer"
-                                    >
-                                        <FileText className="w-4 h-4 shrink-0" />
-                                        <span>Документ {idx + 1}</span>
-                                    </a>
-                                ))}
-                            </div>
+
+                        {item.status === "pending" ? (
+                            item.documentUrls && item.documentUrls.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {item.documentUrls.map((url, idx) => (
+                                        <a
+                                            key={idx}
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-primary/5 border border-gray-200 hover:border-primary/30 text-sm font-medium text-gray-700 hover:text-primary rounded-xl transition-colors cursor-pointer"
+                                        >
+                                            <FileText className="w-4 h-4 shrink-0" />
+                                            <span>Документ {idx + 1}</span>
+                                        </a>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-500">Документи відсутні</p>
+                            )
                         ) : (
-                            <p className="text-sm text-gray-500">Документи відсутні</p>
+                            <p className="text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100 inline-block">
+                                ✓ Видалено з серверів з міркувань безпеки
+                            </p>
                         )}
                     </div>
                 </div>

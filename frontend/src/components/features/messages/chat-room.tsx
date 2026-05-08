@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn, formatChatDate } from "@/lib/utils"
 import Link from "next/link"
+import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
 
 const messageSchema = z.object({
     content: z.string().min(1, "Повідомлення не може бути порожнім").max(2000, "Максимум 2000 символів"),
@@ -126,6 +127,7 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                                 <h2 className="font-extrabold text-gray-900 text-[15px] leading-tight">
                                     {currentChat.user.firstName} {currentChat.user.lastName}
                                 </h2>
+                                <VerificationBadge role={currentChat.user.role} showText />
                                 <Link
                                     href={`/ads/${currentChat.ad.id}`}
                                     target="_blank"

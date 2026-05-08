@@ -31,6 +31,7 @@ import { usePhone } from "@/hook/usePhone"
 import { FavoriteButton } from "@/components/shared/favorite-button/favorite-button"
 import { formatPetAge } from "@/lib/utils"
 import { ContactAuthorForm } from "./contact-author-form"
+import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
 
 const PET_TYPES: Record<number, string> = { 1: "Песик", 2: "Котик", 3: "Інше" }
 const PET_GENDERS: Record<number, string> = { 1: "Хлопчик", 2: "Дівчинка" }
@@ -264,9 +265,14 @@ export function AdDetail({ adId }: { adId: string }) {
                                             <User className="h-6 w-6 text-gray-400" />
                                         )}
                                     </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500 font-medium mb-0.5">Власник</p>
-                                        <p className="font-bold text-gray-900 text-lg">{authorName}</p>
+                                    <div className="flex flex-col items-start gap-0.5">
+                                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-0.5">Власник</p>
+                                        <p className="font-extrabold text-gray-900 text-xl leading-none">{authorName}</p>
+                                        {ad.authorRole && (
+                                            <div className="mt-1.5">
+                                                <VerificationBadge role={ad.authorRole} showText />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

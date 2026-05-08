@@ -58,7 +58,7 @@ func New(db database.Client) *Repository {
 }
 
 func (r *Repository) Get(ctx context.Context, adID string, viewerID *string) (entity.Ad, error) {
-	builder := r.qb.Select().From(tableName).Where(sq.Eq{idColumn: adID})
+	builder := r.qb.Select().From(tableName).Where(sq.Eq{prefixColumn(tableName, idColumn): adID})
 
 	if viewerID != nil {
 		builder = builder.Column(sq.Expr("EXISTS (SELECT 1 FROM favorite_ads WHERE ad_id = advertisements.id AND user_id = ?) AS is_favorite", *viewerID))
@@ -66,7 +66,7 @@ func (r *Repository) Get(ctx context.Context, adID string, viewerID *string) (en
 		builder = builder.Column("false AS is_favorite")
 	}
 
-	builder = builder.Columns(
+	builder = builder.Columns(prefixColumns(tableName,
 		idColumn,
 		authorIDColumn,
 		titleColumn,
@@ -80,7 +80,9 @@ func (r *Repository) Get(ctx context.Context, adID string, viewerID *string) (en
 		statusColumn,
 		createdAtColumn,
 		updatedAtColumn,
-	)
+	)...).
+		Column("users.role AS author_role").
+		Join("users ON advertisements.author_id = users.id")
 
 	sql, args, err := builder.ToSql()
 	if err != nil {
@@ -246,39 +248,42 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 
 	builder := r.qb.Select().From(tableName)
 
+	if in.VerifiedOnly != nil && *in.VerifiedOnly {
+		builder = builder.Where(sq.Expr("EXISTS (SELECT 1 FROM users WHERE users.id = advertisements.author_id AND users.role IN ('volunteer', 'shelter'))"))
+	}
 	if len(in.AdIDs) > 0 {
-		builder = builder.Where(sq.Eq{idColumn: in.AdIDs})
+		builder = builder.Where(sq.Eq{prefixColumn(tableName, idColumn): in.AdIDs})
 	}
 	if in.AuthorID != nil {
-		builder = builder.Where(sq.Eq{authorIDColumn: *in.AuthorID})
+		builder = builder.Where(sq.Eq{prefixColumn(tableName, authorIDColumn): *in.AuthorID})
 	}
 	if in.Search != nil {
 		term := "%" + *in.Search + "%"
 		builder = builder.Where(sq.Or{
-			sq.ILike{titleColumn: term},
-			sq.ILike{descriptionColumn: term},
+			sq.ILike{prefixColumn(tableName, titleColumn): term},
+			sq.ILike{prefixColumn(tableName, descriptionColumn): term},
 		})
 	}
 	if in.Status != nil {
-		builder = builder.Where(sq.Eq{statusColumn: *in.Status})
+		builder = builder.Where(sq.Eq{prefixColumn(tableName, statusColumn): *in.Status})
 	}
 	if in.Country != nil {
-		builder = builder.Where(sq.Eq{countryColumn: *in.Country})
+		builder = builder.Where(sq.Eq{prefixColumn(tableName, countryColumn): *in.Country})
 	}
 	if in.City != nil {
-		builder = builder.Where(sq.Eq{cityColumn: *in.City})
+		builder = builder.Where(sq.Eq{prefixColumn(tableName, cityColumn): *in.City})
 	}
 	if in.PetType != nil {
-		builder = builder.Where(sq.Eq{petTypeColumn: *in.PetType})
+		builder = builder.Where(sq.Eq{prefixColumn(tableName, petTypeColumn): *in.PetType})
 	}
 	if in.PetGender != nil {
-		builder = builder.Where(sq.Eq{petGenderColumn: *in.PetGender})
+		builder = builder.Where(sq.Eq{prefixColumn(tableName, petGenderColumn): *in.PetGender})
 	}
 	if in.MinPetAgeMonth != nil {
-		builder = builder.Where(sq.GtOrEq{petAgeMonthColumn: *in.MinPetAgeMonth})
+		builder = builder.Where(sq.GtOrEq{prefixColumn(tableName, petAgeMonthColumn): *in.MinPetAgeMonth})
 	}
 	if in.MaxPetAgeMonth != nil {
-		builder = builder.Where(sq.LtOrEq{petAgeMonthColumn: *in.MaxPetAgeMonth})
+		builder = builder.Where(sq.LtOrEq{prefixColumn(tableName, petAgeMonthColumn): *in.MaxPetAgeMonth})
 	}
 
 	total, err := r.countAds(ctx, builder.Columns("COUNT(*)"))
@@ -291,11 +296,11 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 
 	switch in.SortBy {
 	case "dateAsc":
-		builder = builder.OrderBy("created_at ASC")
+		builder = builder.OrderBy("advertisements.created_at ASC")
 	case "dateDesc":
-		builder = builder.OrderBy("created_at DESC")
+		builder = builder.OrderBy("advertisements.created_at DESC")
 	default:
-		builder = builder.OrderBy("created_at DESC")
+		builder = builder.OrderBy("advertisements.created_at DESC")
 	}
 
 	if in.Limit > 0 {
@@ -305,7 +310,7 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 		offset = in.Offset
 	}
 
-	builder = builder.Columns(
+	builder = builder.Columns(prefixColumns(tableName,
 		idColumn,
 		authorIDColumn,
 		titleColumn,
@@ -319,7 +324,9 @@ func (r *Repository) List(ctx context.Context, in entity.ListAdsInput) (entity.L
 		statusColumn,
 		createdAtColumn,
 		updatedAtColumn,
-	)
+	)...).
+		Column("users.role AS author_role").
+		Join("users ON advertisements.author_id = users.id")
 
 	if in.ViewerID != nil {
 		builder = builder.Column(sq.Expr("EXISTS (SELECT 1 FROM favorite_ads WHERE ad_id = advertisements.id AND user_id = ?) AS is_favorite", *in.ViewerID))

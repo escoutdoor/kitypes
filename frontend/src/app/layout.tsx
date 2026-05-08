@@ -5,6 +5,7 @@ import { QueryProvider } from "@/provider/QueryProvider"
 import { AuthProvider } from "@/provider/AuthProvider"
 import { Toaster } from "@/components/ui/sonner"
 import { ChatWsProvider } from "@/provider/chat-ws-provider"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,8 +24,10 @@ export default function RootLayout({
             <body className={`${inter.className} min-h-screen`}>
                 <QueryProvider>
                     <AuthProvider>
-                        <ChatWsProvider />
-                        {children}
+                        <TooltipProvider>
+                            <ChatWsProvider />
+                            {children}
+                        </TooltipProvider>
                     </AuthProvider>
                 </QueryProvider>
 

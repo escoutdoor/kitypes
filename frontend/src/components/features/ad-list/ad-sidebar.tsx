@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, MapPin, Dog, Cat, Rabbit, Mars, Venus, FilterX, Globe2, CalendarDays, ArrowUpDown } from "lucide-react"
+import { Search, MapPin, Dog, Cat, Rabbit, Mars, Venus, FilterX, Globe2, CalendarDays, ArrowUpDown, ShieldCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ type Props = {
     minPetAgeMonth?: number
     maxPetAgeMonth?: number
     sortBy: SortBy
+    verifiedOnly: boolean
     onSearchChangeAction: (v: string) => void
     onCountryChangeAction: (v: string) => void
     onCityChangeAction: (v: string) => void
@@ -25,6 +26,7 @@ type Props = {
     onMaxPetAgeChangeAction: (v: number | undefined) => void
     onSortByChangeAction: (v: SortBy) => void
     onClearFiltersAction: () => void
+    onVerifiedOnlyChangeAction: (v: boolean) => void
 }
 
 export function AdsSidebar(props: Props) {
@@ -146,6 +148,19 @@ export function AdsSidebar(props: Props) {
                             <option value="dateAsc">Спочатку старіші</option>
                         </select>
                     </div>
+
+                    <label className="flex items-center justify-between p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-blue-50/50 hover:border-blue-200 transition-colors group">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-800 group-hover:text-blue-700">
+                            <ShieldCheck className="h-4 w-4 text-blue-500" />
+                            Тільки перевірені
+                        </div>
+                        <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            checked={props.verifiedOnly}
+                            onChange={(e) => props.onVerifiedOnlyChangeAction(e.target.checked)}
+                        />
+                    </label>
 
                     {hasFilters && (
                         <Button type="button" variant="ghost" className="w-full text-muted-foreground hover:text-red-600 hover:bg-red-50" onClick={props.onClearFiltersAction}>

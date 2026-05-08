@@ -52,11 +52,12 @@ func RegisterHandlers(
 }
 
 type adResponse struct {
-	ID          string   `json:"id"`
-	AuthorID    string   `json:"authorId"`
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	ImageURLs   []string `json:"imageUrls"`
+	ID          string          `json:"id"`
+	AuthorID    string          `json:"authorId"`
+	AuthorRole  entity.UserRole `json:"authorRole"`
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	ImageURLs   []string        `json:"imageUrls"`
 
 	PetType     int32   `json:"petType"`
 	PetGender   int32   `json:"petGender"`
@@ -89,6 +90,7 @@ func (h *handler) adToResponse(ad entity.Ad) adResponse {
 	return adResponse{
 		ID:          ad.ID,
 		AuthorID:    ad.AuthorID,
+		AuthorRole:  ad.AuthorRole,
 		Title:       ad.Title,
 		Description: ad.Description,
 		ImageURLs:   urls,

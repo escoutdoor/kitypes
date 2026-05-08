@@ -30,7 +30,7 @@ export default function Verification() {
     const totalPages = Math.max(1, Math.ceil(total / LIMIT))
 
     const hasPendingRequest = requests.some(req => req.status === "pending")
-    const isAlreadyMaxRole = user?.role === "shelter"
+    const isAlreadyMaxRole = user?.role === "admin"
 
     const handleSuccess = () => {
         setIsSheetOpen(false)

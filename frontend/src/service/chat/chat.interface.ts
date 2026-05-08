@@ -1,3 +1,5 @@
+import { UserRole } from "../user/user.interface"
+
 export interface MessageResponse {
     id: string
     conversationId: string
@@ -18,6 +20,7 @@ export interface ConversationUserDTO {
     firstName: string
     lastName: string
     avatarUrl: string
+    role: UserRole
 }
 
 export interface ConversationListItemResponse {

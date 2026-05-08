@@ -47,6 +47,8 @@ type listRequest struct {
 
 	MinPetAgeMonth *int32 `query:"minPetAgeMonth" validate:"omitempty,gte=0"`
 	MaxPetAgeMonth *int32 `query:"maxPetAgeMonth" validate:"omitempty,gte=0"`
+
+	VerifiedOnly *bool `query:"verifiedOnly"`
 }
 
 type listResponse struct {
@@ -74,5 +76,7 @@ func listRequestToInput(req *listRequest, viewerID *string) entity.ListAdsInput 
 		MaxPetAgeMonth: req.MaxPetAgeMonth,
 
 		ViewerID: viewerID,
+
+		VerifiedOnly: req.VerifiedOnly,
 	}
 }

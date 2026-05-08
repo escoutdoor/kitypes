@@ -4,6 +4,7 @@ import Link from "next/link"
 import { PawPrint } from "lucide-react"
 import { cn, formatChatDate } from "@/lib/utils"
 import { ConversationListItemResponse } from "@/service/chat/chat.interface"
+import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
 
 interface ChatCardProps {
     chat: ConversationListItemResponse
@@ -44,9 +45,13 @@ export function ChatCard({ chat, isActive, currentUserId }: ChatCardProps) {
 
             <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-baseline mb-0.5">
-                    <h3 className="font-bold text-gray-900 text-sm truncate pr-2">
-                        {chat.user.firstName} {chat.user.lastName}
-                    </h3>
+                    <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                        <h3 className="font-bold text-gray-900 text-sm truncate">
+                            {chat.user.firstName} {chat.user.lastName}
+                        </h3>
+                        <VerificationBadge role={chat.user.role} size="sm" />
+                    </div>
+
                     <span className="text-[10px] font-medium text-gray-400 flex-shrink-0">
                         {formatChatDate(chat.lastMessage ? chat.lastMessage.createdAt : chat.createdAt)}
                     </span>

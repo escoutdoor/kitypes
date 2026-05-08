@@ -73,10 +73,11 @@ type adResponse struct {
 }
 
 type userResponse struct {
-	ID        string `json:"id"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	AvatarUrl string `json:"avatarUrl"`
+	ID        string          `json:"id"`
+	FirstName string          `json:"firstName"`
+	LastName  string          `json:"lastName"`
+	AvatarUrl string          `json:"avatarUrl"`
+	Role      entity.UserRole `json:"role"`
 }
 
 func (h *handler) enrichedConversationsToListItemResponse(enrichedConvs []entity.EnrichedConversation) []conversationListItemResponse {
@@ -111,6 +112,7 @@ func (h *handler) enrichedConversationsToListItemResponse(enrichedConvs []entity
 				FirstName: ec.OtherUser.FirstName,
 				LastName:  ec.OtherUser.LastName,
 				AvatarUrl: avatar,
+				Role:      ec.OtherUser.Role,
 			},
 			LastMessage: lastMsg,
 

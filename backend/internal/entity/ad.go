@@ -3,8 +3,11 @@ package entity
 import "time"
 
 type Ad struct {
-	ID          string
-	AuthorID    string
+	ID string
+
+	AuthorID   string
+	AuthorRole UserRole
+
 	Title       string
 	Description string
 
@@ -115,6 +118,8 @@ type ListAdsInput struct {
 	AdIDs []string
 
 	ViewerID *string
+
+	VerifiedOnly *bool
 }
 
 type ListAdsOutput struct {

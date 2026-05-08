@@ -16,6 +16,7 @@ type verificationRepository interface {
 
 	CreateVerificationRequest(ctx context.Context, in entity.CreateVerificationRequestInput) (entity.VerificationRequest, error)
 	AddDocuments(ctx context.Context, requestID string, keys []string) error
+	DeleteDocuments(ctx context.Context, requestID string) error
 
 	UpdateVerificationRequest(ctx context.Context, in entity.UpdateVerificationStatusInput) error
 }
@@ -27,6 +28,7 @@ type userRepository interface {
 type s3Client interface {
 	GeneratePresignedDownloadURL(ctx context.Context, key string, lifetime time.Duration) (string, error)
 	GeneratePresignedUploadURL(ctx context.Context, key string, contentType string, lifetime time.Duration) (string, error)
+	DeleteFiles(ctx context.Context, keys []string) error
 
 	BuildPublicURL(key string) string
 }

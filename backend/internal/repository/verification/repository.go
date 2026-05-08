@@ -443,3 +443,23 @@ func (r *Repository) getDocumentKeysMapForRequests(ctx context.Context, reqIDs [
 
 	return docMap, nil
 }
+
+func (r *Repository) DeleteDocuments(ctx context.Context, requestID string) error {
+	sql, args, err := r.qb.Delete(documentsTableName).
+		Where(sq.Eq{requestIDColumn: requestID}).
+		ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "verification_repository.DeleteDocuments",
+		Sql:  sql,
+	}
+
+	if _, err := r.db.DB().ExecContext(ctx, q, args...); err != nil {
+		return executeSQLError(err)
+	}
+
+	return nil
+}

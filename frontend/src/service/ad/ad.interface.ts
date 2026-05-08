@@ -1,6 +1,9 @@
+import { UserRole } from "../user/user.interface"
+
 export interface Ad {
     id: string
     authorId: string
+    authorRole: UserRole
     title: string
     description: string
     imageUrls: string[]
@@ -53,6 +56,7 @@ export interface ListAdsParams {
     status?: number
     minPetAgeMonth?: number
     maxPetAgeMonth?: number
+    verifiedOnly?: boolean
 }
 
 export interface UploadUrlItem {

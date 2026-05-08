@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, X, FileText, Phone, Mail, Clock, ExternalLink, Loader2 } from "lucide-react"
+import { Check, X, FileText, Phone, Mail, Clock, ExternalLink, Loader2, Image as ImageIcon, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -35,6 +35,56 @@ const ROLE_LABELS = {
     shelter: "Притулок",
     user: "Користувач",
     admin: "Адміністратор",
+}
+
+function getFileType(url: string): "image" | "pdf" | "unknown" {
+    try {
+        const pathname = new URL(url).pathname
+        const ext = pathname.split('.').pop()?.toLowerCase()
+        if (['jpg', 'jpeg', 'png', 'webp'].includes(ext || '')) return 'image'
+        if (ext === 'pdf') return 'pdf'
+    } catch (e) {
+    }
+    return 'unknown'
+}
+
+function DocumentPreview({ url, index }: { url: string, index: number }) {
+    const type = getFileType(url)
+    const [imgError, setImgError] = useState(false)
+
+    return (
+        <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative block overflow-hidden rounded-2xl border border-gray-200 hover:border-primary/50 hover:shadow-md transition-all h-32 sm:h-40 bg-gray-50 cursor-pointer"
+        >
+            {type === 'image' && !imgError ? (
+                <div className="absolute inset-0">
+                    <img
+                        src={url}
+                        alt={`Документ ${index}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={() => setImgError(true)}
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                </div>
+            ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 group-hover:text-primary transition-colors bg-white">
+                    <div className="p-3 bg-gray-50 group-hover:bg-primary/5 rounded-full mb-2 transition-colors">
+                        {type === 'pdf' ? <FileText className="w-6 h-6" /> : <ImageIcon className="w-6 h-6" />}
+                    </div>
+                    <span className="text-xs font-bold text-gray-600 group-hover:text-primary">
+                        Документ {index} {type === 'pdf' && '(PDF)'}
+                    </span>
+                </div>
+            )}
+
+            <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm p-1.5 rounded-lg text-gray-600 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity translate-y-1 group-hover:translate-y-0">
+                <ExternalLink className="w-4 h-4" />
+            </div>
+        </a>
+    )
 }
 
 export function VerificationReviewSheet({ request, isOpen, onOpenChangeAction }: Props) {
@@ -128,9 +178,9 @@ export function VerificationReviewSheet({ request, isOpen, onOpenChangeAction }:
                                             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                                                 <Mail className="w-5 h-5 text-gray-500" />
                                             </div>
-                                            <div>
+                                            <div className="min-w-0">
                                                 <p className="text-sm text-gray-500 font-medium">Email</p>
-                                                <a href={`mailto:${request.user.email}`} className="font-bold text-gray-900 hover:text-primary transition-colors">
+                                                <a href={`mailto:${request.user.email}`} className="font-bold text-gray-900 hover:text-primary transition-colors truncate block">
                                                     {request.user.email}
                                                 </a>
                                             </div>
@@ -153,31 +203,38 @@ export function VerificationReviewSheet({ request, isOpen, onOpenChangeAction }:
                             </section>
 
                             <section>
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    Документи <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">{request.documentUrls.length}</span>
-                                </h3>
-                                {request.documentUrls.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {request.documentUrls.map((url, idx) => (
-                                            <a
-                                                key={idx}
-                                                href={url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center justify-between p-4 bg-white border border-gray-200 hover:border-primary/50 hover:bg-primary/5 rounded-2xl transition-all group"
-                                            >
-                                                <div className="flex items-center gap-3 overflow-hidden">
-                                                    <FileText className="w-5 h-5 text-primary shrink-0" />
-                                                    <span className="font-semibold text-gray-700 group-hover:text-primary truncate">
-                                                        Документ {idx + 1}
-                                                    </span>
-                                                </div>
-                                                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-primary shrink-0" />
-                                            </a>
-                                        ))}
-                                    </div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        Документи
+                                        {request.status === "pending" && (
+                                            <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
+                                                {request.documentUrls.length}
+                                            </span>
+                                        )}
+                                    </h3>
+                                </div>
+
+                                {request.status === "pending" ? (
+                                    request.documentUrls.length > 0 ? (
+                                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                            {request.documentUrls.map((url, idx) => (
+                                                <DocumentPreview key={idx} url={url} index={idx + 1} />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center">
+                                            <p className="text-gray-500 text-sm font-medium">Документи не були прикріплені.</p>
+                                        </div>
+                                    )
                                 ) : (
-                                    <p className="text-gray-500 text-sm">Документи не були прикріплені.</p>
+                                    <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-6 text-center">
+                                        <div className="mx-auto w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mb-3">
+                                            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                                        </div>
+                                        <p className="text-sm font-medium text-emerald-800">
+                                            З міркувань безпеки документи були назавжди видалені з серверів після обробки заявки.
+                                        </p>
+                                    </div>
                                 )}
                             </section>
 
