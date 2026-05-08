@@ -1,5 +1,5 @@
+import About from "@/components/features/about/about"
 import type { Metadata } from "next"
-import { About } from "@/components/features/about/about"
 
 export const metadata: Metadata = {
     title: "Про нас | KityPes",
