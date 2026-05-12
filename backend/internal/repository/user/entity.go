@@ -21,6 +21,8 @@ type User struct {
 
 	Password string `db:"password"`
 
+	IsBanned bool `db:"is_banned"`
+
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }

@@ -4,10 +4,13 @@ import {
     MessagesHistoryResponse,
     PublishMessageRequest,
     MarkMessageAsReadRequest,
-    ListChatParams
+    ListChatParams,
+    MessageResponse,
+    SingleMessageResponse
 } from "./chat.interface"
 
 const CHATS_PREFIX = "/v1/conversations"
+const ADMIN_MESSAGES_PREFIX = "/v1/admin/messages"
 
 export class ChatService {
     static async listConversations(params?: ListChatParams): Promise<ConversationsListResponse> {
@@ -26,5 +29,10 @@ export class ChatService {
 
     static async markAsRead(convId: string, data: MarkMessageAsReadRequest): Promise<void> {
         await api.patch(`${CHATS_PREFIX}/${convId}/read`, data)
+    }
+
+    static async getAdminMessage(messageId: string): Promise<MessageResponse> {
+        const resp = await api.get<SingleMessageResponse>(`${ADMIN_MESSAGES_PREFIX}/${messageId}`)
+        return resp.data.message
     }
 }

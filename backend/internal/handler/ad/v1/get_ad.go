@@ -18,9 +18,13 @@ func (h *handler) get(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	viewerRole, err := httpctx.GetOptionalUserRole(c)
+	if err != nil {
+		return err
+	}
 
 	ctx := c.Request().Context()
-	ad, err := h.service.Get(ctx, adID, viewerID)
+	ad, err := h.service.Get(ctx, adID, viewerID, viewerRole)
 	if err != nil {
 		return err
 	}

@@ -25,6 +25,7 @@ type messageRepository interface {
 	Create(ctx context.Context, in entity.Message) (string, error)
 	ListByConversationID(ctx context.Context, convID string, limit int, cursor string) ([]entity.Message, error)
 	MarkAsRead(ctx context.Context, convID string, userID string, lastReadMsgID string) error
+	GetByID(ctx context.Context, messageID string) (entity.Message, error)
 }
 
 type adRepository interface {
@@ -34,6 +35,7 @@ type adRepository interface {
 
 type userRepository interface {
 	ListByIDs(ctx context.Context, userIDs []string) ([]entity.User, error)
+	GetByID(ctx context.Context, userID string) (entity.User, error)
 }
 
 type s3Client interface {

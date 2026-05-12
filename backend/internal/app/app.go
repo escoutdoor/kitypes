@@ -13,6 +13,7 @@ import (
 	auth_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/auth/v1"
 	chat_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/chat/v1"
 	fav_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/favorite/v1"
+	report_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/report/v1"
 	user_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/user/v1"
 	verification_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/verification/v1"
 	"github.com/escoutdoor/kitypes/backend/internal/middleware"
@@ -97,7 +98,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	e.Use(echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
 		AllowOrigins: []string{
 			"http://localhost:3000",
-			"http://127.0.0.0:3000",
+			"http://127.0.0.1:3000",
 		},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: true,
@@ -107,8 +108,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	optionalAuthMw := middleware.OptionalAuth(a.di.TokenProvider())
 	v1Group := e.Group("/v1")
 
-	v1AdsGroup := v1Group.Group("/ads")
-	ad_v1.RegisterHandlers(v1AdsGroup, authMw, optionalAuthMw, a.di.AdService(ctx), cv)
+	ad_v1.RegisterHandlers(v1Group, authMw, optionalAuthMw, a.di.AdService(ctx), cv)
 
 	v1AuthGroup := v1Group.Group("/auth")
 	auth_v1.RegisterHandlers(v1AuthGroup, a.di.AuthService(ctx), cv)
@@ -119,8 +119,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	v1FavGroup := v1Group.Group("/favorites")
 	fav_v1.RegisterHandlers(v1FavGroup, authMw, a.di.FavoriteService(ctx), cv)
 
-	v1ChatGroup := v1Group.Group("/conversations")
-	chat_v1.RegisterHandlers(v1ChatGroup, authMw, a.di.ChatService(ctx), cv, a.di.ChatHub(ctx))
+	chat_v1.RegisterHandlers(v1Group, authMw, a.di.ChatService(ctx), cv, a.di.ChatHub(ctx))
 
 	verification_v1.RegisterHandlers(
 		v1Group,
@@ -128,6 +127,8 @@ func (a *App) initHttpServer(ctx context.Context) error {
 		a.di.VerificationService(ctx),
 		cv,
 	)
+
+	report_v1.RegisterHandlers(v1Group, authMw, a.di.ReportService(ctx), cv)
 
 	s := &http.Server{
 		Addr:              config.Config().HttpServer.Address(),
@@ -172,8 +173,14 @@ func customHttpErrorHandler(err error, c echo.Context) {
 		case code.JwtTokenExpired, code.IncorrectCreadentials, code.InvalidJwtToken:
 			respCode = http.StatusUnauthorized
 
-		case code.PermissionDenied, code.CannotMessageYourself:
+		case code.PermissionDenied, code.CannotMessageYourself, code.UserBanned:
 			respCode = http.StatusForbidden
+
+		case code.RateLimitExceeded:
+			respCode = http.StatusTooManyRequests
+
+		case code.InvalidRequest, code.EmptyUpdate:
+			respCode = http.StatusBadRequest
 		}
 
 		resp = map[string]any{

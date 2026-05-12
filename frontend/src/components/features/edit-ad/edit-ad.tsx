@@ -22,6 +22,7 @@ import {
     EyeOff,
     Eye,
     Trash2,
+    Ban,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -58,6 +59,7 @@ import {
     type EditAdFormValues,
     type ImageItem,
 } from "./model"
+import { AD_STATUS } from "@/service/ad/ad.interface"
 
 const PET_TYPES = [
     { value: 1, label: "Песик", icon: Dog },
@@ -446,6 +448,21 @@ export function EditAd({ adId }: { adId: string }) {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Оголошення не знайдено</h2>
                 <p className="text-muted-foreground mb-6">
                     Можливо, воно було видалено або у вас немає до нього доступу.
+                </p>
+                <Button onClick={() => router.push("/my-ads")}>Повернутися до списку</Button>
+            </div>
+        )
+    }
+
+    if (ad && ad.status === AD_STATUS.BLOCKED) {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+                <div className="p-4 bg-red-50 text-red-500 rounded-full mb-4">
+                    <Ban className="h-10 w-10" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Редагування заборонено</h2>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Це оголошення було заблоковано модератором. Ви не можете його редагувати або змінити статус.
                 </p>
                 <Button onClick={() => router.push("/my-ads")}>Повернутися до списку</Button>
             </div>

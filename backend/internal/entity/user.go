@@ -25,6 +25,8 @@ type User struct {
 
 	Password string
 
+	IsBanned bool
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

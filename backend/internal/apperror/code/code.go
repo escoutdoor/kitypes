@@ -19,4 +19,8 @@ const (
 	InvalidJwtToken       Code = "INVALID_JWT_TOKEN"
 
 	InvalidRequest Code = "INVALID_REQUEST"
+
+	RateLimitExceeded Code = "RATE_LIMIT_EXCEEDED"
+
+	UserBanned Code = "USER_BANNED"
 )

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
+	"github.com/escoutdoor/kitypes/backend/internal/middleware"
 	"github.com/escoutdoor/kitypes/backend/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -14,10 +15,11 @@ const (
 )
 
 type adService interface {
-	Get(ctx context.Context, adID string, viewerID *string) (entity.EnrichedAd, error)
+	Get(ctx context.Context, adID string, viewerID *string, viewerRole *entity.UserRole) (entity.EnrichedAd, error)
 	GetPhone(ctx context.Context, adID string) (string, error)
 	Create(ctx context.Context, in entity.CreateAdInput) (entity.Ad, error)
 	Update(ctx context.Context, in entity.UpdateAdInput) (entity.Ad, error)
+	UpdateStatus(ctx context.Context, in entity.UpdateAdStatusInput) error
 	Delete(ctx context.Context, userID string, adID string) error
 	List(ctx context.Context, in entity.ListAdsInput) (entity.ListAdsOutput, error)
 
@@ -31,7 +33,7 @@ type handler struct {
 }
 
 func RegisterHandlers(
-	e *echo.Group,
+	g *echo.Group,
 	authMw echo.MiddlewareFunc,
 	optionalAuthMw echo.MiddlewareFunc,
 	adService adService,
@@ -39,16 +41,21 @@ func RegisterHandlers(
 ) {
 	h := &handler{service: adService, cv: cv}
 
-	e.POST("/", h.create, authMw)
-	e.POST("/upload-urls", h.getUploadURLs, authMw)
-	e.GET("/me", h.listMyAds, authMw)
+	adsGroup := g.Group("/ads")
+	adsGroup.POST("/", h.create, authMw)
+	adsGroup.POST("/upload-urls", h.getUploadURLs, authMw)
+	adsGroup.GET("/me", h.listMyAds, authMw)
 
-	e.GET("/", h.list, optionalAuthMw)
-	e.GET("/:id", h.get, optionalAuthMw)
-	e.GET("/:id/phone", h.getPhone, authMw)
+	adsGroup.GET("/", h.list, optionalAuthMw)
+	adsGroup.GET("/:id", h.get, optionalAuthMw)
 
-	e.PATCH("/:id", h.update, authMw)
-	e.DELETE("/:id", h.delete, authMw)
+	adsGroup.GET("/:id/phone", h.getPhone, authMw)
+	adsGroup.PATCH("/:id", h.update, authMw)
+	adsGroup.DELETE("/:id", h.delete, authMw)
+
+	adminAdsGroup := g.Group("/admin/ads")
+	adminAdsGroup.Use(authMw, middleware.RequireRoles(entity.RoleAdmin))
+	adminAdsGroup.PATCH("/:id/status", h.updateStatus)
 }
 
 type adResponse struct {
@@ -68,7 +75,8 @@ type adResponse struct {
 	City    string `json:"city"`
 	Status  int32  `json:"status"`
 
-	IsFavorite bool `json:"isFavorite"`
+	IsFavorite  bool    `json:"isFavorite"`
+	BlockReason *string `json:"blockReason,omitempty"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -102,6 +110,7 @@ func (h *handler) adToResponse(ad entity.Ad) adResponse {
 		City:        ad.City,
 		Status:      int32(ad.Status),
 		IsFavorite:  ad.IsFavorite,
+		BlockReason: ad.BlockReason,
 		CreatedAt:   ad.CreatedAt,
 		UpdatedAt:   ad.UpdatedAt,
 	}

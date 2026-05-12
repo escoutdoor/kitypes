@@ -35,6 +35,19 @@ const STATUS_TABS: { label: string; value: FilterStatus; icon: LucideIcon }[] = 
     { label: "Всі", value: "all", icon: Inbox },
 ]
 
+const ROLE_LABELS: Record<string, string> = {
+    volunteer: "Волонтер",
+    shelter: "Притулок",
+    user: "Користувач",
+    admin: "Адміністратор",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+    pending: "В обробці",
+    approved: "Схвалено",
+    rejected: "Відхилено",
+};
+
 export function AdminVerificationList() {
     const [page, setPage] = useState(1)
     const [statusFilter, setStatusFilter] = useState<FilterStatus>("pending")
@@ -153,7 +166,7 @@ export function AdminVerificationList() {
                                         </TableCell>
                                         <TableCell className="px-6 py-4">
                                             <span className="font-medium text-gray-700 capitalize">
-                                                {req.requestedRole}
+                                                {ROLE_LABELS[req.requestedRole] || req.requestedRole}
                                             </span>
                                         </TableCell>
                                         <TableCell className="px-6 py-4 text-gray-600 whitespace-nowrap">
@@ -168,7 +181,7 @@ export function AdminVerificationList() {
                                                 req.status === "approved" && "bg-emerald-100 text-emerald-700",
                                                 req.status === "rejected" && "bg-red-100 text-red-700"
                                             )}>
-                                                {req.status}
+                                                {STATUS_LABELS[req.status] || req.status}
                                             </span>
                                         </TableCell>
                                         <TableCell className="px-6 py-4 text-right">

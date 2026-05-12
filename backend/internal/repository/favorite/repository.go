@@ -114,7 +114,11 @@ func (r *Repository) List(ctx context.Context, in entity.ListFavoritesInput) (en
 		offset = defaultOffset
 	)
 
-	builder := r.qb.Select().From(tableName).Where(sq.Eq{userIDColumn: in.UserID})
+	builder := r.qb.Select().
+		From(tableName + " f").
+		Join("advertisements a ON f.ad_id = a.id").
+		Where(sq.Eq{"f." + userIDColumn: in.UserID}).
+		Where(sq.NotEq{"a.status": entity.AdStatusBlocked})
 
 	total, err := r.count(ctx, builder.Columns("COUNT(*)"))
 	if err != nil {
@@ -126,11 +130,11 @@ func (r *Repository) List(ctx context.Context, in entity.ListFavoritesInput) (en
 
 	switch in.SortBy {
 	case "dateAsc":
-		builder = builder.OrderBy("created_at ASC")
+		builder = builder.OrderBy("f.created_at ASC")
 	case "dateDesc":
-		builder = builder.OrderBy("created_at DESC")
+		builder = builder.OrderBy("f.created_at DESC")
 	default:
-		builder = builder.OrderBy("created_at DESC")
+		builder = builder.OrderBy("f.created_at DESC")
 	}
 
 	if in.Limit > 0 {
@@ -141,10 +145,11 @@ func (r *Repository) List(ctx context.Context, in entity.ListFavoritesInput) (en
 	}
 
 	sql, args, err := builder.
-		Columns(idColumn, adIDColumn, createdAtColumn).
+		Columns("f."+idColumn, "f."+adIDColumn, "f."+createdAtColumn).
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).
 		ToSql()
+
 	if err != nil {
 		return entity.ListFavoritesOutput{}, buildSQLError(err)
 	}

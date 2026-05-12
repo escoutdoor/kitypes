@@ -13,7 +13,11 @@ var (
 	ErrIncorrectCredentials = newError(code.IncorrectCreadentials, "incorrect credentials")
 	ErrIncorrectPassword    = newError(code.InvalidRequest, "incorrect password")
 
-	AdAccessDenied = newError(code.PermissionDenied, "only author can manage this ad")
+	ErrUserBanned = newError(code.UserBanned, "your account has been permanently banned for violating community guidelines")
+
+	ErrAdAccessDenied   = newError(code.PermissionDenied, "only author can manage this ad")
+	ErrCannotBlockOwnAd = newError(code.PermissionDenied, "you cannot block your own ad")
+	ErrAdBlocked        = newError(code.PermissionDenied, "you cannot edit a blocked advertisement")
 
 	ErrConversationNotFound  = newError(code.NotFound, "conversation not found")
 	ConversationAccessDenied = newError(code.PermissionDenied, "you cannot manage this conversation")
@@ -40,6 +44,9 @@ var (
 	ErrRequestAlreadyProcessed = newError(code.InvalidRequest, "this verification request has already been processed")
 
 	ErrInvalidPageToken = newError(code.InvalidRequest, "invalid page token")
+
+	ErrReportAlreadyExists = newError(code.AlreadyExists, "you have already reported this target")
+	ErrRateLimitExceeded   = newError(code.RateLimitExceeded, "report rate limit exceeded, try again later")
 )
 
 type Error struct {
@@ -119,4 +126,14 @@ func VerificationRequestNotFoundByUserID(userID string) *Error {
 
 func UnsupportedDocumentExtension(ext string) *Error {
 	return newError(code.InvalidRequest, fmt.Sprintf("unsupported document extension %q, allowed: .jpg, .jpeg, .png, .webp, .pdf", ext))
+}
+
+func ReportNotFoundID(reportID string) *Error {
+	msg := fmt.Sprintf("report with id %q was not found", reportID)
+	return newError(code.NotFound, msg)
+}
+
+func ErrCommentTooShort(minLen int) *Error {
+	msg := fmt.Sprintf("comment is required when reason is 'other' (min %d characters)", minLen)
+	return newError(code.InvalidRequest, msg)
 }

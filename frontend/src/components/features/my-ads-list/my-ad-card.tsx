@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Eye, EyeOff, MapPin, PawPrint, Pencil, Trash2 } from "lucide-react"
+import { Eye, EyeOff, MapPin, PawPrint, Pencil, Trash2, Ban } from "lucide-react" // Додано Ban
 import { toast } from "sonner"
 
-import { Ad } from "@/service/ad/ad.interface"
+import { Ad, AD_STATUS } from "@/service/ad/ad.interface"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,8 +33,12 @@ export function MyAdCard({ ad }: Props) {
 
     const [imgError, setImgError] = useState(false)
 
-    const isActive = ad.status === 1
+    const isActive = ad.status === AD_STATUS.OPENED
+    const isArchived = ad.status === AD_STATUS.CLOSED
+    const isBlocked = ad.status === AD_STATUS.BLOCKED
+
     const isLoading = isDeleting || isChangingStatus
+    const isActionsDisabled = isLoading || isBlocked
 
     const handleDelete = () => {
         deleteAd(ad.id, {
@@ -44,7 +48,7 @@ export function MyAdCard({ ad }: Props) {
     }
 
     const handleStatusChange = () => {
-        const newStatus = isActive ? 2 : 1
+        const newStatus = isActive ? AD_STATUS.CLOSED : AD_STATUS.OPENED
         changeStatus({ id: ad.id, status: newStatus }, {
             onSuccess: () => toast.success(isActive ? "Оголошення переміщено в архів" : "Оголошення активовано"),
             onError: () => toast.error("Не вдалося змінити статус"),
@@ -52,7 +56,7 @@ export function MyAdCard({ ad }: Props) {
     }
 
     return (
-        <Card className={`overflow-hidden transition-all border-gray-200/60 shadow-sm hover:shadow-md ${!isActive ? "opacity-75 grayscale-[0.2]" : ""}`}>
+        <Card className={`overflow-hidden transition-all border-gray-200/60 shadow-sm hover:shadow-md ${(isArchived || isBlocked) ? "opacity-80 grayscale-[0.2]" : ""}`}>
             <div className="flex flex-col sm:flex-row h-full p-3 gap-5">
 
                 <Link href={`/ads/${ad.id}`} className="relative w-full sm:w-64 h-56 sm:h-48 shrink-0 bg-gray-100 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center group cursor-pointer">
@@ -60,8 +64,8 @@ export function MyAdCard({ ad }: Props) {
                         <img
                             src={ad.imageUrls[0]}
                             alt={ad.title}
-                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                            onError={() => setImgError(true)} // Якщо картинка бита - покажемо заглушку
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={() => setImgError(true)}
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -69,8 +73,11 @@ export function MyAdCard({ ad }: Props) {
                         </div>
                     )}
                     <div className="absolute top-3 left-3 flex gap-2">
-                        <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold text-white shadow-sm backdrop-blur-md ${isActive ? "bg-green-500/90" : "bg-gray-600/90"}`}>
-                            {isActive ? "Активне" : "В архіві"}
+                        <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold text-white shadow-sm backdrop-blur-md 
+                            ${isActive ? "bg-green-500/90" :
+                                isBlocked ? "bg-red-500/90 flex items-center gap-1" : "bg-gray-600/90"}`}>
+                            {isBlocked && <Ban className="w-3 h-3" />}
+                            {isActive ? "Активне" : isBlocked ? "Заблоковано" : "В архіві"}
                         </span>
                     </div>
                 </Link>
@@ -92,8 +99,8 @@ export function MyAdCard({ ad }: Props) {
                     </div>
 
                     <div className="mt-auto flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100">
-                        <Button asChild variant="outline" size="sm" className="gap-2 cursor-pointer shadow-sm hover:bg-gray-50" disabled={isLoading}>
-                            <Link href={`/my-ads/${ad.id}/edit`}>
+                        <Button asChild variant="outline" size="sm" className="gap-2 cursor-pointer shadow-sm hover:bg-gray-50" disabled={isActionsDisabled}>
+                            <Link href={isBlocked ? "#" : `/my-ads/${ad.id}/edit`} className={isBlocked ? "pointer-events-none" : ""}>
                                 <Pencil className="h-3.5 w-3.5" /> Редагувати
                             </Link>
                         </Button>
@@ -101,8 +108,8 @@ export function MyAdCard({ ad }: Props) {
                         <Button
                             variant="secondary"
                             size="sm"
-                            className={`gap-2 cursor-pointer shadow-sm ${!isActive && "bg-green-50 text-green-700 hover:bg-green-100"}`}
-                            disabled={isLoading}
+                            className={`gap-2 shadow-sm ${(!isActive && !isBlocked) && "bg-green-50 text-green-700 hover:bg-green-100"}`}
+                            disabled={isActionsDisabled}
                             onClick={handleStatusChange}
                         >
                             {isActive ? <><EyeOff className="h-3.5 w-3.5" /> В архів</> : <><Eye className="h-3.5 w-3.5" /> Активувати</>}

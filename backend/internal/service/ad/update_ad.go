@@ -9,12 +9,21 @@ import (
 )
 
 func (s *Service) Update(ctx context.Context, in entity.UpdateAdInput) (entity.Ad, error) {
+	if in.Status != nil && *in.Status == entity.AdStatusBlocked {
+		return entity.Ad{}, apperror.ErrCannotBlockOwnAd
+	}
+
 	ad, err := s.adRepo.Get(ctx, in.ID, &in.UserID)
 	if err != nil {
 		return entity.Ad{}, errwrap.Wrap("get ad from repo", err)
 	}
 	if ad.AuthorID != in.UserID {
-		return entity.Ad{}, apperror.AdAccessDenied
+		return entity.Ad{}, apperror.ErrAdAccessDenied
+	}
+
+	// if ad is blocked we don't go further
+	if ad.Status == entity.AdStatusBlocked {
+		return entity.Ad{}, apperror.ErrAdBlocked
 	}
 
 	var keysToDelete []string

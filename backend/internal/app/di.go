@@ -10,12 +10,14 @@ import (
 	conversation_repository "github.com/escoutdoor/kitypes/backend/internal/repository/conversation"
 	favorite_repository "github.com/escoutdoor/kitypes/backend/internal/repository/favorite"
 	message_repository "github.com/escoutdoor/kitypes/backend/internal/repository/message"
+	report_repository "github.com/escoutdoor/kitypes/backend/internal/repository/report"
 	user_repository "github.com/escoutdoor/kitypes/backend/internal/repository/user"
 	verification_repository "github.com/escoutdoor/kitypes/backend/internal/repository/verification"
 	ad_service "github.com/escoutdoor/kitypes/backend/internal/service/ad"
 	auth_service "github.com/escoutdoor/kitypes/backend/internal/service/auth"
 	chat_service "github.com/escoutdoor/kitypes/backend/internal/service/chat"
 	fav_service "github.com/escoutdoor/kitypes/backend/internal/service/favorite"
+	report_service "github.com/escoutdoor/kitypes/backend/internal/service/report"
 	user_service "github.com/escoutdoor/kitypes/backend/internal/service/user"
 	verification_service "github.com/escoutdoor/kitypes/backend/internal/service/verification"
 	"github.com/escoutdoor/kitypes/backend/internal/util/token"
@@ -41,6 +43,7 @@ type di struct {
 	conversationRepository *conversation_repository.Repository
 	messageRepository      *message_repository.Repository
 	verificationRepository *verification_repository.Repository
+	reportRepository       *report_repository.Repository
 
 	adService           *ad_service.Service
 	authService         *auth_service.Service
@@ -48,6 +51,7 @@ type di struct {
 	favoriteService     *fav_service.Service
 	chatService         *chat_service.Service
 	verificationService *verification_service.Service
+	reportService       *report_service.Service
 
 	chatHub *chat.Chat
 }
@@ -140,7 +144,7 @@ func (d *di) AdRepository(ctx context.Context) *ad_repository.Repository {
 
 func (d *di) AdService(ctx context.Context) *ad_service.Service {
 	if d.adService == nil {
-		d.adService = ad_service.New(d.AdRepository(ctx), d.UserRepository(ctx), d.TxManager(ctx), d.S3Client(ctx))
+		d.adService = ad_service.New(d.AdRepository(ctx), d.UserRepository(ctx), d.ReportRepository(ctx), d.TxManager(ctx), d.S3Client(ctx))
 	}
 
 	return d.adService
@@ -181,6 +185,14 @@ func (d *di) VerificationRepository(ctx context.Context) *verification_repositor
 	}
 
 	return d.verificationRepository
+}
+
+func (d *di) ReportRepository(ctx context.Context) *report_repository.Repository {
+	if d.reportRepository == nil {
+		d.reportRepository = report_repository.New(d.DBClient(ctx))
+	}
+
+	return d.reportRepository
 }
 
 func (d *di) AuthService(ctx context.Context) *auth_service.Service {
@@ -230,6 +242,20 @@ func (d *di) VerificationService(ctx context.Context) *verification_service.Serv
 		)
 	}
 	return d.verificationService
+}
+
+func (d *di) ReportService(ctx context.Context) *report_service.Service {
+	if d.reportService == nil {
+		d.reportService = report_service.New(
+			d.ReportRepository(ctx),
+			d.AdRepository(ctx),
+			d.UserRepository(ctx),
+			d.RedisClient(ctx),
+			d.TxManager(ctx),
+		)
+	}
+
+	return d.reportService
 }
 
 func (d *di) TokenProvider() *token.TokenProvider {

@@ -25,6 +25,9 @@ func (s *Service) Login(ctx context.Context, in entity.User) (entity.Tokens, err
 	if match := hasher.CompareHashAndPassword(user.Password, in.Password); !match {
 		return entity.Tokens{}, apperror.ErrIncorrectCredentials
 	}
+	if user.IsBanned {
+		return entity.Tokens{}, apperror.ErrUserBanned
+	}
 
 	accessToken, err := s.tokenProvider.GenerateAccessToken(user.ID, user.Role)
 	if err != nil {

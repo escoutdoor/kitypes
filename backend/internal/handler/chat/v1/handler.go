@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"encoding/base64"
+
 	"github.com/escoutdoor/kitypes/backend/internal/apperror"
+	"github.com/escoutdoor/kitypes/backend/internal/middleware"
 	"github.com/google/uuid"
 
 	"github.com/escoutdoor/kitypes/backend/internal/chat"
@@ -26,6 +28,7 @@ type chatService interface {
 	SendMessage(ctx context.Context, in entity.Message, adID string) error
 	ListConversations(ctx context.Context, userID string, limit int, cursor string) ([]entity.EnrichedConversation, string, error)
 	ListMessages(ctx context.Context, userID, convID string, limit int, cursor string) ([]entity.Message, string, error)
+	GetMessage(ctx context.Context, messageID string) (entity.Message, error)
 	MarkAsRead(ctx context.Context, convID string, userID string, lastReadMsgID string) error
 
 	BuildPublicURL(key string) string
@@ -44,24 +47,28 @@ func RegisterHandlers(
 	authMw echo.MiddlewareFunc,
 	chatService chatService,
 	cv *validator.CustomValidator,
-	chat *chat.Chat,
+	chatHub *chat.Chat,
 ) {
 	h := &handler{
 		service: chatService,
 		cv:      cv,
 
 		publishLimiter: rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
-		chat:           chat,
+		chat:           chatHub,
 	}
-	e.Use(authMw)
 
-	e.GET("/subscribe", h.subscribe)
-	e.POST("/publish", h.publish)
+	chatGroup := e.Group("/conversations")
+	chatGroup.Use(authMw)
 
-	e.GET("/", h.listConversations)
-	e.GET("/:id/messages", h.listConversationMessages)
+	chatGroup.GET("/subscribe", h.subscribe)
+	chatGroup.POST("/publish", h.publish)
+	chatGroup.GET("/", h.listConversations)
+	chatGroup.GET("/:id/messages", h.listConversationMessages)
+	chatGroup.PATCH("/:id/read", h.markMessageAsRead)
 
-	e.PATCH("/:id/read", h.markMessageAsRead)
+	adminGroup := e.Group("/admin/messages")
+	adminGroup.Use(authMw, middleware.RequireRoles(entity.RoleAdmin))
+	adminGroup.GET("/:id", h.getMessage)
 }
 
 func encodePageToken(cursor string) string {

@@ -17,6 +17,14 @@ func (s *Service) SendMessage(ctx context.Context, in entity.Message, adID strin
 		return fmt.Errorf("conversationId or adId should be passed")
 	}
 
+	u, err := s.userRepo.GetByID(ctx, in.SenderID)
+	if err != nil {
+		return apperror.UserNotFoundID(in.SenderID)
+	}
+	if u.IsBanned {
+		return apperror.ErrUserBanned
+	}
+
 	conv, err := s.resolveConversation(ctx, in.SenderID, in.ConversationID, adID)
 	if err != nil {
 		return err

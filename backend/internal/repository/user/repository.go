@@ -30,6 +30,8 @@ const (
 
 	passwordColumn = "password"
 
+	isBannedColumn = "is_banned"
+
 	createdAtColumn = "created_at"
 	updatedAtColumn = "updated_at"
 )
@@ -61,6 +63,7 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (entity.User,
 		emailColumn,
 		phoneNumberColumn,
 		passwordColumn,
+		isBannedColumn,
 		createdAtColumn,
 		updatedAtColumn,
 	).
@@ -103,6 +106,7 @@ func (r *Repository) GetByID(ctx context.Context, userID string) (entity.User, e
 		emailColumn,
 		phoneNumberColumn,
 		passwordColumn,
+		isBannedColumn,
 		createdAtColumn,
 		updatedAtColumn,
 	).
@@ -149,6 +153,7 @@ func (r *Repository) ListByIDs(ctx context.Context, userIDs []string) ([]entity.
 		emailColumn,
 		phoneNumberColumn,
 		passwordColumn,
+		isBannedColumn,
 		createdAtColumn,
 		updatedAtColumn,
 	).
@@ -242,6 +247,7 @@ func (r *Repository) Update(ctx context.Context, in entity.UpdateUserInput) (ent
             email,
             phone_number,
             password,
+			is_banned,
             created_at,
             updated_at
         `)
@@ -409,6 +415,32 @@ func (r *Repository) UpdateRole(ctx context.Context, userID string, role entity.
 
 	q := database.Query{
 		Name: "user_repository.UpdateRole",
+		Sql:  sql,
+	}
+
+	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return executeSQLError(err)
+	}
+	if cmd.RowsAffected() == 0 {
+		return apperror.UserNotFoundID(userID)
+	}
+
+	return nil
+}
+
+func (r *Repository) Ban(ctx context.Context, userID string) error {
+	sql, args, err := r.qb.Update(tableName).
+		Set(isBannedColumn, true).
+		Set(updatedAtColumn, sq.Expr("NOW()")).
+		Where(sq.Eq{idColumn: userID}).
+		ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.Ban",
 		Sql:  sql,
 	}
 

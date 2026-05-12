@@ -1,5 +1,11 @@
 import { UserRole } from "../user/user.interface"
 
+export const AD_STATUS = {
+    OPENED: 1,
+    CLOSED: 2,
+    BLOCKED: 3,
+} as const;
+
 export interface Ad {
     id: string
     authorId: string
@@ -15,6 +21,7 @@ export interface Ad {
     city: string
     status: number
     isFavorite: boolean
+    blockReason?: string
     createdAt: string
     updatedAt: string
 }

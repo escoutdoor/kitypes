@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import Link from "next/link"
 
 import { useMessages } from "@/hook/useMessages"
 import { usePublishMessage } from "@/hook/usePublishMessage"
@@ -16,8 +17,8 @@ import { useProfile } from "@/hook/useProfile"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn, formatChatDate } from "@/lib/utils"
-import Link from "next/link"
 import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
+import { ReportDialog } from "@/components/shared/report-dialog/report-dialog" // <--- ДОДАНО
 
 const messageSchema = z.object({
     content: z.string().min(1, "Повідомлення не може бути порожнім").max(2000, "Максимум 2000 символів"),
@@ -139,6 +140,22 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                                 </Link>
                             </div>
                         </div>
+
+                        <div className="ml-auto shrink-0 pl-2">
+                            <ReportDialog
+                                targetType="user"
+                                targetId={currentChat.user.id}
+                                variant="ghost"
+                                className="hidden sm:flex"
+                            />
+                            <ReportDialog
+                                targetType="user"
+                                targetId={currentChat.user.id}
+                                variant="ghost"
+                                className="flex sm:hidden w-8 h-8 p-0"
+                                iconOnly
+                            />
+                        </div>
                     </>
                 )}
             </div>
@@ -151,15 +168,30 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                     const isMine = msg.senderId === user?.id
 
                     return (
-                        <div key={msg.id} className={cn("flex flex-col max-w-[75%]", isMine ? "self-end items-end" : "self-start items-start")}>
-                            <div className={cn(
-                                "px-3.5 py-2 text-[14px] break-words whitespace-pre-wrap shadow-sm",
-                                isMine
-                                    ? "bg-primary text-primary-foreground rounded-2xl rounded-br-sm"
-                                    : "bg-white text-gray-900 rounded-2xl rounded-bl-sm border border-gray-100"
-                            )}>
-                                {msg.content}
+                        <div key={msg.id} className={cn("flex flex-col max-w-[85%] group/msg", isMine ? "self-end items-end" : "self-start items-start")}>
+                            <div className="flex items-end gap-2">
+                                <div className={cn(
+                                    "px-3.5 py-2 text-[14px] break-words whitespace-pre-wrap shadow-sm",
+                                    isMine
+                                        ? "bg-primary text-primary-foreground rounded-2xl rounded-br-sm"
+                                        : "bg-white text-gray-900 rounded-2xl rounded-bl-sm border border-gray-100"
+                                )}>
+                                    {msg.content}
+                                </div>
+
+                                {!isMine && (
+                                    <div className="opacity-0 group-hover/msg:opacity-100 transition-opacity shrink-0 pb-1">
+                                        <ReportDialog
+                                            targetType="message"
+                                            targetId={msg.id}
+                                            variant="ghost"
+                                            className="h-7 w-7 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 p-0"
+                                            iconOnly
+                                        />
+                                    </div>
+                                )}
                             </div>
+
                             <div className="flex items-center gap-1 mt-1 px-1.5">
                                 <span className="text-[10px] font-medium text-gray-400">
                                     {formatChatDate(msg.createdAt)}
@@ -196,7 +228,7 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                     <Button
                         type="submit"
                         size="icon"
-                        className="rounded-full w-9 h-9 shrink-0 bg-primary hover:bg-primary/90 shadow-sm transition-transform active:scale-95 disabled:bg-gray-200 disabled:shadow-none disabled:opacity-50 flex items-center justify-center m-0.5"
+                        className="rounded-full w-9 h-9 shrink-0 bg-primary hover:bg-primary/90 shadow-sm transition-transform active:scale-95 disabled:bg-gray-200 disabled:shadow-none disabled:opacity-50 flex items-center justify-center m-0.5 cursor-pointer"
                         disabled={!currentContent?.trim() || isPublishing}
                     >
                         {isPublishing ? (

@@ -503,3 +503,47 @@ func (r *Repository) getImagesMapForAds(ctx context.Context, adIDs []string) (ma
 
 	return imgMap, nil
 }
+
+func (r *Repository) UpdateStatus(ctx context.Context, in entity.UpdateAdStatusInput) error {
+	sql, args, err := r.qb.Update(tableName).
+		Set(statusColumn, in.Status).
+		Set(updatedAtColumn, sq.Expr("NOW()")).
+		Where(sq.Eq{idColumn: in.ID}).
+		ToSql()
+
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{Name: "ad_repository.UpdateStatus", Sql: sql}
+	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return executeSQLError(err)
+	}
+	if cmd.RowsAffected() == 0 {
+		return apperror.AdNotFoundID(in.ID)
+	}
+
+	return nil
+}
+
+func (r *Repository) BlockAllByUserID(ctx context.Context, userID string) error {
+	sql, args, err := r.qb.Update(tableName).
+		Set(statusColumn, entity.AdStatusBlocked).
+		Set(updatedAtColumn, sq.Expr("NOW()")).
+		Where(sq.Eq{authorIDColumn: userID}).
+		Where(sq.NotEq{statusColumn: entity.AdStatusBlocked}).
+		ToSql()
+
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{Name: "ad_repository.BlockAllByUserID", Sql: sql}
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return executeSQLError(err)
+	}
+
+	return nil
+}

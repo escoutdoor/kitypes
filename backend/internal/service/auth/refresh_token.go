@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	"github.com/escoutdoor/kitypes/backend/internal/apperror"
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 )
@@ -16,6 +17,9 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken string) (entity
 	user, err := s.userRepo.GetByID(ctx, tokenPayload.UserID)
 	if err != nil {
 		return entity.Tokens{}, errwrap.Wrap("get user by id from repository", err)
+	}
+	if user.IsBanned {
+		return entity.Tokens{}, apperror.ErrUserBanned
 	}
 
 	accessToken, err := s.tokenProvider.GenerateAccessToken(tokenPayload.UserID, user.Role)

@@ -15,7 +15,8 @@ import {
     Phone,
     ShieldCheck,
     User,
-    Loader2
+    Loader2,
+    Ban
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -32,6 +33,8 @@ import { FavoriteButton } from "@/components/shared/favorite-button/favorite-but
 import { formatPetAge } from "@/lib/utils"
 import { ContactAuthorForm } from "./contact-author-form"
 import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
+import { AD_STATUS } from "@/service/ad/ad.interface"
+import { ReportDialog } from "@/components/shared/report-dialog/report-dialog"
 
 const PET_TYPES: Record<number, string> = { 1: "Песик", 2: "Котик", 3: "Інше" }
 const PET_GENDERS: Record<number, string> = { 1: "Хлопчик", 2: "Дівчинка" }
@@ -49,6 +52,7 @@ export function AdDetail({ adId }: { adId: string }) {
     const [revealedPhone, setRevealedPhone] = useState<string | null>(null)
 
     const isAuthor = Boolean(user && ad && user.id === ad.authorId)
+    const isAdmin = Boolean(user && ad && user.role === "admin")
 
     const handleShare = async () => {
         try {
@@ -133,6 +137,16 @@ export function AdDetail({ adId }: { adId: string }) {
                     </span>
                 )}
             </div>
+
+            {ad.status === AD_STATUS.BLOCKED && (isAuthor || isAdmin) && ad.blockReason && (
+                <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-2xl flex gap-3 text-red-900 items-start">
+                    <Ban className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                    <div>
+                        <h3 className="font-bold text-red-800">Оголошення заблоковано модератором</h3>
+                        <p className="text-sm mt-1 opacity-90 whitespace-pre-wrap">{ad.blockReason}</p>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
@@ -282,7 +296,11 @@ export function AdDetail({ adId }: { adId: string }) {
                                             <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 mb-2 text-center">
                                                 <p className="text-sm font-medium text-primary">🐾 Це ваше оголошення</p>
                                             </div>
-                                            <Button asChild size="lg" className="w-full text-base font-semibold shadow-md cursor-pointer rounded-xl">
+                                            <Button
+                                                asChild
+                                                size="lg"
+                                                className={`w-full text-base font-semibold shadow-md rounded-xl ${ad.status === AD_STATUS.BLOCKED ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
+                                            >
                                                 <Link href={`/my-ads/${ad.id}/edit`}>
                                                     <Pencil className="h-5 w-5 mr-2" /> Редагувати
                                                 </Link>
@@ -331,13 +349,23 @@ export function AdDetail({ adId }: { adId: string }) {
                                         </>
                                     )}
 
-                                    <Button
-                                        onClick={handleShare}
-                                        variant="ghost"
-                                        className="w-full text-muted-foreground hover:text-gray-900 rounded-xl cursor-pointer mt-2"
-                                    >
-                                        <Share2 className="h-4 w-4 mr-2" /> Поділитися
-                                    </Button>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <Button
+                                            onClick={handleShare}
+                                            variant="ghost"
+                                            className="flex-1 text-muted-foreground hover:text-gray-900 rounded-xl cursor-pointer"
+                                        >
+                                            <Share2 className="h-4 w-4 mr-2" /> Поділитися
+                                        </Button>
+
+                                        {!isAuthor && (
+                                            <ReportDialog
+                                                targetType="ad"
+                                                targetId={adId}
+                                                className="flex-1"
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

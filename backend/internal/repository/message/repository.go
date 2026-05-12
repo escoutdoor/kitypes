@@ -143,3 +143,38 @@ func (r *Repository) ListByConversationID(ctx context.Context, convID string, li
 
 	return msgs.ToEntities(), nil
 }
+
+func (r *Repository) GetByID(ctx context.Context, messageID string) (entity.Message, error) {
+	sql, args, err := r.qb.Select(
+		idColumn,
+		conversationIDColumn,
+		senderIDColumn,
+		contentColumn,
+		isReadColumn,
+		createdAtColumn,
+	).
+		From(tableName).
+		Where(sq.Eq{idColumn: messageID}).
+		ToSql()
+	if err != nil {
+		return entity.Message{}, buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "message_repository.GetByID",
+		Sql:  sql,
+	}
+
+	row, err := r.db.DB().QueryContext(ctx, q, args...)
+	if err != nil {
+		return entity.Message{}, executeSQLError(err)
+	}
+	defer row.Close()
+
+	var msg Message
+	if err := pgxscan.ScanOne(&msg, row); err != nil {
+		return entity.Message{}, scanRowsError(err)
+	}
+
+	return msg.ToEntity(), nil
+}

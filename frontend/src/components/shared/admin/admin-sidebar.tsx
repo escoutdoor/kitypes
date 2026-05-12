@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ShieldCheck, ArrowLeft } from "lucide-react"
+import { ShieldCheck, ArrowLeft, Flag } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -11,6 +11,11 @@ const ADMIN_ROUTES = [
         href: "/admin/verifications",
         label: "Верифікації",
         icon: ShieldCheck,
+    },
+    {
+        href: "/admin/reports",
+        label: "Скарги",
+        icon: Flag,
     },
 ]
 

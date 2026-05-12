@@ -55,3 +55,7 @@ export interface ListChatParams {
     pageSize?: number
     pageToken?: string
 }
+
+export interface SingleMessageResponse {
+    message: MessageResponse
+}

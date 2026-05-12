@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, ShieldCheck, ArrowLeft } from "lucide-react"
+import { Menu, ShieldCheck, ArrowLeft, Flag } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -16,6 +16,11 @@ const ADMIN_ROUTES = [
         href: "/admin/verifications",
         label: "Верифікації",
         icon: ShieldCheck,
+    },
+    {
+        href: "/admin/reports",
+        label: "Скарги",
+        icon: Flag,
     },
 ]
 

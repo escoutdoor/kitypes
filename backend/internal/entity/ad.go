@@ -23,7 +23,8 @@ type Ad struct {
 
 	Status AdStatus
 
-	IsFavorite bool
+	IsFavorite  bool
+	BlockReason *string
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -45,6 +46,7 @@ type (
 const (
 	AdStatusOpened AdStatus = iota + 1
 	AdStatusClosed
+	AdStatusBlocked
 )
 
 const (
@@ -93,6 +95,11 @@ type UpdateAdInput struct {
 	City    *string
 
 	Status *AdStatus
+}
+
+type UpdateAdStatusInput struct {
+	ID     string
+	Status AdStatus
 }
 
 type ListAdsInput struct {

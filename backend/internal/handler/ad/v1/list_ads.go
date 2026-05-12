@@ -57,6 +57,15 @@ type listResponse struct {
 }
 
 func listRequestToInput(req *listRequest, viewerID *string) entity.ListAdsInput {
+	var status *entity.AdStatus
+	if req.Status == nil {
+		openedStatus := entity.AdStatusOpened
+		status = &openedStatus
+	} else {
+		val := entity.AdStatus(*req.Status)
+		status = &val
+	}
+
 	return entity.ListAdsInput{
 		Limit:  req.Limit,
 		Offset: req.Offset,
@@ -67,7 +76,7 @@ func listRequestToInput(req *listRequest, viewerID *string) entity.ListAdsInput 
 		Country: req.Country,
 		City:    req.City,
 
-		Status: (*entity.AdStatus)(req.Status),
+		Status: status,
 
 		PetType:   (*entity.PetType)(req.PetType),
 		PetGender: (*entity.PetGender)(req.PetGender),

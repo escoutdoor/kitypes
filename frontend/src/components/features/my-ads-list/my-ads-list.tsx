@@ -17,13 +17,14 @@ import { PaginationBar } from "@/components/shared/pagination-bar/pagination-bar
 
 import { useMyAds } from "@/hook/useMyAds"
 import { MyAdCard } from "./my-ad-card"
+import { AD_STATUS } from "@/service/ad/ad.interface"
 
 const LIMIT = 10
 
 export function MyAdsList() {
     const [page, setPage] = useState(1)
     const [sortBy, setSortBy] = useState<"dateDesc" | "dateAsc">("dateDesc")
-    const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined) // undefined = всі, 1 = активні, 2 = архів
+    const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined)
 
     const { data, isLoading } = useMyAds({
         limit: LIMIT,
@@ -95,8 +96,8 @@ export function MyAdsList() {
                         Всі
                     </button>
                     <button
-                        onClick={() => handleStatusChange(1)}
-                        className={`px-4 sm:px-6 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${statusFilter === 1
+                        onClick={() => handleStatusChange(AD_STATUS.OPENED)}
+                        className={`px-4 sm:px-6 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${statusFilter === AD_STATUS.OPENED
                             ? "bg-white shadow-sm text-green-600"
                             : "text-gray-500 hover:text-green-600 hover:bg-gray-200/50"
                             }`}
@@ -104,13 +105,22 @@ export function MyAdsList() {
                         Активні
                     </button>
                     <button
-                        onClick={() => handleStatusChange(2)}
-                        className={`px-4 sm:px-6 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${statusFilter === 2
+                        onClick={() => handleStatusChange(AD_STATUS.CLOSED)}
+                        className={`px-4 sm:px-6 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${statusFilter === AD_STATUS.CLOSED
                             ? "bg-white shadow-sm text-gray-900"
                             : "text-gray-500 hover:text-gray-900 hover:bg-gray-200/50"
                             }`}
                     >
                         В архіві
+                    </button>
+                    <button
+                        onClick={() => handleStatusChange(AD_STATUS.BLOCKED)}
+                        className={`px-4 sm:px-6 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${statusFilter === AD_STATUS.BLOCKED
+                            ? "bg-white shadow-sm text-red-600"
+                            : "text-gray-500 hover:text-red-600 hover:bg-gray-200/50"
+                            }`}
+                    >
+                        Заблоковані
                     </button>
                 </div>
             )}

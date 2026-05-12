@@ -13,7 +13,7 @@ func (s *Service) Delete(ctx context.Context, userID string, adID string) error 
 		return errwrap.Wrap("get ad from repo", err)
 	}
 	if ad.AuthorID != userID {
-		return apperror.AdAccessDenied
+		return apperror.ErrAdAccessDenied
 	}
 
 	oldKeys, err := s.adRepo.GetImageKeys(ctx, adID)

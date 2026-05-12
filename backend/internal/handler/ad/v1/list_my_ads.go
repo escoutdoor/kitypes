@@ -39,7 +39,7 @@ type listMyAdsRequest struct {
 	SortBy string `query:"sortBy" validate:"omitempty,oneof=dateAsc dateDesc"`
 
 	Search *string `query:"search" validate:"omitempty,min=2"`
-	Status *int32  `query:"status" validate:"omitempty,oneof=1 2"`
+	Status *int32  `query:"status" validate:"omitempty,oneof=1 2 3"`
 }
 
 type listMyAdsResponse struct {
