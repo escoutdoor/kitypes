@@ -16,6 +16,8 @@ const (
 
 type userService interface {
 	GetByID(ctx context.Context, userID string) (entity.User, error)
+	GetPublicUserByID(ctx context.Context, userID string) (entity.User, error)
+	GetUserPhone(ctx context.Context, userID string) (string, error)
 	GenerateUploadURL(ctx context.Context, ext string) (string, string, error)
 	BuildPublicURL(key string) string
 
@@ -44,10 +46,13 @@ func RegisterHandlers(
 	cv *validator.CustomValidator,
 ) {
 	h := &handler{service: userService, cv: cv}
-	e.Use(authMw)
+
+	publicGroup := e.Group("/users")
+	publicGroup.GET("/:id", h.getPublicUser)
 
 	userGroup := e.Group("/users", authMw)
 	userGroup.GET("/me", h.get)
+	userGroup.GET("/:id/phone", h.getPhone)
 	userGroup.GET("/upload-url", h.getUploadURL)
 
 	userGroup.DELETE("/me/avatar", h.deleteAvatar)
@@ -101,5 +106,34 @@ func (h *handler) meToResponse(user entity.User) meResponse {
 		IsBanned:    user.IsBanned,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
+	}
+}
+
+type publicUserResponse struct {
+	ID   string          `json:"id"`
+	Role entity.UserRole `json:"role"`
+
+	AvatarURL *string `json:"avatarUrl,omitempty"`
+
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+func (h *handler) userToPublicResponse(user entity.User) publicUserResponse {
+	var avatarURL *string
+	if user.AvatarKey != nil {
+		url := h.service.BuildPublicURL(*user.AvatarKey)
+		avatarURL = &url
+	}
+
+	return publicUserResponse{
+		ID:        user.ID,
+		Role:      user.Role,
+		AvatarURL: avatarURL,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		CreatedAt: user.CreatedAt,
 	}
 }

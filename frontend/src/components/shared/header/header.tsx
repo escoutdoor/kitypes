@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, Menu, MessageSquare, PawPrint, Search, LogOut, ShieldCheck, Heart, LayoutList, Settings, User as UserIcon } from "lucide-react"
+import { Home, Menu, MessageSquare, PawPrint, Search, LogOut, ShieldCheck, Heart, LayoutList, User as UserIcon, Eye, Lock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet"
@@ -10,7 +10,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -119,72 +118,100 @@ const Header = () => {
                                         </Button>
                                     </DropdownMenuTrigger>
 
-                                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                                        <DropdownMenuLabel className="font-normal">
-                                            <div className="flex flex-col space-y-1">
-                                                <p className="text-sm font-semibold leading-none text-gray-900">
-                                                    {user?.firstName} {user?.lastName}
-                                                </p>
-                                                <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                                    <DropdownMenuContent className="w-60 p-1.5" align="end" forceMount>
+
+                                        <div className="flex items-center gap-2.5 px-2.5 py-2.5 mb-1">
+                                            <Avatar className="h-9 w-9 shrink-0 border border-gray-100">
+                                                <AvatarImage src={user?.avatarUrl || undefined} className="object-cover" />
+                                                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">{initials}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-semibold text-gray-900 truncate">{user?.firstName} {user?.lastName}</p>
+                                                <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                                             </div>
-                                        </DropdownMenuLabel>
+                                        </div>
 
                                         <DropdownMenuSeparator />
 
                                         {user?.role === "admin" && (
                                             <>
-                                                <DropdownMenuItem asChild className="cursor-pointer font-medium focus:bg-gray-100/80">
-                                                    <Link href="/admin/verifications" className="flex items-center py-0.5">
-                                                        <div className="flex items-center justify-center bg-primary/10 rounded-md p-1.5 mr-2.5">
-                                                            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                                                <DropdownMenuItem asChild className="cursor-pointer rounded-lg p-0 focus:bg-transparent">
+                                                    <Link href="/admin/verifications" className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
+                                                        <div className="flex items-center justify-center w-7 h-7 rounded-md bg-primary/10 shrink-0">
+                                                            <ShieldCheck className="h-4 w-4 text-primary" />
                                                         </div>
-                                                        <span className="font-semibold text-gray-900">Адмін-панель</span>
+                                                        <span className="text-sm font-semibold text-primary">Адмін-панель</span>
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                             </>
                                         )}
 
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
-                                            <Link href="/profile">Мій профіль</Link>
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
-                                            <Link href="/my-ads">Мої оголошення</Link>
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
-                                            <Link href="/favorites">Обрані</Link>
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
-                                            <Link href="/profile/verification" className="flex items-center justify-between w-full">
-                                                Верифікація
-                                                {user?.role === "user" && (
-                                                    <span className="w-2 h-2 rounded-full bg-blue-500 ml-2"></span>
-                                                )}
+                                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-gray-100/80">
+                                            <Link href={`/users/${user?.id}`} className="flex items-center gap-2.5 px-2.5 py-1.5">
+                                                <Eye className="h-4 w-4 text-gray-400 shrink-0" />
+                                                <span className="text-sm text-gray-800">Мій профіль</span>
                                             </Link>
                                         </DropdownMenuItem>
-
-                                        <DropdownMenuItem asChild className="cursor-pointer font-medium hover:text-primary">
-                                            <Link href="/profile/settings">Налаштування</Link>
+                                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-gray-100/80">
+                                            <Link href="/my-ads" className="flex items-center gap-2.5 px-2.5 py-1.5">
+                                                <LayoutList className="h-4 w-4 text-gray-400 shrink-0" />
+                                                <span className="text-sm text-gray-800">Мої оголошення</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-gray-100/80">
+                                            <Link href="/favorites" className="flex items-center gap-2.5 px-2.5 py-1.5">
+                                                <Heart className="h-4 w-4 text-gray-400 shrink-0" />
+                                                <span className="text-sm text-gray-800">Обрані</span>
+                                            </Link>
                                         </DropdownMenuItem>
 
                                         <DropdownMenuSeparator />
 
-                                        <DropdownMenuItem className="text-red-600 cursor-pointer font-medium focus:text-red-700 focus:bg-red-50" onClick={handleLogout}>
-                                            <LogOut className="mr-2 h-4 w-4" />
-                                            <span>Вийти</span>
+                                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-gray-100/80">
+                                            <Link href="/profile" className="flex items-center gap-2.5 px-2.5 py-1.5">
+                                                <UserIcon className="h-4 w-4 text-gray-400 shrink-0" />
+                                                <span className="text-sm text-gray-800">Особисті дані</span>
+                                            </Link>
                                         </DropdownMenuItem>
+                                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-gray-100/80">
+                                            <Link href="/profile/settings" className="flex items-center gap-2.5 px-2.5 py-1.5">
+                                                <Lock className="h-4 w-4 text-gray-400 shrink-0" />
+                                                <span className="text-sm text-gray-800">Пароль та безпека</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-gray-100/80">
+                                            <Link href="/profile/verification" className="flex items-center justify-between gap-2.5 px-2.5 py-1.5">
+                                                <div className="flex items-center gap-2.5">
+                                                    <ShieldCheck className="h-4 w-4 text-gray-400 shrink-0" />
+                                                    <span className="text-sm text-gray-800">Верифікація</span>
+                                                </div>
+                                                {user?.role === "user" && (
+                                                    <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                                                )}
+                                            </Link>
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem
+                                            className="cursor-pointer rounded-lg text-red-600 focus:text-red-700 focus:bg-red-50 gap-2.5 px-2.5 py-1.5"
+                                            onClick={handleLogout}
+                                        >
+                                            <LogOut className="h-4 w-4 shrink-0" />
+                                            <span className="text-sm">Вийти з акаунта</span>
+                                        </DropdownMenuItem>
+
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             ) : (
-                                <Button asChild className="rounded-full px-6 shadow-sm hover:shadow-md transition-all bg-primary hover:bg-primary/90 text-white">
+                                <Button asChild className="rounded-full px-6 shadow-sm hover:shadow-md transition-all bg-primary hover:bg-primary/90 text-white cursor-pointer">
                                     <Link href="/login">Увійти</Link>
                                 </Button>
                             )}
                         </div>
 
+                        {/* MOBILE MENU */}
                         <Sheet>
                             <SheetTrigger asChild>
                                 <Button
@@ -250,9 +277,9 @@ const Header = () => {
                                             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Мій акаунт</div>
 
                                             <SheetClose asChild>
-                                                <Link href="/profile" className="flex items-center gap-3 text-base font-medium transition-all duration-200 p-2 rounded-xl mr-4 text-gray-700 hover:bg-gray-100 hover:text-primary cursor-pointer active:scale-[0.98] active:bg-gray-200">
-                                                    <UserIcon className="h-5 w-5" />
-                                                    Мій профіль
+                                                <Link href={`/users/${user?.id}`} className="flex items-center gap-3 text-base font-medium transition-all duration-200 p-2 rounded-xl mr-4 text-gray-700 hover:bg-gray-100 hover:text-primary cursor-pointer active:scale-[0.98] active:bg-gray-200">
+                                                    <Eye className="h-5 w-5" />
+                                                    Мій публічний профіль
                                                 </Link>
                                             </SheetClose>
 
@@ -270,6 +297,23 @@ const Header = () => {
                                                 </Link>
                                             </SheetClose>
 
+                                            <hr className="my-4 border-gray-100 mr-4" />
+                                            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Налаштування</div>
+
+                                            <SheetClose asChild>
+                                                <Link href="/profile" className="flex items-center gap-3 text-base font-medium transition-all duration-200 p-2 rounded-xl mr-4 text-gray-700 hover:bg-gray-100 hover:text-primary cursor-pointer active:scale-[0.98] active:bg-gray-200">
+                                                    <UserIcon className="h-5 w-5" />
+                                                    Особисті дані
+                                                </Link>
+                                            </SheetClose>
+
+                                            <SheetClose asChild>
+                                                <Link href="/profile/settings" className="flex items-center gap-3 text-base font-medium transition-all duration-200 p-2 rounded-xl mr-4 text-gray-700 hover:bg-gray-100 hover:text-primary cursor-pointer active:scale-[0.98] active:bg-gray-200">
+                                                    <Lock className="h-5 w-5" />
+                                                    Безпека
+                                                </Link>
+                                            </SheetClose>
+
                                             <SheetClose asChild>
                                                 <Link href="/profile/verification" className="flex items-center gap-3 text-base font-medium transition-all duration-200 p-2 rounded-xl mr-4 text-gray-700 hover:bg-gray-100 hover:text-primary cursor-pointer active:scale-[0.98] active:bg-gray-200">
                                                     <ShieldCheck className="h-5 w-5" />
@@ -279,13 +323,6 @@ const Header = () => {
                                                             <span className="absolute top-1 -right-3 flex h-2 w-2 rounded-full bg-blue-500"></span>
                                                         )}
                                                     </span>
-                                                </Link>
-                                            </SheetClose>
-
-                                            <SheetClose asChild>
-                                                <Link href="/profile/settings" className="flex items-center gap-3 text-base font-medium transition-all duration-200 p-2 rounded-xl mr-4 text-gray-700 hover:bg-gray-100 hover:text-primary cursor-pointer active:scale-[0.98] active:bg-gray-200">
-                                                    <Settings className="h-5 w-5" />
-                                                    Налаштування
                                                 </Link>
                                             </SheetClose>
 

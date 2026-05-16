@@ -17,6 +17,7 @@ import { useBlockAdAndResolveReport } from "@/hook/useBlockAdAndResolveReport"
 import { useBanUserAndResolveReport } from "@/hook/useBanUserAndResolveReport"
 import { useAdminMessage } from "@/hook/useAdminMessage"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 const REPORT_REASON_LABELS: Record<string, string> = {
     [REPORT_REASON.SPAM]: "Спам або реклама",
@@ -205,42 +206,55 @@ export function ReportReviewSheet({ reportId, selectedReport, isOpen, onOpenChan
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Об'єкт скарги</h3>
                             <Card className="border-none shadow-sm">
                                 <CardContent className="p-5 flex flex-col gap-4 bg-white">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                                                 {isAdReport && <ExternalLink className="w-5 h-5 text-primary" />}
                                                 {isUserReport && <User className="w-5 h-5 text-primary" />}
                                                 {isMessageReport && <MessageSquare className="w-5 h-5 text-primary" />}
                                             </div>
-                                            <div>
+                                            <div className="min-w-0">
                                                 <p className="text-sm font-bold text-gray-900">
                                                     {TARGET_LABELS[report.targetType] || report.targetType}
                                                 </p>
-                                                <p className="text-xs text-gray-500 font-mono mt-0.5">{report.targetId}</p>
+                                                <p className="text-xs text-gray-500 font-mono mt-0.5 truncate">{report.targetId}</p>
                                             </div>
                                         </div>
 
                                         {isAdReport && (
-                                            <Button asChild variant="outline" size="sm">
+                                            <Button asChild variant="outline" size="sm" className="shrink-0 cursor-pointer">
                                                 <a href={`/ads/${report.targetId}`} target="_blank" rel="noopener noreferrer">
-                                                    Відкрити
+                                                    <ExternalLink className="w-4 h-4 mr-1.5" /> Відкрити
                                                 </a>
+                                            </Button>
+                                        )}
+                                        {isUserReport && (
+                                            <Button asChild variant="outline" size="sm" className="shrink-0 cursor-pointer">
+                                                <Link href={`/users/${report.targetId}`} target="_blank" rel="noopener noreferrer">
+                                                    <ExternalLink className="w-4 h-4 mr-1.5" /> Профіль
+                                                </Link>
                                             </Button>
                                         )}
                                     </div>
 
-                                    {/* Блок з текстом повідомлення */}
                                     {isMessageReport && (
-                                        <div className="mt-2 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                                             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Текст повідомлення:</p>
                                             {isMessageLoading ? (
                                                 <div className="flex items-center gap-2 text-gray-400 text-sm font-medium">
                                                     <Loader2 className="w-4 h-4 animate-spin" /> Завантаження тексту...
                                                 </div>
                                             ) : messageData ? (
-                                                <p className="text-sm text-gray-800 font-medium whitespace-pre-wrap">
-                                                    "{messageData.content}"
-                                                </p>
+                                                <>
+                                                    <p className="text-sm text-gray-800 font-medium whitespace-pre-wrap mb-3">
+                                                        "{messageData.content}"
+                                                    </p>
+                                                    <Button asChild variant="outline" size="sm" className="cursor-pointer">
+                                                        <Link href={`/users/${messageData.senderId}`} target="_blank" rel="noopener noreferrer">
+                                                            <ExternalLink className="w-4 h-4 mr-1.5" /> Профіль відправника
+                                                        </Link>
+                                                    </Button>
+                                                </>
                                             ) : (
                                                 <p className="text-sm text-red-500 font-medium">
                                                     Повідомлення не знайдено або було видалено.
@@ -252,27 +266,35 @@ export function ReportReviewSheet({ reportId, selectedReport, isOpen, onOpenChan
                             </Card>
                         </section>
 
-                        {/* Дані скаржника */}
+                        {/* Хто поскаржився */}
                         <section>
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Хто поскаржився</h3>
                             <Card className="border-none shadow-sm">
                                 <CardContent className="p-5 space-y-4 bg-white">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                                            <User className="w-5 h-5 text-gray-500" />
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                                <User className="w-5 h-5 text-gray-500" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm text-gray-500 font-medium">Повне ім'я</p>
+                                                <p className="font-bold text-gray-900">{report.reporter.firstName} {report.reporter.lastName}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 font-medium">Повне ім'я</p>
-                                            <p className="font-bold text-gray-900">{report.reporter.firstName} {report.reporter.lastName}</p>
-                                        </div>
+                                        <Button asChild variant="outline" size="sm" className="shrink-0 cursor-pointer">
+                                            <Link href={`/users/${report.reporterId}`} target="_blank" rel="noopener noreferrer">
+                                                <ExternalLink className="w-4 h-4 mr-1.5" /> Профіль
+                                            </Link>
+                                        </Button>
                                     </div>
+
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                                             <MessageSquare className="w-5 h-5 text-gray-500" />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <p className="text-sm text-gray-500 font-medium">Email</p>
-                                            <a href={`mailto:${report.reporter.email}`} className="font-bold text-gray-900 hover:text-primary">
+                                            <a href={`mailto:${report.reporter.email}`} className="font-bold text-gray-900 hover:text-primary truncate block">
                                                 {report.reporter.email}
                                             </a>
                                         </div>

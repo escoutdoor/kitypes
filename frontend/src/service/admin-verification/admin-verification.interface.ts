@@ -3,6 +3,7 @@ import { UserRole } from "../user/user.interface"
 export type VerificationStatus = "pending" | "approved" | "rejected"
 
 export interface VerificationUserDTO {
+    id: string
     firstName: string
     lastName: string
     email: string

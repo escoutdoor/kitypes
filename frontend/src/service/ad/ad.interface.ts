@@ -64,6 +64,7 @@ export interface ListAdsParams {
     minPetAgeMonth?: number
     maxPetAgeMonth?: number
     verifiedOnly?: boolean
+    authorId?: string
 }
 
 export interface UploadUrlItem {

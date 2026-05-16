@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Ban, CheckCircle2, Loader2, Calendar, Flag, PawPrint, Phone, Mail, Save, AlertTriangle } from "lucide-react"
+import { Ban, CheckCircle2, Loader2, Calendar, Flag, PawPrint, Phone, Mail, Save, AlertTriangle, ExternalLink } from "lucide-react"
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
 
@@ -96,14 +96,19 @@ export function UserReviewSheet({ user, isOpen, onOpenChangeAction }: Props) {
                                     <AvatarImage src={user.avatarUrl || ""} className="object-cover" />
                                     <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">{initials}</AvatarFallback>
                                 </Avatar>
-                                <div>
+                                <div className="flex-1 min-w-0">
                                     <SheetTitle className="text-2xl font-bold text-gray-900 leading-tight">
                                         {user.firstName} {user.lastName}
                                     </SheetTitle>
-                                    <div className="text-sm text-gray-500 font-mono mt-1 select-all" title="Натисніть щоб виділити ID">
+                                    <div className="text-sm text-gray-500 font-mono mt-1 select-all">
                                         ID: {user.id}
                                     </div>
                                 </div>
+                                <Button asChild variant="outline" size="sm" className="shrink-0 cursor-pointer">
+                                    <Link href={`/users/${user.id}`} target="_blank" rel="noopener noreferrer">
+                                        <ExternalLink className="w-4 h-4 mr-1.5" /> Профіль
+                                    </Link>
+                                </Button>
                             </div>
 
                             <SheetDescription className="flex items-center gap-2 mt-4">

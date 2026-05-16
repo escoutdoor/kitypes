@@ -113,7 +113,7 @@ export function AdReviewSheet({ adId, isOpen, onOpenChangeAction }: Props) {
 
                             <Card className="border-none shadow-sm">
                                 <CardContent className="p-5">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center justify-between">
                                         <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                                             <UserIcon className="w-5 h-5 text-blue-500" />
                                         </div>
@@ -124,6 +124,11 @@ export function AdReviewSheet({ adId, isOpen, onOpenChangeAction }: Props) {
                                                 ID: {ad.authorId}
                                             </p>
                                         </div>
+                                        <Button asChild variant="outline" size="sm" className="ml-5 shrink-0 cursor-pointer">
+                                            <Link href={`/users/${ad.authorId}`} target="_blank" rel="noopener noreferrer">
+                                                <ExternalLink className="w-4 h-4 mr-1.5" /> Профіль
+                                            </Link>
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>

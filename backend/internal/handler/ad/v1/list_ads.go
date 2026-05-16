@@ -48,7 +48,8 @@ type listRequest struct {
 	MinPetAgeMonth *int32 `query:"minPetAgeMonth" validate:"omitempty,gte=0"`
 	MaxPetAgeMonth *int32 `query:"maxPetAgeMonth" validate:"omitempty,gte=0"`
 
-	VerifiedOnly *bool `query:"verifiedOnly"`
+	VerifiedOnly *bool   `query:"verifiedOnly"`
+	AuthorID     *string `query:"authorId" validate:"omitempty,uuid"`
 }
 
 type listResponse struct {
@@ -87,5 +88,6 @@ func listRequestToInput(req *listRequest, viewerID *string) entity.ListAdsInput 
 		ViewerID: viewerID,
 
 		VerifiedOnly: req.VerifiedOnly,
+		AuthorID:     req.AuthorID,
 	}
 }

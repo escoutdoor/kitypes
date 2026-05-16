@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios"
-import { UpdateEmailRequest, UpdatePasswordRequest, UpdateUserRequest, UploadUrlResponse, User, UserResponse } from "./user.interface"
+import { GetUserPhoneResponse, PublicUserResponse, UpdateEmailRequest, UpdatePasswordRequest, UpdateUserRequest, UploadUrlResponse, User, UserResponse } from "./user.interface"
 
 const USERS_URL = "/v1/users"
 
@@ -32,6 +32,16 @@ export class UserService {
 
     static async getUploadUrl(ext: string): Promise<UploadUrlResponse> {
         const resp = await api.get<UploadUrlResponse>(`${USERS_URL}/upload-url?ext=${ext}`)
+        return resp.data;
+    }
+
+    static async getPublicUser(userId: string): Promise<PublicUserResponse> {
+        const resp = await api.get<PublicUserResponse>(`/v1/users/${userId}`);
+        return resp.data;
+    }
+
+    static async getUserPhone(userId: string): Promise<GetUserPhoneResponse> {
+        const resp = await api.get<GetUserPhoneResponse>(`/v1/users/${userId}/phone`);
         return resp.data;
     }
 }

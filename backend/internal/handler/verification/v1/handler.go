@@ -77,6 +77,7 @@ type enrichedVerificationResponse struct {
 }
 
 type userInfo struct {
+	ID          string  `json:"id"`
 	FirstName   string  `json:"firstName"`
 	LastName    string  `json:"lastName"`
 	Email       string  `json:"email"`
@@ -95,6 +96,7 @@ func (h *handler) enrichedVerificationToResponse(ctx context.Context, vr entity.
 		verificationResponse: verificationToResponse(vr.VerificationRequest),
 		AdminNotes:           vr.AdminNotes,
 		User: userInfo{
+			ID:          vr.UserID,
 			FirstName:   vr.UserFirstName,
 			LastName:    vr.UserLastName,
 			Email:       vr.UserEmail,

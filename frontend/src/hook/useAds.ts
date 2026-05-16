@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { AdService } from "@/service/ad/ad.service"
 import { ListAdsParams } from "@/service/ad/ad.interface"
 
@@ -16,6 +16,7 @@ export const useAds = (params: ListAdsParams) => {
         minPetAgeMonth,
         maxPetAgeMonth,
         verifiedOnly,
+        authorId,
     } = params
 
     return useQuery({
@@ -33,10 +34,11 @@ export const useAds = (params: ListAdsParams) => {
             minPetAgeMonth ?? null,
             maxPetAgeMonth ?? null,
             verifiedOnly ?? null,
+            authorId ?? null,
         ],
         queryFn: () => AdService.list(params),
 
-        placeholderData: (prev) => prev,
+        placeholderData: keepPreviousData,
         staleTime: 60_000,
         refetchOnWindowFocus: false,
     })

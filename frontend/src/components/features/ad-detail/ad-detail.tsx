@@ -16,7 +16,8 @@ import {
     ShieldCheck,
     User,
     Loader2,
-    Ban
+    Ban,
+    ChevronRight
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -266,34 +267,43 @@ export function AdDetail({ adId }: { adId: string }) {
                         </Card>
 
                         <Card className="border-gray-200/60 shadow-sm rounded-3xl overflow-hidden bg-white">
-                            <CardContent className="p-6 sm:p-8 space-y-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-14 w-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
-                                        {ad.authorAvatarUrl ? (
-                                            <img
-                                                src={ad.authorAvatarUrl}
-                                                alt={authorName}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <User className="h-6 w-6 text-gray-400" />
-                                        )}
+                            <CardContent className="p-0 space-y-0">
+
+                                <Link
+                                    href={`/users/${ad.authorId}`}
+                                    className="flex items-center gap-3 px-6 pt-6 pb-5 hover:bg-gray-50 transition-colors group"
+                                >
+                                    <div className="relative shrink-0">
+                                        <div className="h-13 w-13 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center overflow-hidden">
+                                            {ad.authorAvatarUrl ? (
+                                                <img src={ad.authorAvatarUrl} alt={authorName} className="h-full w-full object-cover" />
+                                            ) : (
+                                                <User className="h-6 w-6 text-gray-400" />
+                                            )}
+                                        </div>
+                                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white" />
                                     </div>
-                                    <div className="flex flex-col items-start gap-0.5">
-                                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-0.5">Власник</p>
-                                        <p className="font-extrabold text-gray-900 text-xl leading-none">{authorName}</p>
+
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-widest mb-0.5">Власник</p>
+                                        <p className="font-semibold text-gray-900 text-[17px] leading-tight truncate">{authorName}</p>
                                         {ad.authorRole && (
-                                            <div className="mt-1.5">
+                                            <div className="mt-1">
                                                 <VerificationBadge role={ad.authorRole} showText />
                                             </div>
                                         )}
                                     </div>
-                                </div>
 
-                                <div className="space-y-3">
+                                    <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
+                                </Link>
+
+                                <div className="h-px bg-gray-100 mx-6" />
+
+                                {/* Кнопки дій */}
+                                <div className="px-6 pt-5 pb-6 space-y-2.5">
                                     {isAuthor ? (
                                         <>
-                                            <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 mb-2 text-center">
+                                            <div className="p-3.5 bg-primary/10 rounded-2xl border border-primary/20 text-center">
                                                 <p className="text-sm font-medium text-primary">🐾 Це ваше оголошення</p>
                                             </div>
                                             <Button
@@ -309,15 +319,13 @@ export function AdDetail({ adId }: { adId: string }) {
                                     ) : (
                                         <>
                                             {revealedPhone ? (
-                                                <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl animate-in fade-in zoom-in-95 duration-200 w-full">
-                                                    <div className="p-2 bg-white rounded-lg shadow-sm shrink-0 flex items-center justify-center">
+                                                <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl animate-in fade-in zoom-in-95 duration-200">
+                                                    <div className="p-2 bg-white rounded-lg shadow-sm shrink-0">
                                                         <Phone className="h-4 w-4 text-gray-700" />
                                                     </div>
-
-                                                    <span className="flex-1 text-base font-bold text-gray-900 select-all tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">
+                                                    <span className="flex-1 text-base font-bold text-gray-900 select-all tracking-wide truncate">
                                                         {revealedPhone}
                                                     </span>
-
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
@@ -345,28 +353,29 @@ export function AdDetail({ adId }: { adId: string }) {
                                                     {isLoadingPhone ? "Завантаження..." : "Показати контакти"}
                                                 </Button>
                                             )}
+
                                             <ContactAuthorForm adId={adId} />
+
+                                            {/* Службові кнопки */}
+                                            <div className="flex gap-2 pt-1">
+                                                <Button
+                                                    onClick={handleShare}
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="flex-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl cursor-pointer text-sm"
+                                                >
+                                                    <Share2 className="h-4 w-4 mr-1.5" /> Поділитися
+                                                </Button>
+                                                <ReportDialog
+                                                    targetType="ad"
+                                                    targetId={adId}
+                                                    className="flex-1"
+                                                />
+                                            </div>
                                         </>
                                     )}
-
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <Button
-                                            onClick={handleShare}
-                                            variant="ghost"
-                                            className="flex-1 text-muted-foreground hover:text-gray-900 rounded-xl cursor-pointer"
-                                        >
-                                            <Share2 className="h-4 w-4 mr-2" /> Поділитися
-                                        </Button>
-
-                                        {!isAuthor && (
-                                            <ReportDialog
-                                                targetType="ad"
-                                                targetId={adId}
-                                                className="flex-1"
-                                            />
-                                        )}
-                                    </div>
                                 </div>
+
                             </CardContent>
                         </Card>
 

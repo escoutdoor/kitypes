@@ -23,6 +23,7 @@ import {
 import { AdminVerificationItem } from "@/service/admin-verification/admin-verification.interface"
 import { cn } from "@/lib/utils"
 import { useUpdateVerificationStatus } from "@/hook/useUpdateVerificationStatus"
+import Link from "next/link"
 
 type Props = {
     request: AdminVerificationItem | null
@@ -169,10 +170,15 @@ export function VerificationReviewSheet({ request, isOpen, onOpenChangeAction }:
                                                 <AvatarImage src={request.user.avatarUrl} alt={request.user.firstName} className="object-cover" />
                                                 <AvatarFallback className="bg-primary/10 text-primary font-bold">{initials}</AvatarFallback>
                                             </Avatar>
-                                            <div>
+                                            <div className="flex-1 min-w-0">
                                                 <p className="text-sm text-gray-500 font-medium">Повне ім'я</p>
                                                 <p className="font-bold text-gray-900">{request.user.firstName} {request.user.lastName}</p>
                                             </div>
+                                            <Button asChild variant="outline" size="sm" className="shrink-0 cursor-pointer">
+                                                <Link href={`/users/${request.user.id}`} target="_blank" rel="noopener noreferrer">
+                                                    <ExternalLink className="w-4 h-4 mr-1.5" /> Профіль
+                                                </Link>
+                                            </Button>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">

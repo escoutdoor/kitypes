@@ -38,3 +38,20 @@ export interface UpdatePasswordRequest {
     oldPassword: string
     newPassword: string
 }
+
+export interface PublicUser {
+    id: string
+    role: UserRole
+    avatarUrl?: string
+    firstName: string
+    lastName: string
+    createdAt: string
+}
+
+export interface PublicUserResponse {
+    user: PublicUser
+}
+
+export interface GetUserPhoneResponse {
+    phone: string
+}
