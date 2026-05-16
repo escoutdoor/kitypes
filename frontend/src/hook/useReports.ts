@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ReportService } from "@/service/report/report.service";
 import { ListReportsParams } from "@/service/report/report.interface";
 
@@ -11,9 +11,10 @@ export const useReports = (params: ListReportsParams) => {
             params.status ?? null,
             params.targetType ?? null,
             params.targetId ?? null,
+            params.reporterId ?? null,
         ],
         queryFn: () => ReportService.list(params),
-        placeholderData: (prev) => prev,
+        placeholderData: keepPreviousData,
         staleTime: 30_000,
         refetchOnWindowFocus: true,
     });

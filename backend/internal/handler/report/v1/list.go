@@ -39,6 +39,7 @@ type listRequest struct {
 	Status     *entity.ReportStatus     `query:"status" validate:"omitempty,oneof=pending resolved dismissed"`
 	TargetType *entity.ReportTargetType `query:"targetType" validate:"omitempty,oneof=ad user message"`
 	TargetID   *string                  `query:"targetId" validate:"omitempty,uuid"`
+	ReporterID *string                  `query:"reporterId" validate:"omitempty,uuid"`
 }
 
 type listReportsResponse struct {
@@ -53,5 +54,6 @@ func listRequestToInput(req listRequest) entity.ListReportsInput {
 		Status:     req.Status,
 		TargetType: req.TargetType,
 		TargetID:   req.TargetID,
+		ReporterID: req.ReporterID,
 	}
 }

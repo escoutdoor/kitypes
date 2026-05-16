@@ -136,6 +136,9 @@ func (r *Repository) List(ctx context.Context, in entity.ListReportsInput) (enti
 	if in.TargetID != nil {
 		builder = builder.Where(sq.Eq{"r.target_id": *in.TargetID})
 	}
+	if in.ReporterID != nil {
+		builder = builder.Where(sq.Eq{"r.reporter_id": *in.ReporterID})
+	}
 
 	countSql, countArgs, err := builder.Columns("COUNT(*)").ToSql()
 	if err != nil {

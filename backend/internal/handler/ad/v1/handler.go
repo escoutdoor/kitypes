@@ -55,6 +55,7 @@ func RegisterHandlers(
 
 	adminAdsGroup := g.Group("/admin/ads")
 	adminAdsGroup.Use(authMw, middleware.RequireRoles(entity.RoleAdmin))
+	adminAdsGroup.GET("/", h.listAdminAds)
 	adminAdsGroup.PATCH("/:id/status", h.updateStatus)
 }
 

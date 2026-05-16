@@ -8,6 +8,7 @@ export interface User {
     lastName: string
     email: string
     phoneNumber: string
+    isBanned: boolean
     createdAt: string
     updatedAt: string
 }

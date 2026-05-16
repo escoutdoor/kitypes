@@ -42,6 +42,8 @@ func (u User) ToEntity() entity.User {
 
 		Password: u.Password,
 
+		IsBanned: u.IsBanned,
+
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}

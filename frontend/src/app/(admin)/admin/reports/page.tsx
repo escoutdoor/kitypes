@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
+import { Loader2 } from "lucide-react"
 import { AdminReportsList } from "@/components/features/admin-reports/admin-reports-list"
 
 export const metadata: Metadata = {
@@ -16,7 +18,9 @@ export default function AdminReportsPage() {
                 </p>
             </div>
 
-            <AdminReportsList />
+            <Suspense fallback={<div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+                <AdminReportsList />
+            </Suspense>
         </div>
     )
 }

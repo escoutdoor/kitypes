@@ -113,8 +113,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	v1AuthGroup := v1Group.Group("/auth")
 	auth_v1.RegisterHandlers(v1AuthGroup, a.di.AuthService(ctx), cv)
 
-	v1UserGroup := v1Group.Group("/users")
-	user_v1.RegisterHandlers(v1UserGroup, authMw, a.di.UserService(ctx), cv)
+	user_v1.RegisterHandlers(v1Group, authMw, a.di.UserService(ctx), cv)
 
 	v1FavGroup := v1Group.Group("/favorites")
 	fav_v1.RegisterHandlers(v1FavGroup, authMw, a.di.FavoriteService(ctx), cv)

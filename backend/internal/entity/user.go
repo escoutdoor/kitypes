@@ -70,3 +70,17 @@ type UpdateUserEmailInput struct {
 	NewEmail string
 	Password string
 }
+
+type ListUsersInput struct {
+	Limit  int
+	Offset int
+	Search *string
+
+	Role     *UserRole
+	IsBanned *bool
+}
+
+type ListUsersOutput struct {
+	Users []User
+	Total int
+}

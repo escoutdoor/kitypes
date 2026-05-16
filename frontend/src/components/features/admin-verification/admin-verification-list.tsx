@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { Clock, CheckCircle2, XCircle, Search, Inbox, LucideIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -40,28 +41,58 @@ const ROLE_LABELS: Record<string, string> = {
     shelter: "Притулок",
     user: "Користувач",
     admin: "Адміністратор",
-};
+}
 
 const STATUS_LABELS: Record<string, string> = {
     pending: "В обробці",
     approved: "Схвалено",
     rejected: "Відхилено",
-};
+}
 
 export function AdminVerificationList() {
-    const [page, setPage] = useState(1)
-    const [statusFilter, setStatusFilter] = useState<FilterStatus>("pending")
-    const [searchQuery, setSearchQuery] = useState("")
-    const debouncedSearchQuery = useDebounce(searchQuery, 500)
+    const router = useRouter()
+    const pathname = usePathname()
+    const sp = useSearchParams()
+
+    const page = Number(sp.get("page")) || 1
+    const statusQuery = (sp.get("status") as FilterStatus) || "pending"
+    const searchQuery = sp.get("query") || ""
+
+    const [localQuery, setLocalQuery] = useState(searchQuery)
+    const debouncedQuery = useDebounce(localQuery, 500)
 
     const [selectedRequest, setSelectedRequest] = useState<AdminVerificationItem | null>(null)
     const [isSheetOpen, setIsSheetOpen] = useState(false)
 
+    const updateQueryParams = (updates: Record<string, string | null>) => {
+        const params = new URLSearchParams(sp.toString())
+
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null) {
+                params.delete(key)
+            } else {
+                params.set(key, value)
+            }
+        })
+
+        if (!updates.page) {
+            params.delete("page")
+        }
+
+        router.push(`${pathname}?${params.toString()}`)
+    }
+
+    useEffect(() => {
+        if (debouncedQuery !== searchQuery) {
+            updateQueryParams({ query: debouncedQuery || null, page: null })
+        }
+    }, [debouncedQuery])
+
     const { data, isLoading } = useAdminVerifications({
         limit: LIMIT,
         offset: (page - 1) * LIMIT,
-        status: statusFilter === "all" ? undefined : statusFilter,
-        query: debouncedSearchQuery.trim() || undefined,
+        status: statusQuery === "all" ? undefined : statusQuery,
+        query: searchQuery.trim() || undefined,
     })
 
     const requests = data?.requests || []
@@ -73,15 +104,14 @@ export function AdminVerificationList() {
         setIsSheetOpen(true)
     }
 
-    const handleStatusChange = (value: string) => {
-        setStatusFilter(value as FilterStatus)
-        setPage(1)
-    }
-
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <Tabs value={statusFilter} onValueChange={handleStatusChange} className="w-full sm:w-auto">
+                <Tabs
+                    value={statusQuery}
+                    onValueChange={(v) => updateQueryParams({ status: v === "pending" ? null : v })}
+                    className="w-full sm:w-auto"
+                >
                     <TabsList className="bg-white border border-gray-200 shadow-sm h-11 p-1">
                         {STATUS_TABS.map((tab) => {
                             const Icon = tab.icon
@@ -103,11 +133,8 @@ export function AdminVerificationList() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                         placeholder="Пошук за email або ім'ям..."
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value)
-                            setPage(1)
-                        }}
+                        value={localQuery}
+                        onChange={(e) => setLocalQuery(e.target.value)}
                         className="pl-9 h-11 bg-white border-gray-200 focus-visible:ring-primary/20 shadow-sm"
                     />
                 </div>
@@ -185,7 +212,7 @@ export function AdminVerificationList() {
                                             </span>
                                         </TableCell>
                                         <TableCell className="px-6 py-4 text-right">
-                                            <Button variant="ghost" size="sm" className="font-semibold text-primary hover:text-primary hover:bg-primary/10">
+                                            <Button variant="ghost" size="sm" className="font-semibold text-primary hover:text-primary hover:bg-primary/10 cursor-pointer">
                                                 Переглянути
                                             </Button>
                                         </TableCell>
@@ -198,7 +225,11 @@ export function AdminVerificationList() {
 
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                        <PaginationBar page={page} totalPages={totalPages} onPageChangeAction={setPage} />
+                        <PaginationBar
+                            page={page}
+                            totalPages={totalPages}
+                            onPageChangeAction={(newPage) => updateQueryParams({ page: String(newPage) })}
+                        />
                     </div>
                 )}
             </div>

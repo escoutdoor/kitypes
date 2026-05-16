@@ -63,6 +63,7 @@ export interface ListReportsParams {
     status?: ReportStatus
     targetType?: ReportTargetType
     targetId?: string
+    reporterId?: string
 }
 
 export interface ListReportsResponse {

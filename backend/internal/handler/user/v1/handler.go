@@ -5,8 +5,13 @@ import (
 	"time"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
+	"github.com/escoutdoor/kitypes/backend/internal/middleware"
 	"github.com/escoutdoor/kitypes/backend/pkg/validator"
 	"github.com/labstack/echo/v4"
+)
+
+const (
+	idParam = "id"
 )
 
 type userService interface {
@@ -20,6 +25,11 @@ type userService interface {
 
 	Delete(ctx context.Context, userID string) error
 	DeleteAvatar(ctx context.Context, userID string) error
+
+	List(ctx context.Context, in entity.ListUsersInput) (entity.ListUsersOutput, error)
+	UpdateRole(ctx context.Context, userID string, role entity.UserRole) error
+	Ban(ctx context.Context, userID string) error
+	Unban(ctx context.Context, userID string) error
 }
 
 type handler struct {
@@ -36,15 +46,23 @@ func RegisterHandlers(
 	h := &handler{service: userService, cv: cv}
 	e.Use(authMw)
 
-	e.GET("/me", h.get)
-	e.GET("/upload-url", h.getUploadURL)
+	userGroup := e.Group("/users", authMw)
+	userGroup.GET("/me", h.get)
+	userGroup.GET("/upload-url", h.getUploadURL)
 
-	e.DELETE("/me/avatar", h.deleteAvatar)
-	e.DELETE("/me", h.delete)
+	userGroup.DELETE("/me/avatar", h.deleteAvatar)
+	userGroup.DELETE("/me", h.delete)
 
-	e.PATCH("/me", h.update)
-	e.PATCH("/me/password", h.updatePassword)
-	e.PATCH("/me/email", h.updateEmail)
+	userGroup.PATCH("/me", h.update)
+	userGroup.PATCH("/me/password", h.updatePassword)
+	userGroup.PATCH("/me/email", h.updateEmail)
+
+	adminGroup := e.Group("/admin/users")
+	adminGroup.Use(authMw, middleware.RequireRoles(entity.RoleAdmin))
+	adminGroup.GET("/", h.listAdminUsers)
+	adminGroup.PATCH("/:id/role", h.updateRole)
+	adminGroup.PATCH("/:id/ban", h.banUser)
+	adminGroup.PATCH("/:id/unban", h.unbanUser)
 }
 
 type meResponse struct {
@@ -58,6 +76,8 @@ type meResponse struct {
 
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phoneNumber"`
+
+	IsBanned bool `json:"isBanned"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -78,6 +98,7 @@ func (h *handler) meToResponse(user entity.User) meResponse {
 		LastName:    user.LastName,
 		Email:       user.Email,
 		PhoneNumber: user.PhoneNumber,
+		IsBanned:    user.IsBanned,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
 	}

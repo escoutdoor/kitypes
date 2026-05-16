@@ -15,6 +15,9 @@ import (
 )
 
 const (
+	defaultLimit  = 10
+	defaultOffset = 0
+
 	tableName = "users"
 
 	idColumn   = "id"
@@ -453,4 +456,133 @@ func (r *Repository) Ban(ctx context.Context, userID string) error {
 	}
 
 	return nil
+}
+
+func (r *Repository) Unban(ctx context.Context, userID string) error {
+	sql, args, err := r.qb.Update(tableName).
+		Set(isBannedColumn, false).
+		Set(updatedAtColumn, sq.Expr("NOW()")).
+		Where(sq.Eq{idColumn: userID}).
+		ToSql()
+	if err != nil {
+		return buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.Unban",
+		Sql:  sql,
+	}
+
+	cmd, err := r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return executeSQLError(err)
+	}
+
+	if cmd.RowsAffected() == 0 {
+		return apperror.UserNotFoundID(userID)
+	}
+
+	return nil
+}
+
+func (r *Repository) List(ctx context.Context, in entity.ListUsersInput) (entity.ListUsersOutput, error) {
+	var (
+		limit  = defaultLimit
+		offset = defaultOffset
+	)
+
+	builder := r.qb.Select().From(tableName)
+
+	if in.Role != nil {
+		builder = builder.Where(sq.Eq{roleColumn: *in.Role})
+	}
+	if in.IsBanned != nil {
+		builder = builder.Where(sq.Eq{isBannedColumn: *in.IsBanned})
+	}
+	if in.Search != nil {
+		term := "%" + *in.Search + "%"
+		builder = builder.Where(sq.Or{
+			sq.ILike{firstNameColumn: term},
+			sq.ILike{lastNameColumn: term},
+			sq.ILike{emailColumn: term},
+			sq.ILike{phoneNumberColumn: term},
+		})
+	}
+
+	total, err := r.countUsers(ctx, builder.Columns("COUNT(*)"))
+	if err != nil {
+		return entity.ListUsersOutput{}, err
+	}
+	if total == 0 {
+		return entity.ListUsersOutput{}, nil
+	}
+
+	if in.Limit > 0 {
+		limit = in.Limit
+	}
+	if in.Offset > 0 {
+		offset = in.Offset
+	}
+
+	sql, args, err := builder.Columns(
+		idColumn,
+		roleColumn,
+		avatarKeyColumn,
+		firstNameColumn,
+		lastNameColumn,
+		emailColumn,
+		phoneNumberColumn,
+		passwordColumn,
+		isBannedColumn,
+		createdAtColumn,
+		updatedAtColumn,
+	).
+		OrderBy(createdAtColumn + " DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).
+		ToSql()
+
+	if err != nil {
+		return entity.ListUsersOutput{}, buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.List",
+		Sql:  sql,
+	}
+
+	rows, err := r.db.DB().QueryContext(ctx, q, args...)
+	if err != nil {
+		return entity.ListUsersOutput{}, executeSQLError(err)
+	}
+	defer rows.Close()
+
+	var users Users
+	if err := pgxscan.ScanAll(&users, rows); err != nil {
+		return entity.ListUsersOutput{}, scanRowsError(err)
+	}
+
+	return entity.ListUsersOutput{
+		Users: users.ToEntities(),
+		Total: total,
+	}, nil
+}
+
+func (r *Repository) countUsers(ctx context.Context, builder sq.SelectBuilder) (int, error) {
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		return 0, buildSQLError(err)
+	}
+
+	q := database.Query{
+		Name: "user_repository.countUsers",
+		Sql:  sql,
+	}
+
+	var total int
+	if err := r.db.DB().QueryRowContext(ctx, q, args...).Scan(&total); err != nil {
+		return 0, scanRowError(err)
+	}
+
+	return total, nil
 }

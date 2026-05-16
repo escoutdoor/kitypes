@@ -17,6 +17,11 @@ type userRepository interface {
 
 	Delete(ctx context.Context, userID string) error
 	DeleteAvatar(ctx context.Context, userID string) error
+
+	List(ctx context.Context, in entity.ListUsersInput) (entity.ListUsersOutput, error)
+	UpdateRole(ctx context.Context, userID string, role entity.UserRole) error
+	Ban(ctx context.Context, userID string) error
+	Unban(ctx context.Context, userID string) error
 }
 
 type s3Client interface {

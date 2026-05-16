@@ -70,6 +70,7 @@ type ListReportsInput struct {
 	Status     *ReportStatus
 	TargetType *ReportTargetType
 	TargetID   *string
+	ReporterID *string
 }
 
 type ListReportsOutput struct {

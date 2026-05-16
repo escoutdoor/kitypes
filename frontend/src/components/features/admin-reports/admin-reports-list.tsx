@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Clock, CheckCircle2, XCircle, Inbox, ShieldAlert, Filter } from "lucide-react"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
+import { Clock, CheckCircle2, XCircle, Inbox, ShieldAlert, Filter, X } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -49,21 +50,48 @@ const STATUS_LABELS: Record<string, string> = {
     pending: "В обробці",
     resolved: "Вирішено",
     dismissed: "Відхилено",
-};
+}
 
 export function AdminReportsList() {
-    const [page, setPage] = useState(1)
-    const [statusFilter, setStatusFilter] = useState<FilterStatus>(REPORT_STATUS.PENDING)
-    const [targetTypeFilter, setTargetTypeFilter] = useState<FilterTarget>("all") // НОВИЙ СТАН ДЛЯ ФІЛЬТРУ
+    const router = useRouter()
+    const pathname = usePathname()
+    const sp = useSearchParams()
 
+    const page = Number(sp.get("page")) || 1
+    const statusQuery = (sp.get("status") as FilterStatus) || REPORT_STATUS.PENDING
+    const targetTypeQuery = (sp.get("targetType") as FilterTarget) || "all"
+    const targetIdQuery = sp.get("targetId") || undefined
+    const reporterIdQuery = sp.get("reporterId") || undefined
+
+    const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
     const [selectedReport, setSelectedReport] = useState<EnrichedReport | null>(null)
     const [isSheetOpen, setIsSheetOpen] = useState(false)
+
+    const updateQueryParams = (updates: Record<string, string | null>) => {
+        const params = new URLSearchParams(sp.toString())
+
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null) {
+                params.delete(key)
+            } else {
+                params.set(key, value)
+            }
+        })
+
+        if (!updates.page) {
+            params.delete("page")
+        }
+
+        router.push(`${pathname}?${params.toString()}`)
+    }
 
     const { data, isLoading } = useReports({
         limit: LIMIT,
         offset: (page - 1) * LIMIT,
-        status: statusFilter === "all" ? undefined : statusFilter,
-        targetType: targetTypeFilter === "all" ? undefined : targetTypeFilter,
+        status: statusQuery === "all" ? undefined : statusQuery,
+        targetType: targetTypeQuery === "all" ? undefined : targetTypeQuery,
+        targetId: targetIdQuery,
+        reporterId: reporterIdQuery,
     })
 
     const reports = data?.reports || []
@@ -71,24 +99,19 @@ export function AdminReportsList() {
     const totalPages = Math.max(1, Math.ceil(total / LIMIT))
 
     const handleRowClick = (req: EnrichedReport) => {
+        setSelectedReportId(req.id)
         setSelectedReport(req)
         setIsSheetOpen(true)
-    }
-
-    const handleStatusChange = (value: string) => {
-        setStatusFilter(value as FilterStatus)
-        setPage(1)
-    }
-
-    const handleTargetTypeChange = (value: string) => {
-        setTargetTypeFilter(value as FilterTarget)
-        setPage(1)
     }
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <Tabs value={statusFilter} onValueChange={handleStatusChange} className="w-full sm:w-auto">
+                <Tabs
+                    value={statusQuery}
+                    onValueChange={(v) => updateQueryParams({ status: v === REPORT_STATUS.PENDING ? null : v })}
+                    className="w-full sm:w-auto"
+                >
                     <TabsList className="bg-white border border-gray-200 shadow-sm h-11 p-1">
                         {STATUS_TABS.map((tab) => {
                             const Icon = tab.icon
@@ -106,9 +129,11 @@ export function AdminReportsList() {
                     </TabsList>
                 </Tabs>
 
-                {/* ДОДАНО: Випадаючий список для фільтрації за типом об'єкта */}
                 <div className="w-full sm:w-56">
-                    <Select value={targetTypeFilter} onValueChange={handleTargetTypeChange}>
+                    <Select
+                        value={targetTypeQuery}
+                        onValueChange={(v) => updateQueryParams({ targetType: v === "all" ? null : v })}
+                    >
                         <SelectTrigger className="bg-white border-gray-200 shadow-sm h-11 cursor-pointer">
                             <div className="flex items-center gap-2">
                                 <Filter className="w-4 h-4 text-gray-500" />
@@ -124,6 +149,30 @@ export function AdminReportsList() {
                     </Select>
                 </div>
             </div>
+
+            {targetIdQuery && (
+                <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-100 w-fit mt-4">
+                    <span className="text-sm font-medium">Скарги на об'єкт: <span className="font-mono text-xs bg-white px-1.5 py-0.5 rounded shadow-sm">{targetIdQuery}</span></span>
+                    <button
+                        onClick={() => updateQueryParams({ targetId: null, targetType: null })}
+                        className="p-1 hover:bg-blue-100 rounded-full transition-colors cursor-pointer"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
+            {reporterIdQuery && (
+                <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg border border-purple-100 w-fit mt-4">
+                    <span className="text-sm font-medium">Скарги ВІД користувача: <span className="font-mono text-xs bg-white px-1.5 py-0.5 rounded shadow-sm">{reporterIdQuery}</span></span>
+                    <button
+                        onClick={() => updateQueryParams({ reporterId: null })}
+                        className="p-1 hover:bg-purple-100 rounded-full transition-colors cursor-pointer"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
 
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
                 <Table>
@@ -196,13 +245,17 @@ export function AdminReportsList() {
 
                 {totalPages > 1 && (
                     <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-                        <PaginationBar page={page} totalPages={totalPages} onPageChangeAction={setPage} />
+                        <PaginationBar
+                            page={page}
+                            totalPages={totalPages}
+                            onPageChangeAction={(newPage) => updateQueryParams({ page: String(newPage) })}
+                        />
                     </div>
                 )}
             </div>
 
             <ReportReviewSheet
-                reportId={selectedReport?.id || null}
+                reportId={selectedReportId}
                 selectedReport={selectedReport}
                 isOpen={isSheetOpen}
                 onOpenChange={setIsSheetOpen}
