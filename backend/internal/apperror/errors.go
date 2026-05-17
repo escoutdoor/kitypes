@@ -45,8 +45,9 @@ var (
 
 	ErrInvalidPageToken = newError(code.InvalidRequest, "invalid page token")
 
-	ErrReportAlreadyExists = newError(code.AlreadyExists, "you have already reported this target")
-	ErrRateLimitExceeded   = newError(code.RateLimitExceeded, "report rate limit exceeded, try again later")
+	ErrReportAlreadyExists  = newError(code.AlreadyExists, "you have already reported this target")
+	ErrRateLimitExceeded    = newError(code.RateLimitExceeded, "report rate limit exceeded, try again later")
+	ErrCannotReportYourself = newError(code.InvalidRequest, "you cannot report yourself")
 )
 
 type Error struct {

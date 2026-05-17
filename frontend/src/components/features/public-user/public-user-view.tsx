@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, } from "next/navigation"
 import { Calendar, Loader2, Phone, User, AlertCircle, ShieldCheck, LayoutGrid } from "lucide-react"
 import { toast } from "sonner"
 
@@ -18,6 +17,8 @@ import { PaginationBar } from "@/components/shared/pagination-bar/pagination-bar
 import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
 import { Card } from "@/components/ui/card"
 import { AdCard } from "../ad-list/ad-card"
+import { ReportDialog } from "@/components/shared/report-dialog/report-dialog"
+import Link from "next/link"
 
 const LIMIT = 12
 
@@ -33,7 +34,7 @@ export function PublicUserView({ userId }: { userId: string }) {
     const { data: userData, isLoading: isUserLoading, isError: isUserError } = usePublicUser(userId)
     const { mutateAsync: fetchPhone, isPending: isPhoneLoading } = useUserPhone()
 
-    // Отримуємо тільки АКТИВНІ оголошення цього юзера
+    // only active
     const { data: adsData, isLoading: isAdsLoading } = useAds({
         authorId: userId,
         status: 1,
@@ -48,6 +49,7 @@ export function PublicUserView({ userId }: { userId: string }) {
 
     const isVerified = user?.role === "volunteer" || user?.role === "shelter"
     const isAdmin = currentUser?.role === "admin"
+    const isMe = currentUser?.id === userId
 
     const handleRevealPhone = async () => {
         if (!isAuthenticated) {
@@ -107,7 +109,7 @@ export function PublicUserView({ userId }: { userId: string }) {
 
             {/* Header Профілю з банером */}
             <Card className="rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-12 bg-white relative">
-                {/* Елегантний бекграунд банер (кольори як на скріншоті) */}
+                {/* Елегантний бекграунд банер */}
                 <div className="h-32 bg-gradient-to-r from-orange-50 via-red-50 to-orange-100/50 w-full"></div>
 
                 <div className="px-6 sm:px-8 pb-8 flex flex-col md:flex-row items-center md:items-end gap-6 relative z-10">
@@ -139,15 +141,25 @@ export function PublicUserView({ userId }: { userId: string }) {
                                 <span>{totalAds} активних оголошень</span>
                             </div>
 
-                            {/* Кнопка для Адміна */}
                             {isAdmin && (
                                 <Link
-                                    href={`/admin/users?search=${user.firstName}`}
+                                    href={`/admin/users?id=${user.id}`}
                                     className="flex items-center gap-1.5 text-primary hover:underline cursor-pointer"
                                 >
                                     <ShieldCheck className="h-4 w-4 shrink-0" />
                                     <span>Відкрити в адмінці</span>
                                 </Link>
+                            )}
+
+                            {!isMe && (
+                                <div className="flex items-center">
+                                    <ReportDialog
+                                        targetType="user"
+                                        targetId={userId}
+                                        variant="ghost"
+                                        className="h-auto p-0 text-muted-foreground hover:text-red-600 hover:bg-transparent font-medium"
+                                    />
+                                </div>
                             )}
                         </div>
                     </div>
@@ -191,7 +203,7 @@ export function PublicUserView({ userId }: { userId: string }) {
                 </div>
             </Card>
 
-            {/* Блок оголошень (без табів) */}
+            {/* Блок оголошень */}
             <div className="mb-6">
                 <h2 className="text-2xl font-extrabold text-gray-900">
                     Шукають дім

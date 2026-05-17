@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+)
+
+var (
+	uaPhoneNumberRegex = regexp.MustCompile(`^\+380\d{9}$`)
 )
 
 type validationErr struct {
@@ -29,12 +34,16 @@ func New() *CustomValidator {
 		return name
 	})
 
+	v.RegisterValidation("uaphone", func(fl validator.FieldLevel) bool {
+		return uaPhoneNumberRegex.MatchString(fl.Field().String())
+	})
+
 	return &CustomValidator{
 		v: v,
 	}
 }
 
-func (cv *CustomValidator) Validate(i interface{}) error {
+func (cv *CustomValidator) Validate(i any) error {
 	return cv.v.Struct(i)
 }
 
@@ -103,8 +112,8 @@ func msgForTag(err validator.FieldError) string {
 		return "This field must be a valid URL"
 	case "uuid":
 		return "This field must be a valid UUID"
-	case "e164":
-		return "This field must be a valid phone number (e.g. +380991234567)"
+	case "uaphone":
+		return "This field must be a valid Ukrainian phone number (e.g. +380991234567)"
 	case "alpha":
 		return "This field can only contain letters"
 	case "alphanum":

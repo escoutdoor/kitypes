@@ -34,6 +34,7 @@ type listAdminUsersRequest struct {
 	Offset int     `query:"offset" validate:"omitempty,gte=0"`
 	Search *string `query:"search" validate:"omitempty,min=2"`
 
+	ID       *string          `query:"id" validate:"omitempty,uuid"`
 	Role     *entity.UserRole `query:"role" validate:"omitempty,oneof=user volunteer shelter admin"`
 	IsBanned *bool            `query:"isBanned"`
 }
@@ -48,6 +49,7 @@ func listAdminUsersRequestToInput(req listAdminUsersRequest) entity.ListUsersInp
 		Limit:    req.Limit,
 		Offset:   req.Offset,
 		Search:   req.Search,
+		ID:       req.ID,
 		Role:     req.Role,
 		IsBanned: req.IsBanned,
 	}

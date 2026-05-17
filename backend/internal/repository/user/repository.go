@@ -493,6 +493,9 @@ func (r *Repository) List(ctx context.Context, in entity.ListUsersInput) (entity
 
 	builder := r.qb.Select().From(tableName)
 
+	if in.ID != nil {
+		builder = builder.Where(sq.Eq{idColumn: *in.ID})
+	}
 	if in.Role != nil {
 		builder = builder.Where(sq.Eq{roleColumn: *in.Role})
 	}

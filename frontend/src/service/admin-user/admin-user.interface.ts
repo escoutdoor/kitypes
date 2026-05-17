@@ -4,6 +4,7 @@ export interface ListAdminUsersParams {
     limit?: number
     offset?: number
     search?: string
+    id?: string
     role?: UserRole
     isBanned?: boolean
 }

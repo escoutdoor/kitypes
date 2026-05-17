@@ -11,6 +11,11 @@ import (
 )
 
 func (s *Service) Create(ctx context.Context, in entity.CreateReportInput) error {
+	// Prevent self-reporting
+	if in.TargetType == entity.TargetTypeUser && in.TargetID == in.ReporterID {
+		return apperror.ErrCannotReportYourself
+	}
+
 	if in.Reason == entity.ReportReasonOther {
 		if in.Comment == nil || len(strings.TrimSpace(*in.Comment)) < minCommentLen {
 			return apperror.ErrCommentTooShort(minCommentLen)

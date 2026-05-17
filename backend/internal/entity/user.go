@@ -76,6 +76,7 @@ type ListUsersInput struct {
 	Offset int
 	Search *string
 
+	ID       *string
 	Role     *UserRole
 	IsBanned *bool
 }

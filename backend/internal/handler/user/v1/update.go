@@ -37,7 +37,7 @@ type updateRequest struct {
 	FirstName *string `json:"firstName" validate:"omitempty,min=1,max=20"`
 	LastName  *string `json:"lastName" validate:"omitempty,min=1,max=20"`
 
-	PhoneNumber *string `json:"phoneNumber" validate:"omitempty,e164"`
+	PhoneNumber *string `json:"phoneNumber" validate:"omitempty,uaphone"`
 }
 
 type updateResponse struct {

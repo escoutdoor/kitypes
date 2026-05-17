@@ -39,7 +39,7 @@ const registerSchema = z
         email: z.email("Введіть правильний email"),
         phoneNumber: z
             .string()
-            .regex(/^\+?[1-9]\d{1,14}$/, "Формат: +380XXXXXXXXX"),
+            .regex(/^\+380\d{9}$/, "Формат: +380XXXXXXXXX"),
         password: z
             .string()
             .min(8, "Мінімум 8 символів")
@@ -79,15 +79,11 @@ export default function RegisterPage() {
     } = form
 
     const onSubmit = async (data: RegisterFormValues) => {
-        console.log("data:", data)
-
         try {
             const { confirmPassword, ...registerPayload } = data
-
             await registerAction(registerPayload)
             router.push("/")
         } catch (err: any) {
-            console.log(err.response?.data?.message)
             const message = err.response?.data?.message || "Помилка при створенні акаунту"
             setError("root", { type: "manual", message: message })
         }
@@ -177,7 +173,7 @@ export default function RegisterPage() {
                                     </FieldLabel>
                                     <Input
                                         id="phoneNumber"
-                                        placeholder="+380..."
+                                        placeholder="+380991234567" // Оновлено плейсхолдер
                                         aria-invalid={fieldState.invalid}
                                         {...field}
                                     />

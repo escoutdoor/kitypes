@@ -47,7 +47,7 @@ const profileSchema = z.object({
     phoneNumber: z
         .string()
         .min(1, "Номер телефону є обов'язковим")
-        .regex(/^\+?[1-9]\d{1,14}$/, "Неправильний формат телефону (напр. +380981234567)"),
+        .regex(/^\+380\d{9}$/, "Формат: +380XXXXXXXXX"),
 })
 
 type ProfileFormValues = z.infer<typeof profileSchema>

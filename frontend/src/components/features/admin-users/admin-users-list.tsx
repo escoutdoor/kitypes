@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
-import { Search, UserX, UserCheck, Inbox, Users as UsersIcon } from "lucide-react"
+import { Search, UserX, UserCheck, Inbox, Users as UsersIcon, X } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -49,6 +49,7 @@ export function AdminUsersList() {
     const statusQuery = sp.get("status") || "all"
     const roleQuery = sp.get("role") || "all"
     const searchQuery = sp.get("search") || ""
+    const idQuery = sp.get("id") || undefined // ДОДАНО
 
     const [localSearch, setLocalSearch] = useState(searchQuery)
     const debouncedSearch = useDebounce(localSearch, 500)
@@ -84,6 +85,7 @@ export function AdminUsersList() {
         limit: LIMIT,
         offset: (page - 1) * LIMIT,
         search: searchQuery.trim() || undefined,
+        id: idQuery, // ДОДАНО
         role: roleQuery === "all" ? undefined : (roleQuery as UserRole),
         isBanned: statusQuery === "banned" ? true : statusQuery === "active" ? false : undefined,
     })
@@ -92,7 +94,6 @@ export function AdminUsersList() {
     const total = data?.total || 0
     const totalPages = Math.max(1, Math.ceil(total / LIMIT))
 
-    // Динамічно знаходимо актуального користувача з масиву (гарантує оновлення інтерфейсу)
     const selectedUser = users.find((u) => u.id === selectedUserId) || null
 
     const handleRowClick = (user: User) => {
@@ -149,6 +150,19 @@ export function AdminUsersList() {
                     </div>
                 </div>
             </div>
+
+            {/* ДОДАНО: Плашка-індикатор пошуку по ID */}
+            {idQuery && (
+                <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-100 w-fit">
+                    <span className="text-sm font-medium">Фільтр по ID: <span className="font-mono text-xs bg-white px-1.5 py-0.5 rounded shadow-sm">{idQuery}</span></span>
+                    <button
+                        onClick={() => updateQueryParams({ id: null })}
+                        className="p-1 hover:bg-blue-100 rounded-full transition-colors cursor-pointer"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
 
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
                 <Table>
