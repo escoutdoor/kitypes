@@ -41,7 +41,7 @@ func RegisterHandlers(e *echo.Group, authService authService, cv *validator.Cust
 }
 
 type authResponse struct {
-	AccessToken string `json:"accessToken"`
+	AccessToken string `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTIzZTQ1NjctZTg5Yi0xMmQzLWE0NTYtNDI2NjE0MTc0MDAwIiwicm9sZSI6InVzZXIiLCJleHAiOjE3MTYwNTAwMDB9..."`
 }
 
 func accessTokenToResponse(acessToken string) authResponse {

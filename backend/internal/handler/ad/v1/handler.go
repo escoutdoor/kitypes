@@ -60,34 +60,34 @@ func RegisterHandlers(
 }
 
 type adResponse struct {
-	ID          string          `json:"id"`
-	AuthorID    string          `json:"authorId"`
-	AuthorRole  entity.UserRole `json:"authorRole"`
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	ImageURLs   []string        `json:"imageUrls"`
+	ID          string          `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	AuthorID    string          `json:"authorId" example:"987fcdeb-51a2-43d7-9012-3456789abcde"`
+	AuthorRole  entity.UserRole `json:"authorRole" example:"volunteer"`
+	Title       string          `json:"title" example:"Рудий котик шукає дім"`
+	Description string          `json:"description" example:"Класний котик"`
+	ImageURLs   []string        `json:"imageUrls" example:"https://s3.amazonaws.com/kitypes/ads/1.jpg,https://s3.amazonaws.com/kitypes/ads/2.jpg"`
 
-	PetType     int32   `json:"petType"`
-	PetGender   int32   `json:"petGender"`
-	PetAgeMonth *int32  `json:"petAgeMonth,omitempty"`
-	PetBreed    *string `json:"petBreed,omitempty"`
+	PetType     int32   `json:"petType" example:"2"`
+	PetGender   int32   `json:"petGender" example:"1"`
+	PetAgeMonth *int32  `json:"petAgeMonth,omitempty" example:"4"`
+	PetBreed    *string `json:"petBreed,omitempty" example:"Мейн-кун"`
 
-	Country string `json:"country"`
-	City    string `json:"city"`
-	Status  int32  `json:"status"`
+	Country string `json:"country" example:"Україна"`
+	City    string `json:"city" example:"Київ"`
+	Status  int32  `json:"status" example:"1"`
 
-	IsFavorite  bool    `json:"isFavorite"`
-	BlockReason *string `json:"blockReason,omitempty"`
+	IsFavorite  bool    `json:"isFavorite" example:"true"`
+	BlockReason *string `json:"blockReason,omitempty" example:"Порушення правил спільноти"`
 
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	CreatedAt time.Time `json:"createdAt" example:"2026-05-18T14:33:42Z"`
+	UpdatedAt time.Time `json:"updatedAt" example:"2026-05-18T14:33:42Z"`
 }
 
 type enrichedAdResponse struct {
 	adResponse
 
-	AuthorName      string  `json:"authorName"`
-	AuthorAvatarURL *string `json:"authorAvatarUrl,omitempty"`
+	AuthorName      string  `json:"authorName" example:"Анатолій Вовк"`
+	AuthorAvatarURL *string `json:"authorAvatarUrl,omitempty" example:"https://s3.amazonaws.com/kitypes/avatars/1.jpg"`
 }
 
 func (h *handler) adToResponse(ad entity.Ad) adResponse {

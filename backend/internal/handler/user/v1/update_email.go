@@ -5,6 +5,7 @@ import (
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
+	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/labstack/echo/v4"
 )
 
@@ -30,8 +31,8 @@ func (h *handler) updateEmail(c echo.Context) error {
 }
 
 type updateEmailRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8,max=20"`
+	Email    string `json:"email" validate:"required,email" example:"new-email@example.com"`
+	Password string `json:"password" validate:"required,min=8,max=20" example:"StrongPass123!"`
 }
 
 func updateEmailRequestToInput(req updateEmailRequest, userID string) entity.UpdateUserEmailInput {

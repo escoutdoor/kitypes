@@ -71,21 +71,21 @@ func RegisterHandlers(
 }
 
 type meResponse struct {
-	ID   string          `json:"id"`
-	Role entity.UserRole `json:"role"`
+	ID   string          `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Role entity.UserRole `json:"role" example:"volunteer"`
 
-	AvatarURL *string `json:"avatarUrl"`
+	AvatarURL *string `json:"avatarUrl" example:"https://s3.eu-central-1.amazonaws.com/kitypes/avatars/uuid.jpg"`
 
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	FirstName string `json:"firstName" example:"Анатолій"`
+	LastName  string `json:"lastName" example:"Вовк"`
 
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phoneNumber"`
+	Email       string `json:"email" example:"user@example.com"`
+	PhoneNumber string `json:"phoneNumber" example:"+380991234567"`
 
-	IsBanned bool `json:"isBanned"`
+	IsBanned bool `json:"isBanned" example:"false"`
 
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	CreatedAt time.Time `json:"createdAt" example:"2026-05-18T14:33:42Z"`
+	UpdatedAt time.Time `json:"updatedAt" example:"2026-05-18T14:33:42Z"`
 }
 
 func (h *handler) meToResponse(user entity.User) meResponse {
@@ -110,15 +110,15 @@ func (h *handler) meToResponse(user entity.User) meResponse {
 }
 
 type publicUserResponse struct {
-	ID   string          `json:"id"`
-	Role entity.UserRole `json:"role"`
+	ID   string          `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	Role entity.UserRole `json:"role" example:"shelter"`
 
-	AvatarURL *string `json:"avatarUrl,omitempty"`
+	AvatarURL *string `json:"avatarUrl,omitempty" example:"https://s3.eu-central-1.amazonaws.com/kitypes/avatars/uuid.jpg"`
 
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	FirstName string `json:"firstName" example:"Ірина"`
+	LastName  string `json:"lastName" example:"Попова"`
 
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt" example:"2026-05-18T14:33:42Z"`
 }
 
 func (h *handler) userToPublicResponse(user entity.User) publicUserResponse {

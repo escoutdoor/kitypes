@@ -3,9 +3,11 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
+	docs "github.com/escoutdoor/kitypes/backend/docs"
 	"github.com/escoutdoor/kitypes/backend/internal/apperror"
 	"github.com/escoutdoor/kitypes/backend/internal/apperror/code"
 	"github.com/escoutdoor/kitypes/backend/internal/config"
@@ -21,18 +23,21 @@ import (
 	"github.com/escoutdoor/kitypes/backend/pkg/closer"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
 	"github.com/escoutdoor/kitypes/backend/pkg/logger"
+	"github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/escoutdoor/kitypes/backend/pkg/validator"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/pressly/goose/v3"
-
-	"github.com/jackc/pgx/v5/stdlib"
+	echoswagger "github.com/swaggo/echo-swagger"
 )
 
 type App struct {
 	di *di
 
-	httpServer *http.Server
+	httpServer    *http.Server
+	metricsServer *http.Server
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -61,7 +66,14 @@ func (a *App) Run(ctx context.Context) error {
 	go a.di.ChatHub(ctx).Run(ctx)
 
 	go func() {
-		logger.Info(ctx, "http server is running")
+		logger.Info(ctx, "metrics server is running on ", a.metricsServer.Addr)
+		if err := a.runMetricsServer(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal(ctx, "run metrics server: ", err)
+		}
+	}()
+
+	go func() {
+		logger.Info(ctx, "http server is running on ", a.httpServer.Addr)
 		if err := a.runHttpServer(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatal(ctx, "run http server: ", err)
 		}
@@ -96,6 +108,10 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	e.Use(echo_middleware.RequestLogger())
 	e.Use(echo_middleware.Recover())
 
+	// init prometheus middleware
+	prometheusMiddleware := echoprometheus.NewMiddleware(config.Config().App.Name())
+	e.Use(prometheusMiddleware)
+
 	e.Use(echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
 		AllowOrigins: []string{
 			"http://localhost:3000",
@@ -104,6 +120,17 @@ func (a *App) initHttpServer(ctx context.Context) error {
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: true,
 	}))
+
+	if !config.Config().App.IsProd() {
+		docs.SwaggerInfo.Title = config.Config().App.Name() + " API"
+		docs.SwaggerInfo.Version = "1.0"
+		docs.SwaggerInfo.BasePath = "/v1"
+
+		// docs.SwaggerInfo.Host = config.Config().HttpServer.Address()
+
+		e.GET("/swagger/*", echoswagger.WrapHandler)
+		logger.Info(ctx, "Swagger UI is available at http://", config.Config().HttpServer.Address(), "/swagger/index.html")
+	}
 
 	authMw := middleware.Auth(a.di.TokenProvider())
 	optionalAuthMw := middleware.OptionalAuth(a.di.TokenProvider())
@@ -138,11 +165,35 @@ func (a *App) initHttpServer(ctx context.Context) error {
 		ReadTimeout:       time.Second * 5,
 		ReadHeaderTimeout: time.Second * 5,
 	}
-
 	a.httpServer = s
 
+	metricsMux := echo.New()
+	metricsMux.HideBanner = true
+	metricsMux.GET("/metrics", echoprometheus.NewHandler())
+
+	metricsServer := &http.Server{
+		Addr:              config.Config().PrometheusServer.Address(),
+		Handler:           metricsMux,
+		ReadTimeout:       time.Second * 5,
+		ReadHeaderTimeout: time.Second * 5,
+	}
+	a.metricsServer = metricsServer
+
 	closer.Add(func(ctx context.Context) error {
-		return a.httpServer.Shutdown(ctx)
+		var errs []error
+
+		if err := a.httpServer.Shutdown(ctx); err != nil {
+			errs = append(errs, err)
+		}
+		if err := a.metricsServer.Shutdown(ctx); err != nil {
+			errs = append(errs, err)
+		}
+
+		if len(errs) > 0 {
+			return errors.Join(errs...)
+		}
+
+		return nil
 	})
 
 	return nil
@@ -156,11 +207,20 @@ func (a *App) runHttpServer() error {
 	return nil
 }
 
+func (a *App) runMetricsServer() error {
+	if err := a.metricsServer.ListenAndServe(); err != nil {
+		return errwrap.Wrap("metrics server listen and serve", err)
+	}
+
+	return nil
+}
+
 func customHttpErrorHandler(err error, c echo.Context) {
 	ctx := c.Request().Context()
 	respCode := http.StatusInternalServerError
-	resp := map[string]any{
-		"message": "internal server error",
+
+	resp := response.ErrorResponse{
+		Message: "internal server error",
 	}
 
 	var appErr *apperror.Error
@@ -168,36 +228,32 @@ func customHttpErrorHandler(err error, c echo.Context) {
 		switch appErr.Code {
 		case code.NotFound:
 			respCode = http.StatusNotFound
-
 		case code.AlreadyExists:
 			respCode = http.StatusConflict
-
 		case code.JwtTokenExpired, code.IncorrectCreadentials, code.InvalidJwtToken:
 			respCode = http.StatusUnauthorized
-
 		case code.PermissionDenied, code.CannotMessageYourself, code.UserBanned:
 			respCode = http.StatusForbidden
-
 		case code.RateLimitExceeded:
 			respCode = http.StatusTooManyRequests
-
 		case code.InvalidRequest, code.EmptyUpdate:
 			respCode = http.StatusBadRequest
 		}
 
-		resp = map[string]any{
-			"message": appErr.Error(),
-		}
+		resp.Message = appErr.Error()
 
 		if respCode == http.StatusInternalServerError {
 			logger.Error(ctx, appErr.Error())
 		}
-	}
-
-	if he, ok := err.(*echo.HTTPError); ok {
+	} else if he, ok := err.(*echo.HTTPError); ok {
 		respCode = he.Code
-		resp = map[string]any{
-			"message": he.Message,
+
+		if er, ok := he.Message.(response.ErrorResponse); ok {
+			resp = er
+		} else if strMsg, ok := he.Message.(string); ok {
+			resp.Message = strMsg
+		} else {
+			resp.Message = fmt.Sprintf("%v", he.Message)
 		}
 	} else {
 		logger.Error(ctx, err.Error())

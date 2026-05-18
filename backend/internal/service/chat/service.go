@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"encoding/json"
+
 	"github.com/escoutdoor/kitypes/backend/pkg/logger"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"

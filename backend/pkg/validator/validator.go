@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -14,11 +15,6 @@ import (
 var (
 	uaPhoneNumberRegex = regexp.MustCompile(`^\+380\d{9}$`)
 )
-
-type validationErr struct {
-	Field string `json:"field"`
-	Msg   string `json:"message"`
-}
 
 type CustomValidator struct {
 	v *validator.Validate
@@ -53,18 +49,20 @@ func (cv *CustomValidator) BindValidate(c echo.Context, i any) error {
 	}
 
 	if err := cv.v.Struct(i); err != nil {
-		var validationErrors []validationErr
+		var details []response.ErrorDetail
 
 		if errs, ok := err.(validator.ValidationErrors); ok {
 			for _, e := range errs {
-				validationErrors = append(validationErrors, validationErr{
-					Field: e.Field(),
-					Msg:   msgForTag(e),
+				details = append(details, response.ErrorDetail{
+					Field:   e.Field(),
+					Message: msgForTag(e),
 				})
 			}
 		}
-		return echo.NewHTTPError(http.StatusBadRequest, map[string]any{
-			"errors": validationErrors,
+
+		return echo.NewHTTPError(http.StatusBadRequest, response.ErrorResponse{
+			Message: "validation failed",
+			Details: details,
 		})
 	}
 

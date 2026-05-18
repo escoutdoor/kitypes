@@ -10,6 +10,18 @@ import (
 	"go.uber.org/zap"
 )
 
+//	@title			KityPes API
+//	@version		1.0
+//	@description	Pet adoption platform API.
+//	@contact.name	API Support
+//	@contact.email	vanap387@gmail.com
+
+//	@BasePath	/v1
+
+// @securityDefinitions.apikey	BearerAuth
+// @in							header
+// @name						Authorization
+// @description				Type "Bearer " followed by a space and JWT token.
 func main() {
 	ctx := context.Background()
 	if err := config.Load(".env"); err != nil {

@@ -4,9 +4,21 @@ import (
 	"net/http"
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
+	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary		Register a new user
+// @Description	Creates a new user account, returns an Access token, and sets a Refresh token in an HTTP-only cookie.
+// @Tags			Auth
+// @Accept			json
+// @Produce		json
+// @Param			request	body		registerRequest			true	"Registration data"
+// @Success		201		{object}	authResponse			"Successful registration"
+// @Failure		400		{object}	response.ErrorResponse	"Validation error"
+// @Failure		409		{object}	response.ErrorResponse	"User with this email or phone number already exists"
+// @Failure		500		{object}	response.ErrorResponse	"Internal server error"
+// @Router			/auth/register [post]
 func (h *handler) register(c echo.Context) error {
 	req := new(registerRequest)
 	if err := h.cv.BindValidate(c, req); err != nil {
@@ -28,13 +40,13 @@ func (h *handler) register(c echo.Context) error {
 }
 
 type registerRequest struct {
-	FirstName string `json:"firstName" validate:"required,min=1,max=20"`
-	LastName  string `json:"lastName" validate:"required,min=1,max=20"`
+	FirstName string `json:"firstName" validate:"required,min=1,max=20" example:"Anatolii"`
+	LastName  string `json:"lastName" validate:"required,min=1,max=20" example:"Vovk"`
 
-	Email       string `json:"email" validate:"required,email"`
-	PhoneNumber string `json:"phoneNumber" validate:"required,uaphone"`
+	Email       string `json:"email" validate:"required,email" example:"user@example.com"`
+	PhoneNumber string `json:"phoneNumber" validate:"required,uaphone" example:"+380991234567"`
 
-	Password string `json:"password" validate:"required,min=8,max=20"`
+	Password string `json:"password" validate:"required,min=8,max=20" example:"StrongPass123!"`
 }
 
 func registerRequestToInput(req *registerRequest) entity.CreateUserInput {

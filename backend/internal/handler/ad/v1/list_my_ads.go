@@ -5,9 +5,21 @@ import (
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
+	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary		List my advertisements
+// @Description	Retrieves a paginated list of advertisements created by the authenticated user.
+// @Tags			Ads
+// @Security		BearerAuth
+// @Accept			json
+// @Produce		json
+// @Param			query	query		listMyAdsRequest		false	"My ads filtering parameters"
+// @Success		200		{object}	listMyAdsResponse		"List of user's advertisements"
+// @Failure		401		{object}	response.ErrorResponse	"Unauthorized"
+// @Failure		500		{object}	response.ErrorResponse	"Internal server error"
+// @Router			/ads/me [get]
 func (h *handler) listMyAds(c echo.Context) error {
 	var req listMyAdsRequest
 	if err := h.cv.BindValidate(c, &req); err != nil {
@@ -34,17 +46,17 @@ func (h *handler) listMyAds(c echo.Context) error {
 }
 
 type listMyAdsRequest struct {
-	Limit  int    `query:"limit" validate:"omitempty,gte=1,lte=50"`
-	Offset int    `query:"offset" validate:"omitempty,gte=0"`
-	SortBy string `query:"sortBy" validate:"omitempty,oneof=dateAsc dateDesc"`
+	Limit  int    `query:"limit" validate:"omitempty,gte=1,lte=50" example:"15"`
+	Offset int    `query:"offset" validate:"omitempty,gte=0" example:"0"`
+	SortBy string `query:"sortBy" validate:"omitempty,oneof=dateAsc dateDesc" example:"dateDesc"`
 
-	Search *string `query:"search" validate:"omitempty,min=2"`
-	Status *int32  `query:"status" validate:"omitempty,oneof=1 2 3"`
+	Search *string `query:"search" validate:"omitempty,min=2" example:"цуценя"`
+	Status *int32  `query:"status" validate:"omitempty,oneof=1 2 3" example:"1"`
 }
 
 type listMyAdsResponse struct {
 	Ads   []adResponse `json:"advertisements"`
-	Total int          `json:"total"`
+	Total int          `json:"total" example:"5"`
 }
 
 func listMyAdsRequestToInput(req listMyAdsRequest, userID string) entity.ListAdsInput {

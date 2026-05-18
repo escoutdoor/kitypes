@@ -125,9 +125,14 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                         </div>
                         <div className="flex flex-col justify-center min-w-0">
                             <div className="flex items-center gap-2.5 flex-wrap">
-                                <h2 className="font-extrabold text-gray-900 text-[15px] leading-tight">
+                                <Link
+                                    href={`/users/${currentChat.user.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="font-extrabold text-gray-900 text-[15px] leading-tight"
+                                >
                                     {currentChat.user.firstName} {currentChat.user.lastName}
-                                </h2>
+                                </Link>
                                 <VerificationBadge role={currentChat.user.role} showText />
                                 <Link
                                     href={`/ads/${currentChat.ad.id}`}

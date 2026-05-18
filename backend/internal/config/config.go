@@ -9,13 +9,14 @@ import (
 )
 
 type config struct {
-	App        App
-	HttpServer HttpServer
-	Postgres   Postgres
-	JwtToken   JwtToken
-	Redis      Redis
-	S3         S3
-	SES        SES
+	App              App
+	HttpServer       HttpServer
+	PrometheusServer HttpServer
+	Postgres         Postgres
+	JwtToken         JwtToken
+	Redis            Redis
+	S3               S3
+	SES              SES
 }
 
 var cfg *config
@@ -91,6 +92,11 @@ func Load(paths ...string) error {
 		return errwrap.Wrap("http server config", err)
 	}
 
+	prometheusServerConfig, err := env.NewPrometheusServerConfig()
+	if err != nil {
+		return errwrap.Wrap("prometheus http server config", err)
+	}
+
 	postgresConfig, err := env.NewPostgresConfig()
 	if err != nil {
 		return errwrap.Wrap("postgres config", err)
@@ -117,13 +123,14 @@ func Load(paths ...string) error {
 	}
 
 	cfg = &config{
-		App:        appConfig,
-		HttpServer: httpServerConfig,
-		Postgres:   postgresConfig,
-		JwtToken:   jwtTokenConfig,
-		Redis:      redisConfig,
-		S3:         s3Config,
-		SES:        sesConfig,
+		App:              appConfig,
+		HttpServer:       httpServerConfig,
+		PrometheusServer: prometheusServerConfig,
+		Postgres:         postgresConfig,
+		JwtToken:         jwtTokenConfig,
+		Redis:            redisConfig,
+		S3:               s3Config,
+		SES:              sesConfig,
 	}
 
 	return nil

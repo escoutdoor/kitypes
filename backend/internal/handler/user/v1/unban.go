@@ -3,10 +3,25 @@ package v1
 import (
 	"net/http"
 
+	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary		Unban a user (Admin)
+// @Description	Unbans a specific user. Requires admin privileges.
+// @Tags			Admin Users
+// @Security		BearerAuth
+// @Accept			json
+// @Produce		json
+// @Param			id	path	string	true	"User ID (UUID)"
+// @Success		204	"User successfully unbanned (No Content)"
+// @Failure		400	{object}	response.ErrorResponse	"Invalid UUID format"
+// @Failure		401	{object}	response.ErrorResponse	"Unauthorized"
+// @Failure		403	{object}	response.ErrorResponse	"Forbidden (Not an admin)"
+// @Failure		404	{object}	response.ErrorResponse	"User not found"
+// @Failure		500	{object}	response.ErrorResponse	"Internal server error"
+// @Router			/admin/users/{id}/unban [patch]
 func (h *handler) unbanUser(c echo.Context) error {
 	userID := c.Param(idParam)
 	if err := uuid.Validate(userID); err != nil {

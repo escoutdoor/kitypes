@@ -1,11 +1,24 @@
 package v1
 
 import (
+	"net/http"
+
+	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
+// @Summary		Get public user profile
+// @Description	Retrieves public information of a specific user by ID.
+// @Tags			Users
+// @Accept			json
+// @Produce		json
+// @Param			id	path		string						true	"User ID (UUID)"
+// @Success		200	{object}	getPublicProfileResponse	"Public profile data"
+// @Failure		400	{object}	response.ErrorResponse		"Invalid UUID format"
+// @Failure		404	{object}	response.ErrorResponse		"User not found or banned"
+// @Failure		500	{object}	response.ErrorResponse		"Internal server error"
+// @Router			/users/{id} [get]
 func (h *handler) getPublicUser(c echo.Context) error {
 	userID := c.Param(idParam)
 	if err := uuid.Validate(userID); err != nil {

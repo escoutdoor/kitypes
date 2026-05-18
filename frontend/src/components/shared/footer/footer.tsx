@@ -14,7 +14,7 @@ const Footer = () => {
                             Більше про нас
                         </Link>
                         <Link href="/contacts" className="hover:text-foreground transition-colors">
-                            Контакти
+                            Підтримка
                         </Link>
                     </div>
                 </div>
