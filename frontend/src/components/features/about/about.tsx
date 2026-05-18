@@ -61,15 +61,15 @@ export default function About() {
         <div className="max-w-4xl mx-auto px-4 py-12 animate-in fade-in duration-500">
 
             {/* Hero Section */}
-            <div className="mb-16 space-y-4">
-                <Badge variant="secondary" className="mb-2">
+            <div className="mb-14 space-y-5 text-center sm:text-left">
+                <Badge variant="secondary" className="mb-2 px-3 py-1 text-sm font-medium">
                     <PawPrint className="w-3 h-3 mr-1.5" />
                     Про KityPes
                 </Badge>
-                <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 leading-tight md:text-5xl">
+                <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl lg:text-6xl">
                     Платформа, де тварини<br />знаходять новий дім
                 </h1>
-                <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">
+                <p className="text-lg text-gray-600 max-w-3xl font-medium leading-relaxed mx-auto sm:mx-0">
                     KityPes — це спеціалізований сервіс для адопції тварин в Україні.
                     Ми з'єднуємо тих, хто шукає домашнього улюбленця, з волонтерами та притулками,
                     які про них піклуються.

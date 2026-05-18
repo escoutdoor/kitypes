@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, Menu, MessageSquare, PawPrint, Search, LogOut, ShieldCheck, Heart, LayoutList, User as UserIcon, Eye, Lock } from "lucide-react"
+import { Home, Menu, MessageSquare, PawPrint, Search, LogOut, ShieldCheck, Heart, LayoutList, User as UserIcon, Eye, Lock, LifeBuoy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet"
@@ -169,6 +169,15 @@ const Header = () => {
                                         <DropdownMenuSeparator />
 
                                         <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-gray-100/80">
+                                            <Link href="/contacts" className="flex items-center gap-2.5 px-2.5 py-1.5">
+                                                <LifeBuoy className="h-4 w-4 text-gray-400 shrink-0" />
+                                                <span className="text-sm text-gray-800">Підтримка</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-gray-100/80">
                                             <Link href="/profile" className="flex items-center gap-2.5 px-2.5 py-1.5">
                                                 <UserIcon className="h-4 w-4 text-gray-400 shrink-0" />
                                                 <span className="text-sm text-gray-800">Особисті дані</span>
@@ -251,6 +260,16 @@ const Header = () => {
                                             </Link>
                                         </SheetClose>
                                     ))}
+
+                                    <SheetClose asChild>
+                                        <Link
+                                            href="/contacts"
+                                            className={`flex items-center gap-3 text-base font-medium transition-all duration-200 p-2 rounded-xl mr-4 cursor-pointer active:scale-[0.98] ${pathname === "/contacts" ? "bg-primary/10 text-primary" : "text-gray-700 hover:bg-gray-100 hover:text-primary active:bg-gray-200"}`}
+                                        >
+                                            <LifeBuoy className="h-5 w-5" />
+                                            <span className="relative">Підтримка</span>
+                                        </Link>
+                                    </SheetClose>
 
                                     <hr className="my-4 border-gray-100 mr-4" />
 

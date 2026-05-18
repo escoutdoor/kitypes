@@ -19,6 +19,7 @@ import (
 	chat_service "github.com/escoutdoor/kitypes/backend/internal/service/chat"
 	fav_service "github.com/escoutdoor/kitypes/backend/internal/service/favorite"
 	report_service "github.com/escoutdoor/kitypes/backend/internal/service/report"
+	support_service "github.com/escoutdoor/kitypes/backend/internal/service/support"
 	user_service "github.com/escoutdoor/kitypes/backend/internal/service/user"
 	verification_service "github.com/escoutdoor/kitypes/backend/internal/service/verification"
 	"github.com/escoutdoor/kitypes/backend/internal/util/token"
@@ -54,6 +55,7 @@ type di struct {
 	chatService         *chat_service.Service
 	verificationService *verification_service.Service
 	reportService       *report_service.Service
+	supportService      *support_service.Service
 
 	chatHub *chat.Chat
 }
@@ -285,6 +287,18 @@ func (d *di) ReportService(ctx context.Context) *report_service.Service {
 	}
 
 	return d.reportService
+}
+
+func (d *di) SupportService(ctx context.Context) *support_service.Service {
+	if d.supportService == nil {
+		d.supportService = support_service.New(
+			d.RedisClient(ctx),
+			d.SESClient(ctx),
+			config.Config().SES.SenderEmail(),
+		)
+	}
+
+	return d.supportService
 }
 
 func (d *di) TokenProvider() *token.TokenProvider {

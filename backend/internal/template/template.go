@@ -11,6 +11,7 @@ import (
 const (
 	resetPasswordHTML  = "reset_password.html"
 	warningWarningHTML = "warning.html"
+	supportRequestHTML = "support_request.html"
 )
 
 //go:embed email/*.html
@@ -42,6 +43,22 @@ func RenderWarning(data WarningData) (string, error) {
 	var buf bytes.Buffer
 	if err := emailTemplates.ExecuteTemplate(&buf, warningWarningHTML, data); err != nil {
 		return "", errwrap.Wrap("execute warning template", err)
+	}
+
+	return buf.String(), nil
+}
+
+type SupportRequestData struct {
+	Subject   string
+	UserEmail string
+	UserID    string
+	Message   string
+}
+
+func RenderSupportRequest(data SupportRequestData) (string, error) {
+	var buf bytes.Buffer
+	if err := emailTemplates.ExecuteTemplate(&buf, supportRequestHTML, data); err != nil {
+		return "", errwrap.Wrap("execute support_request template", err)
 	}
 
 	return buf.String(), nil

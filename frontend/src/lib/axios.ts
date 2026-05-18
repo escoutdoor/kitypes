@@ -31,8 +31,13 @@ api.interceptors.response.use(
     (config) => config,
     async (error: AxiosError) => {
         const originalRequest = error.config as CustomInternalRequestConfig;
+
         if (originalRequest._skipAuthRefresh) {
             return Promise.reject(error)
+        }
+
+        if (originalRequest.url?.includes('/auth/refresh') || originalRequest.url?.includes('/auth/login')) {
+            return Promise.reject(error);
         }
 
         if (error.response?.status === 401 && originalRequest && !originalRequest._isRetry) {
@@ -58,6 +63,7 @@ api.interceptors.response.use(
                 return Promise.reject(e);
             }
         }
-        throw error;
+
+        return Promise.reject(error);
     }
 );
