@@ -36,6 +36,16 @@ export class AuthService {
         return resp.data
     }
 
+    static async forgotPassword(email: string): Promise<void> {
+        const config: CustomRequestConfig = { _skipAuthRefresh: true };
+        await api.post(`${AUTH_URL}/forgot-password`, { email }, config);
+    }
+
+    static async resetPassword(token: string, newPassword: string): Promise<void> {
+        const config: CustomRequestConfig = { _skipAuthRefresh: true };
+        await api.post(`${AUTH_URL}/reset-password`, { token, newPassword }, config);
+    }
+
     static async logout() {
         const config: CustomRequestConfig = { _skipAuthRefresh: true };
 

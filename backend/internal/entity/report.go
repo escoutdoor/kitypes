@@ -58,9 +58,10 @@ type CreateReportInput struct {
 }
 
 type UpdateReportStatusInput struct {
-	ReportID   string
-	Status     ReportStatus
-	AdminNotes *string
+	ReportID         string
+	Status           ReportStatus
+	AdminNotes       *string
+	SendWarningEmail bool
 }
 
 type ListReportsInput struct {

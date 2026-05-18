@@ -54,6 +54,8 @@ export function ReportReviewSheet({ reportId, selectedReport, isOpen, onOpenChan
     const { mutateAsync: banUserAndResolve, isPending: isBanningUser } = useBanUserAndResolveReport() // <--- ДОДАНО
 
     const [adminNotes, setAdminNotes] = useState("")
+    const [sendWarningEmail, setSendWarningEmail] = useState(false)
+
     const sanitizedNotes = adminNotes.trim() || undefined
 
     const isAnyActionLoading = isUpdatingStatus || isBlockingAd || isBanningUser
@@ -108,12 +110,22 @@ export function ReportReviewSheet({ reportId, selectedReport, isOpen, onOpenChan
     }
 
     const handleResolveOnly = async () => {
+        if (sendWarningEmail && !sanitizedNotes) {
+            toast.error("Щоб надіслати попередження, обов'язково напишіть коментар.")
+            return
+        }
+
         try {
             await updateReportStatus({
                 id: report.id,
-                data: { status: REPORT_STATUS.RESOLVED, adminNotes: sanitizedNotes }
+                data: {
+                    status: REPORT_STATUS.RESOLVED,
+                    adminNotes: sanitizedNotes,
+                    sendWarningEmail
+                }
             })
-            toast.success("Скаргу закрито як вирішену")
+            toast.success("Скаргу закрито. " + (sendWarningEmail ? "Попередження надіслано." : ""))
+            setSendWarningEmail(false)
             onOpenChange(false)
         } catch (error) {
             toast.error("Не вдалося оновити скаргу")
@@ -303,7 +315,6 @@ export function ReportReviewSheet({ reportId, selectedReport, isOpen, onOpenChan
                             </Card>
                         </section>
 
-                        {/* Нотатки адміна */}
                         <section>
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">
                                 Нотатки / Причина
@@ -315,6 +326,25 @@ export function ReportReviewSheet({ reportId, selectedReport, isOpen, onOpenChan
                                 onChange={(e) => setAdminNotes(e.target.value)}
                                 disabled={!isPendingStatus || isAnyActionLoading}
                             />
+
+                            {isPendingStatus && (
+                                <div className="flex items-center space-x-2 mt-4 bg-orange-50/50 p-3 rounded-xl border border-orange-100">
+                                    <input
+                                        type="checkbox"
+                                        id="warning-email"
+                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                                        checked={sendWarningEmail}
+                                        onChange={(e) => setSendWarningEmail(e.target.checked)}
+                                        disabled={isAnyActionLoading}
+                                    />
+                                    <label
+                                        htmlFor="warning-email"
+                                        className="text-sm font-medium leading-none text-orange-900 cursor-pointer select-none"
+                                    >
+                                        Надіслати коментар на email як офіційне попередження
+                                    </label>
+                                </div>
+                            )}
                         </section>
                     </div>
                 </div>

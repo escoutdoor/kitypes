@@ -36,12 +36,12 @@ export class UserService {
     }
 
     static async getPublicUser(userId: string): Promise<PublicUserResponse> {
-        const resp = await api.get<PublicUserResponse>(`/v1/users/${userId}`);
+        const resp = await api.get<PublicUserResponse>(`${USERS_URL}/${userId}`);
         return resp.data;
     }
 
     static async getUserPhone(userId: string): Promise<GetUserPhoneResponse> {
-        const resp = await api.get<GetUserPhoneResponse>(`/v1/users/${userId}/phone`);
+        const resp = await api.get<GetUserPhoneResponse>(`${USERS_URL}/${userId}/phone`);
         return resp.data;
     }
 }

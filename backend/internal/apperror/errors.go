@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	ErrJwtTokenExpired      = newError(code.JwtTokenExpired, "jwt token is already expired")
-	ErrInvalidJwtToken      = newError(code.InvalidJwtToken, "invalid jwt token")
-	ErrIncorrectCredentials = newError(code.IncorrectCreadentials, "incorrect credentials")
-	ErrIncorrectPassword    = newError(code.InvalidRequest, "incorrect password")
+	ErrJwtTokenExpired            = newError(code.JwtTokenExpired, "jwt token is already expired")
+	ErrInvalidJwtToken            = newError(code.InvalidJwtToken, "invalid jwt token")
+	ErrIncorrectCredentials       = newError(code.IncorrectCreadentials, "incorrect credentials")
+	ErrIncorrectPassword          = newError(code.InvalidRequest, "incorrect password")
+	ErrInvalidOrExpiredResetToken = newError(code.InvalidRequest, "token is invalid or expired")
 
 	ErrUserBanned = newError(code.UserBanned, "your account has been permanently banned for violating community guidelines")
 

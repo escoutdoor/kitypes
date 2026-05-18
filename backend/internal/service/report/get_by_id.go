@@ -12,5 +12,6 @@ func (s *Service) GetByID(ctx context.Context, reportID string) (entity.Enriched
 	if err != nil {
 		return entity.EnrichedReport{}, errwrap.Wrap("get report by id from repo", err)
 	}
+
 	return out, nil
 }

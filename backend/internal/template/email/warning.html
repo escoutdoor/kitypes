@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Попередження від модератора</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9fafb;">
+    <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 40px auto; background-color: #ffffff; padding: 40px; border-radius: 16px; border: 1px solid #e5e7eb; border-top: 6px solid #f59e0b;">
+        <h2 style="color: #111827; margin-top: 0;">Попередження від KityPes</h2>
+        <p style="color: #4B5563; font-size: 16px; line-height: 1.5;">
+            Добрий день! Модератори нашої платформи перевірили скаргу на вашу активність і виявили порушення правил спільноти.
+        </p>
+
+        <div style="background-color: #f3f4f6; border-left: 4px solid #9ca3af; padding: 12px 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+            <p style="color: #374151; font-size: 15px; margin: 0;">
+                <strong>Об'єкт скарги:</strong> {{.TargetContext}}
+            </p>
+        </div>
+
+        <div style="background-color: #fffbeb; border: 1px solid #fef3c7; padding: 20px; border-radius: 12px; margin: 24px 0;">
+            <p style="color: #b45309; font-weight: bold; margin-top: 0; margin-bottom: 8px;">Коментар модератора:</p>
+            <p style="color: #92400e; font-size: 15px; margin: 0; white-space: pre-wrap;">{{.AdminNotes}}</p>
+        </div>
+        <p style="color: #4B5563; font-size: 16px; line-height: 1.5;">
+            Просимо взяти це до уваги та усунути порушення. Подальші порушення можуть призвести до блокування вашого акаунту або оголошень.
+        </p>
+        <p style="color: #9CA3AF; font-size: 14px; line-height: 1.5; margin-bottom: 0; margin-top: 30px;">
+            З повагою,<br>Команда довіри та безпеки KityPes
+        </p>
+    </div>
+</body>
+</html>

@@ -30,14 +30,16 @@ func (h *handler) updateStatus(c echo.Context) error {
 }
 
 type updateStatusRequest struct {
-	Status     entity.ReportStatus `json:"status" validate:"required,oneof=resolved dismissed"`
-	AdminNotes *string             `json:"adminNotes" validate:"omitempty,max=1000"`
+	Status           entity.ReportStatus `json:"status" validate:"required,oneof=resolved dismissed"`
+	AdminNotes       *string             `json:"adminNotes" validate:"omitempty,max=1000"`
+	SendWarningEmail bool                `json:"sendWarningEmail"`
 }
 
 func updateStatusRequestToInput(req updateStatusRequest, reportID string) entity.UpdateReportStatusInput {
 	return entity.UpdateReportStatusInput{
-		ReportID:   reportID,
-		Status:     req.Status,
-		AdminNotes: req.AdminNotes,
+		ReportID:         reportID,
+		Status:           req.Status,
+		AdminNotes:       req.AdminNotes,
+		SendWarningEmail: req.SendWarningEmail,
 	}
 }

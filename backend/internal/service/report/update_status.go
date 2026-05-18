@@ -12,5 +12,8 @@ func (s *Service) UpdateStatus(ctx context.Context, in entity.UpdateReportStatus
 		return errwrap.Wrap("update report status in db", err)
 	}
 
+	if in.SendWarningEmail && in.AdminNotes != nil {
+		go s.sendWarningEmailAsync(context.WithoutCancel(ctx), in.ReportID, *in.AdminNotes)
+	}
 	return nil
 }

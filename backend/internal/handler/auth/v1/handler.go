@@ -18,6 +18,9 @@ type authService interface {
 	Login(ctx context.Context, in entity.User) (entity.Tokens, error)
 	Register(ctx context.Context, in entity.CreateUserInput) (entity.Tokens, error)
 	RefreshToken(ctx context.Context, refreshToken string) (entity.Tokens, error)
+
+	ForgotPassword(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, token string, newPassword string) error
 }
 
 type handler struct {
@@ -32,6 +35,9 @@ func RegisterHandlers(e *echo.Group, authService authService, cv *validator.Cust
 	e.POST("/register", h.register)
 	e.POST("/refresh", h.refreshToken)
 	e.POST("/logout", h.logout)
+
+	e.POST("/forgot-password", h.forgotPassword)
+	e.POST("/reset-password", h.resetPassword)
 }
 
 type authResponse struct {

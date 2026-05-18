@@ -55,6 +55,7 @@ export interface CreateReportRequest {
 export interface UpdateReportStatusRequest {
     status: Extract<ReportStatus, "resolved" | "dismissed">
     adminNotes?: string
+    sendWarningEmail?: boolean
 }
 
 export interface ListReportsParams {

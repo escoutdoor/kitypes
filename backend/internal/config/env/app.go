@@ -16,6 +16,7 @@ type appConfig struct {
 	AppName                    string        `env:"APP_NAME,required"`
 	AppStage                   string        `env:"APP_STAGE,required"`
 	AppGracefulShutdownTimeout time.Duration `env:"APP_GRACEFUL_SHUTDOWN_TIMEOUT,required"`
+	AppFrontendURL             string        `env:"APP_FRONTEND_URL,required"`
 }
 
 func NewAppConfig() (*appConfig, error) {
@@ -45,4 +46,8 @@ func (c *appConfig) IsProd() bool {
 
 func (c *appConfig) GracefulShutdownTimeout() time.Duration {
 	return c.AppGracefulShutdownTimeout
+}
+
+func (c *appConfig) FrontendURL() string {
+	return c.AppFrontendURL
 }

@@ -15,6 +15,7 @@ type config struct {
 	JwtToken   JwtToken
 	Redis      Redis
 	S3         S3
+	SES        SES
 }
 
 var cfg *config
@@ -28,6 +29,7 @@ type App interface {
 	Stage() string
 	IsProd() bool
 	GracefulShutdownTimeout() time.Duration
+	FrontendURL() string
 }
 
 type HttpServer interface {
@@ -63,6 +65,13 @@ type S3 interface {
 	SecretAccessKey() string
 	BucketName() string
 	PublicBaseURL() string
+}
+
+type SES interface {
+	Region() string
+	AccessKey() string
+	SecretAccessKey() string
+	SenderEmail() string
 }
 
 func Load(paths ...string) error {
@@ -102,6 +111,11 @@ func Load(paths ...string) error {
 		return errwrap.Wrap("s3 config", err)
 	}
 
+	sesConfig, err := env.NewSESConfig()
+	if err != nil {
+		return errwrap.Wrap("ses config", err)
+	}
+
 	cfg = &config{
 		App:        appConfig,
 		HttpServer: httpServerConfig,
@@ -109,6 +123,7 @@ func Load(paths ...string) error {
 		JwtToken:   jwtTokenConfig,
 		Redis:      redisConfig,
 		S3:         s3Config,
+		SES:        sesConfig,
 	}
 
 	return nil

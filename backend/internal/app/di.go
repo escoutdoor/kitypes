@@ -5,6 +5,7 @@ import (
 
 	"github.com/escoutdoor/kitypes/backend/internal/chat"
 	"github.com/escoutdoor/kitypes/backend/internal/client/s3"
+	"github.com/escoutdoor/kitypes/backend/internal/client/ses"
 	"github.com/escoutdoor/kitypes/backend/internal/config"
 	ad_repository "github.com/escoutdoor/kitypes/backend/internal/repository/ad"
 	conversation_repository "github.com/escoutdoor/kitypes/backend/internal/repository/conversation"
@@ -32,6 +33,7 @@ import (
 type di struct {
 	dbClient      database.Client
 	s3Client      *s3.Client
+	sesClient     *ses.Client
 	txManager     database.TxManager
 	tokenProvider *token.TokenProvider
 
@@ -92,13 +94,32 @@ func (d *di) S3Client(ctx context.Context) *s3.Client {
 			config.Config().S3.PublicBaseURL(),
 		)
 		if err != nil {
-			logger.Fatal(ctx, "new s3 client", err)
+			logger.Fatal(ctx, "new s3 client: ", err)
 		}
 
 		d.s3Client = client
 	}
 
 	return d.s3Client
+}
+
+func (d *di) SESClient(ctx context.Context) *ses.Client {
+	if d.sesClient == nil {
+		client, err := ses.NewClient(
+			ctx,
+			config.Config().SES.Region(),
+			config.Config().SES.AccessKey(),
+			config.Config().SES.SecretAccessKey(),
+			config.Config().SES.SenderEmail(),
+		)
+		if err != nil {
+			logger.Fatal(ctx, "new ses client: ", err)
+		}
+
+		d.sesClient = client
+	}
+
+	return d.sesClient
 }
 
 func (d *di) RedisClient(ctx context.Context) *redis.Client {
@@ -197,7 +218,13 @@ func (d *di) ReportRepository(ctx context.Context) *report_repository.Repository
 
 func (d *di) AuthService(ctx context.Context) *auth_service.Service {
 	if d.authService == nil {
-		d.authService = auth_service.New(d.UserRepository(ctx), d.TokenProvider())
+		d.authService = auth_service.New(
+			d.UserRepository(ctx),
+			d.TokenProvider(),
+			d.RedisClient(ctx),
+			d.SESClient(ctx),
+			config.Config().App.FrontendURL(),
+		)
 	}
 
 	return d.authService
@@ -250,7 +277,9 @@ func (d *di) ReportService(ctx context.Context) *report_service.Service {
 			d.ReportRepository(ctx),
 			d.AdRepository(ctx),
 			d.UserRepository(ctx),
+			d.MessageRepository(ctx),
 			d.RedisClient(ctx),
+			d.SESClient(ctx),
 			d.TxManager(ctx),
 		)
 	}

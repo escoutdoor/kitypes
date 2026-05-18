@@ -19,22 +19,24 @@ import {
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
-import { Loader2 } from "lucide-react"
+import { Loader2, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import z from "zod"
+import { useState } from "react"
 import { useAuthStore } from "@/store/auth.store"
 
 const formSchema = z.object({
     email: z.email({ message: "Введіть вашу email адресу" }),
     password: z
-        .string("Введіть будь ласка пароль")
-        .min(8, "Пароль повинен бути не менше 8 символів")
-        .max(50, "Пароль не може бути більше ніж 50 символів"),
+        .string()
+        .min(1, "Введіть будь ласка пароль"),
 })
 
 const Login = () => {
     const router = useRouter()
     const login = useAuthStore((state) => state.login)
+    const [showPassword, setShowPassword] = useState(false)
 
     const {
         control,
@@ -48,13 +50,10 @@ const Login = () => {
     })
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
-        console.log(data)
-
         try {
             await login(data)
             router.push("/")
         } catch (err: any) {
-            console.log(err.response?.data?.message)
             const message = err.response?.data?.message || "Неправильний email або пароль"
             setError("root", { type: "manual", message: message })
         }
@@ -71,6 +70,7 @@ const Login = () => {
                     <Button
                         onClick={() => router.push("/register")}
                         variant="link"
+                        className="px-0"
                     >
                         Реєстрація
                     </Button>
@@ -80,7 +80,7 @@ const Login = () => {
                 <form id="login-form" onSubmit={handleSubmit(onSubmit)}>
                     <FieldGroup>
                         {errors.root && (
-                            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
+                            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 font-medium border border-red-100">
                                 {errors.root.message}
                             </div>
                         )}
@@ -91,43 +91,62 @@ const Login = () => {
                             control={control}
                             render={({ field, fieldState }) => (
                                 <Field data-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="email">
+                                    <FieldLabel htmlFor="user-email">
                                         Email
                                     </FieldLabel>
                                     <Input
                                         id="user-email"
+                                        type="email"
                                         placeholder="name@example.com"
+                                        className="h-11 bg-white focus-visible:bg-white text-base shadow-sm border-gray-200"
                                         {...field}
                                         aria-invalid={fieldState.invalid}
                                     />
                                     {fieldState.invalid && (
-                                        <FieldError
-                                            errors={[fieldState.error]}
-                                        />
+                                        <FieldError errors={[fieldState.error]} />
                                     )}
                                 </Field>
                             )}
                         />
 
+                        {/* password */}
                         <Controller
                             name="password"
                             control={control}
                             render={({ field, fieldState }) => (
                                 <Field data-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="password">
-                                        Пароль
-                                    </FieldLabel>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        {...field}
-                                        aria-invalid={fieldState.invalid}
-                                    />
-                                    {fieldState.invalid && (
-                                        <FieldError
-                                            errors={[fieldState.error]}
+                                    <div className="flex items-center justify-between w-full">
+                                        <FieldLabel htmlFor="password">
+                                            Пароль
+                                        </FieldLabel>
+                                        <Link
+                                            href="/forgot-password"
+                                            className="text-[13px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                                            tabIndex={-1}
+                                        >
+                                            Забули пароль?
+                                        </Link>
+                                    </div>
+                                    <div className="relative">
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••"
+                                            className="h-11 pr-10 bg-white focus-visible:bg-white text-base shadow-sm border-gray-200"
+                                            {...field}
+                                            aria-invalid={fieldState.invalid}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            tabIndex={-1}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                        </button>
+                                    </div>
+                                    {fieldState.invalid && (
+                                        <FieldError errors={[fieldState.error]} />
                                     )}
                                 </Field>
                             )}
@@ -137,15 +156,14 @@ const Login = () => {
             </CardContent>
             <CardFooter>
                 <Button
-                    className="w-full"
+                    className="w-full h-11 font-bold text-base"
                     form="login-form"
                     type="submit"
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? (
                         <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                            Вхід...
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Вхід...
                         </>
                     ) : (
                         "Увійти"
