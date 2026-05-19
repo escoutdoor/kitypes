@@ -1,4 +1,13 @@
-.PHONY: run-dev
+.PHONY: dev build start lint
 
-run-dev:
-	pnpm run dev
+dev:
+	pnpm dev
+
+build:
+	pnpm build
+
+start:
+	pnpm start
+
+lint:
+	pnpm lint
