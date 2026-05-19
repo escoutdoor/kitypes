@@ -7,9 +7,24 @@ import (
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
 	"github.com/escoutdoor/kitypes/backend/pkg/errwrap"
+	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary		List my verification requests
+// @Description	Retrieves a paginated list of the current user's verification requests.
+// @Tags			Verification
+// @Security		BearerAuth
+// @Accept			json
+// @Produce		json
+// @Param			limit	query		int						false	"Pagination limit"	default(10)
+// @Param			offset	query		int						false	"Pagination offset"	default(0)
+// @Param			status	query		string					false	"Filter by status"	Enums(pending, approved, rejected)
+// @Success		200		{object}	listMyResponse			"My verification requests"
+// @Failure		400		{object}	response.ErrorResponse	"Validation error"
+// @Failure		401		{object}	response.ErrorResponse	"Unauthorized"
+// @Failure		500		{object}	response.ErrorResponse	"Internal server error"
+// @Router			/verifications [get]
 func (h *handler) listMy(c echo.Context) error {
 	var req listMyRequest
 	if err := h.cv.BindValidate(c, &req); err != nil {
@@ -37,9 +52,9 @@ func (h *handler) listMy(c echo.Context) error {
 }
 
 type listMyRequest struct {
-	Limit  int     `query:"limit" validate:"omitempty,gte=1,lte=50"`
-	Offset int     `query:"offset" validate:"omitempty,gte=0"`
-	Status *string `query:"status" validate:"omitempty,oneof=pending approved rejected"`
+	Limit  int     `query:"limit" validate:"omitempty,gte=1,lte=50" example:"10"`
+	Offset int     `query:"offset" validate:"omitempty,gte=0" example:"0"`
+	Status *string `query:"status" validate:"omitempty,oneof=pending approved rejected" example:"pending"`
 }
 
 func listMyRequestToInput(req listMyRequest, userID string) entity.ListVerificationsInput {
@@ -86,5 +101,5 @@ func (h *handler) listVerificationsOutputToMyResponse(ctx context.Context, vrs [
 
 type listMyResponse struct {
 	Requests []myVerificationResponse `json:"requests"`
-	Total    int                      `json:"total"`
+	Total    int                      `json:"total" example:"2"`
 }

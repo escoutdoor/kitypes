@@ -80,6 +80,11 @@ func newError(code code.Code, err string) *Error {
 	}
 }
 
+func InvalidUUID(paramName string) *Error {
+	msg := fmt.Sprintf("invalid %s parameter", paramName)
+	return newError(code.InvalidRequest, msg)
+}
+
 func AdNotFoundID(adID string) *Error {
 	msg := fmt.Sprintf("advertisement with id %q was not found", adID)
 	return newError(code.NotFound, msg)

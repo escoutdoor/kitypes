@@ -64,7 +64,7 @@ func RegisterHandlers(
 
 	adminGroup := e.Group("/admin/users")
 	adminGroup.Use(authMw, middleware.RequireRoles(entity.RoleAdmin))
-	adminGroup.GET("/", h.listAdminUsers)
+	adminGroup.GET("", h.listAdminUsers)
 	adminGroup.PATCH("/:id/role", h.updateRole)
 	adminGroup.PATCH("/:id/ban", h.banUser)
 	adminGroup.PATCH("/:id/unban", h.unbanUser)

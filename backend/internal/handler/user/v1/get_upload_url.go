@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/escoutdoor/kitypes/backend/pkg/response"
 	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/labstack/echo/v4"
 )
@@ -30,7 +31,9 @@ func (h *handler) getUploadURL(c echo.Context) error {
 		req.Ext = ".jpg"
 	}
 	if !isAllowedExt(ext) {
-		return echo.NewHTTPError(http.StatusBadRequest, "unsupported file extension, allowed: .jpg, .jpeg, .png, .webp")
+		return echo.NewHTTPError(http.StatusBadRequest, response.ErrorResponse{
+			Message: "unsupported file extension, allowed: .jpg, .jpeg, .png, .webp",
+		})
 	}
 
 	ctx := c.Request().Context()

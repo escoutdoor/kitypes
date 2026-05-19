@@ -39,23 +39,23 @@ func RegisterHandlers(
 
 	userGroup := e.Group("/verifications")
 	userGroup.Use(authMw)
-	userGroup.POST("/", h.create)
+	userGroup.POST("", h.create)
 	userGroup.POST("/upload-urls", h.getUploadURLs)
-	userGroup.GET("/", h.listMy)
+	userGroup.GET("", h.listMy)
 
 	adminGroup := e.Group("/admin/verifications")
 	adminGroup.Use(authMw, middleware.RequireRoles(entity.RoleAdmin))
-	adminGroup.GET("/", h.list)
+	adminGroup.GET("", h.list)
 	adminGroup.PATCH("/:id/status", h.updateStatus)
 }
 
 type verificationResponse struct {
-	ID string `json:"id"`
+	ID string `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
 
-	RequestedRole entity.UserRole           `json:"requestedRole"`
-	Status        entity.VerificationStatus `json:"status"`
+	RequestedRole entity.UserRole           `json:"requestedRole" example:"volunteer"`
+	Status        entity.VerificationStatus `json:"status" example:"pending"`
 
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt" example:"2026-05-18T14:33:42Z"`
 }
 
 func verificationToResponse(verification entity.VerificationRequest) verificationResponse {
@@ -70,19 +70,19 @@ func verificationToResponse(verification entity.VerificationRequest) verificatio
 type enrichedVerificationResponse struct {
 	verificationResponse
 
-	AdminNotes   *string  `json:"adminNotes,omitempty"`
-	DocumentURLs []string `json:"documentUrls"`
+	AdminNotes   *string  `json:"adminNotes,omitempty" example:"Документи не відповідають вимогам"`
+	DocumentURLs []string `json:"documentUrls" example:"https://s3.amazonaws.com/kitypes/verifications/1.jpg"`
 
 	User userInfo `json:"user"`
 }
 
 type userInfo struct {
-	ID          string  `json:"id"`
-	FirstName   string  `json:"firstName"`
-	LastName    string  `json:"lastName"`
-	Email       string  `json:"email"`
-	PhoneNumber *string `json:"phoneNumber,omitempty"`
-	AvatarURL   *string `json:"avatarUrl,omitempty"`
+	ID          string  `json:"id" example:"987fcdeb-51a2-43d7-9012-3456789abcde"`
+	FirstName   string  `json:"firstName" example:"Анатолій"`
+	LastName    string  `json:"lastName" example:"Вовк"`
+	Email       string  `json:"email" example:"user@example.com"`
+	PhoneNumber *string `json:"phoneNumber,omitempty" example:"+380991234567"`
+	AvatarURL   *string `json:"avatarUrl,omitempty" example:"https://s3.amazonaws.com/kitypes/avatars/1.jpg"`
 }
 
 func (h *handler) enrichedVerificationToResponse(ctx context.Context, vr entity.EnrichedVerificationRequest) (enrichedVerificationResponse, error) {

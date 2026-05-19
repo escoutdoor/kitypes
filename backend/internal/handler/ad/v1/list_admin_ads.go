@@ -14,13 +14,19 @@ import (
 // @Security		BearerAuth
 // @Accept			json
 // @Produce		json
-// @Param			query	query		listAdminAdsRequest		false	"Admin filtering parameters"
-// @Success		200		{object}	listResponse			"List of all advertisements"
-// @Failure		400		{object}	response.ErrorResponse	"Validation error"
-// @Failure		401		{object}	response.ErrorResponse	"Unauthorized"
-// @Failure		403		{object}	response.ErrorResponse	"Forbidden (Not an admin)"
-// @Failure		500		{object}	response.ErrorResponse	"Internal server error"
-// @Router			/admin/ads/ [get]
+// @Param			limit		query		int						false	"Pagination limit"	default(10)
+// @Param			offset		query		int						false	"Pagination offset"	default(0)
+// @Param			sortBy		query		string					false	"Sort by date"		Enums(dateAsc, dateDesc)
+// @Param			search		query		string					false	"Search in title/description"
+// @Param			status		query		int						false	"Ad status"	Enums(1, 2, 3)
+// @Param			petType		query		int						false	"Pet type"	Enums(1, 2, 3)
+// @Param			authorId	query		string					false	"Filter by author ID (UUID)"
+// @Success		200			{object}	listResponse			"List of all advertisements"
+// @Failure		400			{object}	response.ErrorResponse	"Validation error"
+// @Failure		401			{object}	response.ErrorResponse	"Unauthorized"
+// @Failure		403			{object}	response.ErrorResponse	"Forbidden (Not an admin)"
+// @Failure		500			{object}	response.ErrorResponse	"Internal server error"
+// @Router			/admin/ads [get]
 func (h *handler) listAdminAds(c echo.Context) error {
 	var req listAdminAdsRequest
 	if err := h.cv.BindValidate(c, &req); err != nil {

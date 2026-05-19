@@ -8,6 +8,7 @@ import (
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
 	"github.com/escoutdoor/kitypes/backend/internal/util/token"
+	"github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/labstack/echo/v4"
 )
 
@@ -84,11 +85,15 @@ func OptionalAuth(tokenProvider tokenProvider) echo.MiddlewareFunc {
 }
 
 func newUnauthorized(msg string) error {
-	return echo.NewHTTPError(http.StatusUnauthorized, msg)
+	return echo.NewHTTPError(http.StatusUnauthorized, response.ErrorResponse{
+		Message: msg,
+	})
 }
 
 func newForbidden(msg string) error {
-	return echo.NewHTTPError(http.StatusForbidden, msg)
+	return echo.NewHTTPError(http.StatusForbidden, response.ErrorResponse{
+		Message: msg,
+	})
 }
 
 type tokenProvider interface {

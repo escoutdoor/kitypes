@@ -38,35 +38,35 @@ func RegisterHandlers(
 	e.POST("/:id", h.add)
 	e.DELETE("/:id", h.remove)
 
-	e.GET("/", h.list)
+	e.GET("", h.list)
 }
 
 type favoriteResponse struct {
-	ID        string     `json:"id"`
+	ID        string     `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
 	Ad        adResponse `json:"advertisement"`
-	CreatedAt time.Time  `json:"createdAt"`
+	CreatedAt time.Time  `json:"createdAt" example:"2026-05-18T14:33:42Z"`
 }
 
 type adResponse struct {
-	ID       string `json:"id"`
-	AuthorID string `json:"authorId"`
+	ID       string `json:"id" example:"987fcdeb-51a2-43d7-9012-3456789abcde"`
+	AuthorID string `json:"authorId" example:"123e4567-e89b-12d3-a456-426614174000"`
 
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	ImageURLs   []string `json:"imageUrls"`
+	Title       string   `json:"title" example:"Рудий котик шукає дім"`
+	Description string   `json:"description" example:"Дуже гарний котик"`
+	ImageURLs   []string `json:"imageUrls" example:"https://s3.amazonaws.com/kitypes/ads/1.jpg,https://s3.amazonaws.com/kitypes/ads/2.jpg"`
 
-	PetType     int32   `json:"petType"`
-	PetGender   int32   `json:"petGender"`
-	PetAgeMonth *int32  `json:"petAgeMonth,omitempty"`
-	PetBreed    *string `json:"petBreed,omitempty"`
+	PetType     int32   `json:"petType" example:"2"`
+	PetGender   int32   `json:"petGender" example:"1"`
+	PetAgeMonth *int32  `json:"petAgeMonth,omitempty" example:"4"`
+	PetBreed    *string `json:"petBreed,omitempty" example:"Мейн-кун"`
 
-	Country string `json:"country"`
-	City    string `json:"city"`
+	Country string `json:"country" example:"Україна"`
+	City    string `json:"city" example:"Київ"`
 
-	Status int32 `json:"status"`
+	Status int32 `json:"status" example:"1"`
 
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	CreatedAt time.Time `json:"createdAt" example:"2026-05-18T14:33:42Z"`
+	UpdatedAt time.Time `json:"updatedAt" example:"2026-05-18T14:33:42Z"`
 }
 
 func (h *handler) favoriteToResponse(favorite entity.Favorite) favoriteResponse {

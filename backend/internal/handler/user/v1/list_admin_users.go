@@ -25,7 +25,7 @@ import (
 // @Failure		401			{object}	response.ErrorResponse	"Unauthorized"
 // @Failure		403			{object}	response.ErrorResponse	"Forbidden (Not an admin)"
 // @Failure		500			{object}	response.ErrorResponse	"Internal server error"
-// @Router			/admin/users/ [get]
+// @Router			/admin/users [get]
 func (h *handler) listAdminUsers(c echo.Context) error {
 	var req listAdminUsersRequest
 	if err := h.cv.BindValidate(c, &req); err != nil {

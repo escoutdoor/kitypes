@@ -42,11 +42,11 @@ func RegisterHandlers(
 	h := &handler{service: adService, cv: cv}
 
 	adsGroup := g.Group("/ads")
-	adsGroup.POST("/", h.create, authMw)
+	adsGroup.POST("", h.create, authMw)
 	adsGroup.POST("/upload-urls", h.getUploadURLs, authMw)
 	adsGroup.GET("/me", h.listMyAds, authMw)
 
-	adsGroup.GET("/", h.list, optionalAuthMw)
+	adsGroup.GET("", h.list, optionalAuthMw)
 	adsGroup.GET("/:id", h.get, optionalAuthMw)
 
 	adsGroup.GET("/:id/phone", h.getPhone, authMw)
@@ -55,7 +55,7 @@ func RegisterHandlers(
 
 	adminAdsGroup := g.Group("/admin/ads")
 	adminAdsGroup.Use(authMw, middleware.RequireRoles(entity.RoleAdmin))
-	adminAdsGroup.GET("/", h.listAdminAds)
+	adminAdsGroup.GET("", h.listAdminAds)
 	adminAdsGroup.PATCH("/:id/status", h.updateStatus)
 }
 

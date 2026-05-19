@@ -20,7 +20,7 @@ import (
 // @Failure		400		{object}	response.ErrorResponse	"Validation error"
 // @Failure		401		{object}	response.ErrorResponse	"Unauthorized"
 // @Failure		500		{object}	response.ErrorResponse	"Internal server error"
-// @Router			/ads/ [post]
+// @Router			/ads [post]
 func (h *handler) create(c echo.Context) error {
 	req := new(createRequest)
 	if err := h.cv.BindValidate(c, req); err != nil {

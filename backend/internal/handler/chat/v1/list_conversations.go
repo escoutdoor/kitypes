@@ -6,9 +6,23 @@ import (
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
+	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary		List conversations
+// @Description	Retrieves a paginated list of conversations for the authenticated user.
+// @Tags			Chat
+// @Security		BearerAuth
+// @Accept			json
+// @Produce		json
+// @Param			pageSize	query		int							false	"Items per page (1-100)"	default(20)
+// @Param			pageToken	query		string						false	"Pagination token from previous response"
+// @Success		200			{object}	conversationsListResponse	"List of conversations"
+// @Failure		400			{object}	response.ErrorResponse		"Validation error or invalid page token"
+// @Failure		401			{object}	response.ErrorResponse		"Unauthorized"
+// @Failure		500			{object}	response.ErrorResponse		"Internal server error"
+// @Router			/conversations [get]
 func (h *handler) listConversations(c echo.Context) error {
 	userID, err := httpctx.GetUserID(c)
 	if err != nil {
@@ -53,31 +67,31 @@ type listConversationsRequest struct {
 
 type conversationsListResponse struct {
 	Conversations []conversationListItemResponse `json:"conversations"`
-	NextPageToken string                         `json:"nextPageToken,omitempty"`
+	NextPageToken string                         `json:"nextPageToken,omitempty" example:"bGFzdF9pZA=="`
 }
 
 type conversationListItemResponse struct {
-	ID string `json:"id"`
+	ID string `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
 
 	Ad   adResponse   `json:"ad"`
 	User userResponse `json:"user"`
 
 	LastMessage *messageResponse `json:"lastMessage,omitempty"`
-	CreatedAt   time.Time        `json:"createdAt"`
+	CreatedAt   time.Time        `json:"createdAt" example:"2026-05-18T14:33:42Z"`
 }
 
 type adResponse struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	ImageUrl string `json:"imageUrl"`
+	ID       string `json:"id" example:"987fcdeb-51a2-43d7-9012-3456789abcde"`
+	Title    string `json:"title" example:"Рудий котик шукає дім"`
+	ImageUrl string `json:"imageUrl" example:"https://s3.amazonaws.com/kitypes/ads/1.jpg"`
 }
 
 type userResponse struct {
-	ID        string          `json:"id"`
-	FirstName string          `json:"firstName"`
-	LastName  string          `json:"lastName"`
-	AvatarUrl string          `json:"avatarUrl"`
-	Role      entity.UserRole `json:"role"`
+	ID        string          `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	FirstName string          `json:"firstName" example:"Анатолій"`
+	LastName  string          `json:"lastName" example:"Вовк"`
+	AvatarUrl string          `json:"avatarUrl" example:"https://s3.amazonaws.com/kitypes/avatars/1.jpg"`
+	Role      entity.UserRole `json:"role" example:"volunteer"`
 }
 
 func (h *handler) enrichedConversationsToListItemResponse(enrichedConvs []entity.EnrichedConversation) []conversationListItemResponse {

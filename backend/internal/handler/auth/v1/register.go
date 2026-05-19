@@ -9,14 +9,14 @@ import (
 )
 
 // @Summary		Register a new user
-// @Description	Creates a new user account, returns an Access token, and sets a Refresh token in an HTTP-only cookie.
+// @Description	Creates a new user account, returns an Access token.
 // @Tags			Auth
 // @Accept			json
 // @Produce		json
 // @Param			request	body		registerRequest			true	"Registration data"
 // @Success		201		{object}	authResponse			"Successful registration"
 // @Failure		400		{object}	response.ErrorResponse	"Validation error"
-// @Failure		409		{object}	response.ErrorResponse	"User with this email or phone number already exists"
+// @Failure		409		{object}	response.ErrorResponse	"Email or phone already exists"
 // @Failure		500		{object}	response.ErrorResponse	"Internal server error"
 // @Router			/auth/register [post]
 func (h *handler) register(c echo.Context) error {

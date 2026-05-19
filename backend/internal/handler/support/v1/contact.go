@@ -5,9 +5,21 @@ import (
 
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	"github.com/escoutdoor/kitypes/backend/internal/util/httpctx"
+	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/labstack/echo/v4"
 )
 
+// @Summary		Contact support
+// @Description	Sends a support message. Authorization is optional.
+// @Tags			Support
+// @Accept			json
+// @Produce		json
+// @Param			request	body	contactRequest	true	"Support request"
+// @Success		204		"No Content"
+// @Failure		400		{object}	response.ErrorResponse	"Validation error"
+// @Failure		429		{object}	response.ErrorResponse	"Rate limit exceeded"
+// @Failure		500		{object}	response.ErrorResponse	"Internal server error"
+// @Router			/support/contact [post]
 func (h *handler) contact(c echo.Context) error {
 	var req contactRequest
 	if err := h.cv.BindValidate(c, &req); err != nil {
@@ -31,9 +43,9 @@ func (h *handler) contact(c echo.Context) error {
 }
 
 type contactRequest struct {
-	Subject string `json:"subject" validate:"required,max=100"`
-	Email   string `json:"email" validate:"required,email"`
-	Message string `json:"message" validate:"required,min=10,max=2000"`
+	Subject string `json:"subject" validate:"required,max=100" example:"Проблема з оголошенням"`
+	Email   string `json:"email" validate:"required,email" example:"user@example.com"`
+	Message string `json:"message" validate:"required,min=10,max=2000" example:"Опишіть проблему детально..."`
 }
 
 func contactRequestToInput(req contactRequest, userID *string, ip string) entity.SendContactInput {

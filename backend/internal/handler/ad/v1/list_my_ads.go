@@ -15,7 +15,11 @@ import (
 // @Security		BearerAuth
 // @Accept			json
 // @Produce		json
-// @Param			query	query		listMyAdsRequest		false	"My ads filtering parameters"
+// @Param			limit	query		int						false	"Pagination limit"	default(10)
+// @Param			offset	query		int						false	"Pagination offset"	default(0)
+// @Param			sortBy	query		string					false	"Sort by date"		Enums(dateAsc, dateDesc)
+// @Param			search	query		string					false	"Search in title/description"
+// @Param			status	query		int						false	"Ad status"	Enums(1, 2, 3)
 // @Success		200		{object}	listMyAdsResponse		"List of user's advertisements"
 // @Failure		401		{object}	response.ErrorResponse	"Unauthorized"
 // @Failure		500		{object}	response.ErrorResponse	"Internal server error"

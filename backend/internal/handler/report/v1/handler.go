@@ -39,11 +39,11 @@ func RegisterHandlers(
 
 	userGroup := e.Group("/reports")
 	userGroup.Use(authMw)
-	userGroup.POST("/", h.create)
+	userGroup.POST("", h.create)
 
 	adminGroup := e.Group("/admin/reports")
 	adminGroup.Use(authMw, middleware.RequireRoles(entity.RoleAdmin))
-	adminGroup.GET("/", h.list)
+	adminGroup.GET("", h.list)
 	adminGroup.GET("/:id", h.get)
 	adminGroup.PATCH("/:id/status", h.updateStatus)
 	adminGroup.POST("/:id/block-ad", h.blockAdAndResolve)
@@ -56,22 +56,22 @@ type enrichedReportResponse struct {
 }
 
 type reportResponse struct {
-	ID         string                  `json:"id"`
-	ReporterID *string                 `json:"reporterId"`
-	TargetType entity.ReportTargetType `json:"targetType"`
-	TargetID   string                  `json:"targetId"`
-	Reason     entity.ReportReason     `json:"reason"`
-	Comment    *string                 `json:"comment,omitempty"`
-	Status     entity.ReportStatus     `json:"status"`
-	AdminNotes *string                 `json:"adminNotes,omitempty"`
-	CreatedAt  time.Time               `json:"createdAt"`
-	UpdatedAt  time.Time               `json:"updatedAt"`
+	ID         string                  `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	ReporterID *string                 `json:"reporterId,omitempty" example:"987fcdeb-51a2-43d7-9012-3456789abcde"`
+	TargetType entity.ReportTargetType `json:"targetType" example:"ad"`
+	TargetID   string                  `json:"targetId" example:"111e2222-e33b-44d3-a456-426614174000"`
+	Reason     entity.ReportReason     `json:"reason" example:"spam"`
+	Comment    *string                 `json:"comment,omitempty" example:"Підозрілий контент"`
+	Status     entity.ReportStatus     `json:"status" example:"pending"`
+	AdminNotes *string                 `json:"adminNotes,omitempty" example:"Порушення правил"`
+	CreatedAt  time.Time               `json:"createdAt" example:"2026-05-18T14:33:42Z"`
+	UpdatedAt  time.Time               `json:"updatedAt" example:"2026-05-18T14:33:42Z"`
 }
 
 type reporterResponse struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
+	FirstName string `json:"firstName" example:"Анатолій"`
+	LastName  string `json:"lastName" example:"Вовк"`
+	Email     string `json:"email" example:"user@example.com"`
 }
 
 func reportToResponse(r entity.Report) reportResponse {

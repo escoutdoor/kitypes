@@ -62,7 +62,7 @@ func RegisterHandlers(
 
 	chatGroup.GET("/subscribe", h.subscribe)
 	chatGroup.POST("/publish", h.publish)
-	chatGroup.GET("/", h.listConversations)
+	chatGroup.GET("", h.listConversations)
 	chatGroup.GET("/:id/messages", h.listConversationMessages)
 	chatGroup.PATCH("/:id/read", h.markMessageAsRead)
 

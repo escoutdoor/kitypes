@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 
+	"github.com/escoutdoor/kitypes/backend/internal/apperror"
 	"github.com/escoutdoor/kitypes/backend/internal/entity"
 	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/google/uuid"
@@ -27,7 +28,7 @@ import (
 func (h *handler) updateStatus(c echo.Context) error {
 	adID := c.Param(idParam)
 	if err := uuid.Validate(adID); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid ad id format")
+		return apperror.InvalidUUID("ad id")
 	}
 
 	var req updateStatusRequest

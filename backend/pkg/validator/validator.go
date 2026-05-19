@@ -45,7 +45,9 @@ func (cv *CustomValidator) Validate(i any) error {
 
 func (cv *CustomValidator) BindValidate(c echo.Context, i any) error {
 	if err := c.Bind(i); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid request body")
+		return echo.NewHTTPError(http.StatusBadRequest, response.ErrorResponse{
+			Message: "invalid request body",
+		})
 	}
 
 	if err := cv.v.Struct(i); err != nil {

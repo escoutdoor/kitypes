@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 
+	"github.com/escoutdoor/kitypes/backend/internal/apperror"
 	_ "github.com/escoutdoor/kitypes/backend/pkg/response"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -24,7 +25,7 @@ import (
 func (h *handler) getPhone(c echo.Context) error {
 	userID := c.Param(idParam)
 	if err := uuid.Validate(userID); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid user id parameter")
+		return apperror.InvalidUUID("user id")
 	}
 
 	ctx := c.Request().Context()

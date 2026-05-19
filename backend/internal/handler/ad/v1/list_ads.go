@@ -14,11 +14,23 @@ import (
 // @Tags			Ads
 // @Accept			json
 // @Produce		json
-// @Param			query	query		listRequest				false	"Filtering and pagination parameters"
-// @Success		200		{object}	listResponse			"List of advertisements"
-// @Failure		400		{object}	response.ErrorResponse	"Validation error"
-// @Failure		500		{object}	response.ErrorResponse	"Internal server error"
-// @Router			/ads/ [get]
+// @Param			limit			query		int						false	"Pagination limit"	default(10)
+// @Param			offset			query		int						false	"Pagination offset"	default(0)
+// @Param			sortBy			query		string					false	"Sort by date"		Enums(dateAsc, dateDesc)
+// @Param			search			query		string					false	"Search in title/description"
+// @Param			country			query		string					false	"Filter by country"
+// @Param			city			query		string					false	"Filter by city"
+// @Param			petType			query		int						false	"Pet type"		Enums(1, 2, 3)
+// @Param			petGender		query		int						false	"Pet gender"	Enums(1, 2)
+// @Param			status			query		int						false	"Ad status"		Enums(1, 2)
+// @Param			minPetAgeMonth	query		int						false	"Min pet age (months)"
+// @Param			maxPetAgeMonth	query		int						false	"Max pet age (months)"
+// @Param			verifiedOnly	query		boolean					false	"Only verified authors"
+// @Param			authorId		query		string					false	"Filter by author ID (UUID)"
+// @Success		200				{object}	listResponse			"List of advertisements"
+// @Failure		400				{object}	response.ErrorResponse	"Validation error"
+// @Failure		500				{object}	response.ErrorResponse	"Internal server error"
+// @Router			/ads [get]
 func (h *handler) list(c echo.Context) error {
 	req := new(listRequest)
 	if err := h.cv.BindValidate(c, req); err != nil {
