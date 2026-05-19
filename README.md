@@ -43,7 +43,10 @@ For detailed setup, installation, and deployment instructions, please refer to t
 ## API Documentation
 
 The backend exposes a standardized REST API documented with Swagger (OpenAPI). 
-You can find the raw OpenAPI specifications in the [`backend/docs`](./backend/docs) directory. When the backend service is running locally, the Swagger UI is accessible for interactive API exploration.
+
+To prevent Git churn, the generated Swagger files (`docs.go`, `swagger.json`, `swagger.yaml`) are ignored in the repository. You must generate them locally by running `make swagger` in the `backend/` directory, which will output the files into the `backend/docs/` folder.
+
+Once generated and the backend service is running locally, the Swagger UI is accessible for interactive API exploration.
 
 ## License
 
