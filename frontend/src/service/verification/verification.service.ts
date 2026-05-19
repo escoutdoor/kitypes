@@ -12,7 +12,7 @@ const VERIFICATION_PREFIX = "/v1/verifications"
 
 export class VerificationService {
     static async listMy(params?: ListMyVerificationsParams): Promise<ListMyVerificationsResponse> {
-        const resp = await api.get<ListMyVerificationsResponse>(`${VERIFICATION_PREFIX}/`, { params })
+        const resp = await api.get<ListMyVerificationsResponse>(`${VERIFICATION_PREFIX}`, { params })
         return resp.data
     }
 
@@ -22,7 +22,7 @@ export class VerificationService {
     }
 
     static async create(data: CreateVerificationRequest): Promise<MyVerificationItem> {
-        const resp = await api.post<MyVerificationItem>(`${VERIFICATION_PREFIX}/`, data)
+        const resp = await api.post<MyVerificationItem>(`${VERIFICATION_PREFIX}`, data)
         return resp.data
     }
 }

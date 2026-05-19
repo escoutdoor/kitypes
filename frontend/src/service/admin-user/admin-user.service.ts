@@ -5,7 +5,7 @@ const ADMIN_USERS_PREFIX = "/v1/admin/users";
 
 export class AdminUserService {
     static async list(params?: ListAdminUsersParams): Promise<ListAdminUsersResponse> {
-        const resp = await api.get<ListAdminUsersResponse>(`${ADMIN_USERS_PREFIX}/`, { params });
+        const resp = await api.get<ListAdminUsersResponse>(`${ADMIN_USERS_PREFIX}`, { params });
         return resp.data;
     }
 

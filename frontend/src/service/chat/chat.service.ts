@@ -14,7 +14,7 @@ const ADMIN_MESSAGES_PREFIX = "/v1/admin/messages"
 
 export class ChatService {
     static async listConversations(params?: ListChatParams): Promise<ConversationsListResponse> {
-        const resp = await api.get<ConversationsListResponse>(`${CHATS_PREFIX}/`, { params })
+        const resp = await api.get<ConversationsListResponse>(`${CHATS_PREFIX}`, { params })
         return resp.data
     }
 

@@ -21,7 +21,7 @@ export class AdService {
     }
 
     static async create(data: CreateAdRequest): Promise<Ad> {
-        const resp = await api.post<SingleAdResponse>(`${ADS_PREFIX}/`, data)
+        const resp = await api.post<SingleAdResponse>(`${ADS_PREFIX}`, data)
         return resp.data.advertisement
     }
 
@@ -36,7 +36,7 @@ export class AdService {
     }
 
     static async list(params?: ListAdsParams): Promise<ListAdsResponse> {
-        const resp = await api.get<ListAdsResponse>(`${ADS_PREFIX}/`, { params })
+        const resp = await api.get<ListAdsResponse>(`${ADS_PREFIX}`, { params })
         return {
             advertisements: resp.data.advertisements,
             total: resp.data.total,

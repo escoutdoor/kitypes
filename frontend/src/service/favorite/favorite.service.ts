@@ -13,7 +13,7 @@ export class FavoriteService {
     }
 
     static async list(params?: ListFavoritesParams): Promise<ListFavoritesResponse> {
-        const resp = await api.get<ListFavoritesResponse>(`${FAVORITES_PREFIX}/`, { params })
+        const resp = await api.get<ListFavoritesResponse>(`${FAVORITES_PREFIX}`, { params })
         return resp.data
     }
 }

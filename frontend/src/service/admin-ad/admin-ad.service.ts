@@ -5,7 +5,7 @@ const ADMIN_ADS_PREFIX = "/v1/admin/ads"
 
 export class AdminAdService {
     static async list(params?: ListAdminAdsParams): Promise<ListAdminAdsResponse> {
-        const resp = await api.get<ListAdminAdsResponse>(`${ADMIN_ADS_PREFIX}/`, { params })
+        const resp = await api.get<ListAdminAdsResponse>(`${ADMIN_ADS_PREFIX}`, { params })
         return resp.data
     }
 

@@ -15,11 +15,11 @@ const ADMIN_REPORTS_PREFIX = "/v1/admin/reports";
 
 export class ReportService {
     static async create(data: CreateReportRequest): Promise<void> {
-        await api.post(`${USER_REPORTS_PREFIX}/`, data);
+        await api.post(`${USER_REPORTS_PREFIX}`, data);
     }
 
     static async list(params?: ListReportsParams): Promise<ListReportsResponse> {
-        const resp = await api.get<ListReportsResponse>(`${ADMIN_REPORTS_PREFIX}/`, { params });
+        const resp = await api.get<ListReportsResponse>(`${ADMIN_REPORTS_PREFIX}`, { params });
         return resp.data;
     }
 
