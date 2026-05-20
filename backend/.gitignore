@@ -1,4 +1,6 @@
 .env
+.env.prod
+
 /bin
 
 # swagger docs

@@ -1,0 +1,165 @@
+name: CI/CD Pipeline to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/kitypes-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/kitypes-frontend
+
+jobs:
+  build-and-test-backend:
+    name: Build and test backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend 
+
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version-file: ./backend/go.mod
+        cache: true
+
+    - name: Download Go modules
+      run: go mod download 
+
+    - name: Build
+      run: make build 
+
+    # - name: Test
+    #   run: make test COUNT=1
+
+  build_and_push:
+    name: Build Docker Images and Push to GHCR
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ github.sha }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to AWS EC2
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy Compose and Configs via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.prod.yaml,backend/prometheus.yaml"
+          target: "~/kitypes"
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+          GH_OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: GHCR_READ_TOKEN,GH_ACTOR,GH_OWNER,IMAGE_TAG
+          script: |
+            set -euo pipefail
+
+            echo "==> Logging in to GHCR..."
+            echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+
+            echo "==> Switching to project directory..."
+            mkdir -p ~/kitypes
+            cd ~/kitypes
+
+            export GITHUB_REPOSITORY_OWNER=$GH_OWNER
+            export IMAGE_TAG=$IMAGE_TAG
+
+            echo "==> Pulling images (tag: $IMAGE_TAG)..."
+            docker compose -f docker-compose.prod.yaml pull
+
+            echo "==> Starting containers..."
+            docker compose -f docker-compose.prod.yaml up -d --remove-orphans
+
+            echo "==> Waiting for containers to stabilize..."
+            sleep 15
+
+            echo "==> Health check..."
+            RUNNING=$(docker compose -f docker-compose.prod.yaml ps --filter "status=running" --services)
+            for service in backend frontend; do
+              if echo "$RUNNING" | grep -q "$service"; then
+                echo "  ✓ $service is running"
+              else
+                echo "  ✗ $service is NOT running — rolling back..."
+                export IMAGE_TAG=latest
+                docker compose -f docker-compose.prod.yaml up -d
+                docker logout ghcr.io
+                exit 1
+              fi
+            done
+
+            echo "==> Cleaning up old images..."
+            docker image prune -f
+
+            echo "==> Logging out from GHCR..."
+            docker logout ghcr.io
+
+            echo "==> Deploy complete. Tag: $IMAGE_TAG"

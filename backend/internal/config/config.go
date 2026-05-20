@@ -77,9 +77,10 @@ type SES interface {
 
 func Load(paths ...string) error {
 	if len(paths) > 0 {
-		if err := godotenv.Load(paths...); err != nil {
-			return errwrap.Wrap("load config", err)
-		}
+		// Ignore error: if `.env` file does not exist, the system will use
+		// system environment variables (passed via Docker).
+		// If any required variable is missing, env.Parse() below will throw an error.
+		_ = godotenv.Load(paths...)
 	}
 
 	appConfig, err := env.NewAppConfig()

@@ -1,0 +1,65 @@
+services:
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/kitypes-backend:${IMAGE_TAG:-latest}
+    container_name: kitypes_backend
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env.prod
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/kitypes-frontend:${IMAGE_TAG:-latest}
+    container_name: kitypes_frontend
+    restart: always
+    ports:
+      - "80:3000"
+    env_file:
+      - ./frontend/.env.prod
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: kitypes_postgres
+    restart: always
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7.4.1-alpine3.20
+    container_name: kitypes_redis
+    restart: always
+    expose:
+      - "6379"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kitypes_prometheus
+    restart: always
+    expose:
+      - "9090"
+    volumes:
+      - ./backend/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kitypes_grafana
+    restart: always
+    expose:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
