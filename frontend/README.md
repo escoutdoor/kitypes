@@ -49,8 +49,8 @@ Application settings are configured via environment variables. Next.js automatic
    cp .env.example .env 
    ```
 2. Configure the following variables:
-   * **`PORT`**: The port to run the application on (e.g., 3000). Next.js automatically detects this variable.
    * **`NEXT_PUBLIC_API_URL`**: Base URL for KityPes Backend REST API.
+   * **`NEXT_PUBLIC_APP_URL`**: Full base URL of the frontend application (e.g., http://localhost:3000). Used for absolute routing, SEO metadata (OpenGraph), sitemaps, and robots.txt.
 
 ## 🏃 Running the Project
 
@@ -62,7 +62,7 @@ Application settings are configured via environment variables. Next.js automatic
    ```bash
    make dev
    ```
-   The application will be available at [http://localhost:3000](http://localhost:3000) (or the port specified by the `PORT` variable in `.env`).
+   The application will be available at [http://localhost:3000](http://localhost:3000).
 
 ## 🛠 Useful Commands (Makefile)
 
