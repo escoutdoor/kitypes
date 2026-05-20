@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react"
 import { AdminReportsList } from "@/components/features/admin-reports/admin-reports-list"
 
 export const metadata: Metadata = {
-    title: "Модерація скарг | Kitypes Admin",
+    title: "Модерація скарг",
     description: "Управління скаргами користувачів на оголошення, профілі та повідомлення",
 }
 

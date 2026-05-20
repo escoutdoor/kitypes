@@ -35,7 +35,7 @@ export function ContactAuthorForm({ adId }: { adId: string }) {
     const handleOpenRequest = () => {
         if (!isAuthenticated) {
             toast.info("Бажаєте написати власнику?", {
-                description: "Увійдіть у свій акаунт, щоб почати спілкування щодо хвостика.",
+                description: "Увійдіть у свій акаунт, щоб почати спілкування щодо тваринки.",
                 action: { label: "Увійти", onClick: () => router.push("/login") },
             })
             return
@@ -78,7 +78,7 @@ export function ContactAuthorForm({ adId }: { adId: string }) {
             <div className="flex flex-col gap-1.5">
                 <Textarea
                     {...register("content")}
-                    placeholder="Добрий день, хочу запитати щодо хвостика..."
+                    placeholder="Добрий день, хочу запитати щодо тваринки..."
                     className={cn(
                         "bg-gray-50/50 resize-none text-[15px] min-h-[100px] p-3.5 rounded-xl border-gray-200 transition-all custom-scrollbar focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary",
                         errors.content ? "border-red-300 focus-visible:ring-red-100 focus-visible:border-red-400" : ""

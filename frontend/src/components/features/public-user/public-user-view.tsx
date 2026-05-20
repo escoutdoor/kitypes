@@ -19,10 +19,16 @@ import { Card } from "@/components/ui/card"
 import { AdCard } from "../ad-list/ad-card"
 import { ReportDialog } from "@/components/shared/report-dialog/report-dialog"
 import Link from "next/link"
+import { PublicUserResponse } from "@/service/user/user.interface"
 
 const LIMIT = 12
 
-export function PublicUserView({ userId }: { userId: string }) {
+interface PublicUserViewProps {
+    userId: string
+    initialData?: PublicUserResponse
+}
+
+export function PublicUserView({ userId, initialData }: PublicUserViewProps) {
     const router = useRouter()
 
     const { isAuthenticated } = useAuthStore()
@@ -31,7 +37,7 @@ export function PublicUserView({ userId }: { userId: string }) {
     const [page, setPage] = useState(1)
     const [revealedPhone, setRevealedPhone] = useState<string | null>(null)
 
-    const { data: userData, isLoading: isUserLoading, isError: isUserError } = usePublicUser(userId)
+    const { data: userData, isLoading: isUserLoading, isError: isUserError } = usePublicUser(userId, initialData)
     const { mutateAsync: fetchPhone, isPending: isPhoneLoading } = useUserPhone()
 
     // only active

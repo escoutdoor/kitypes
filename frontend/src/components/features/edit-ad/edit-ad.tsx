@@ -612,7 +612,7 @@ export function EditAd({ adId }: { adId: string }) {
 
                 <Card className={`border-gray-200/60 shadow-sm overflow-hidden rounded-3xl bg-gray-50/50 ${isAnyActionLoading ? "opacity-60 pointer-events-none" : ""}`}>
                     <CardHeader className="border-b border-gray-100 bg-white pb-4">
-                        <CardTitle className="flex items-center gap-2 text-xl"><Info className="h-5 w-5 text-primary" /> Про хвостика</CardTitle>
+                        <CardTitle className="flex items-center gap-2 text-xl"><Info className="h-5 w-5 text-primary" /> Про тваринку</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6 bg-white space-y-8">
                         <Controller

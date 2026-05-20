@@ -34,18 +34,23 @@ import { FavoriteButton } from "@/components/shared/favorite-button/favorite-but
 import { formatPetAge } from "@/lib/utils"
 import { ContactAuthorForm } from "./contact-author-form"
 import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
-import { AD_STATUS } from "@/service/ad/ad.interface"
+import { AD_STATUS, EnrichedAd } from "@/service/ad/ad.interface"
 import { ReportDialog } from "@/components/shared/report-dialog/report-dialog"
 
 const PET_TYPES: Record<number, string> = { 1: "Песик", 2: "Котик", 3: "Інше" }
 const PET_GENDERS: Record<number, string> = { 1: "Хлопчик", 2: "Дівчинка" }
 
-export function AdDetail({ adId }: { adId: string }) {
+interface AdDetailProps {
+    adId: string
+    initialData?: EnrichedAd
+}
+
+export function AdDetail({ adId, initialData }: AdDetailProps) {
     const router = useRouter()
 
     const { user } = useProfile()
     const { isAuthenticated } = useAuthStore()
-    const { data: ad, isLoading, isError } = useAd(adId)
+    const { data: ad, isLoading, isError } = useAd(adId, initialData)
     const { mutateAsync: fetchPhone, isPending: isLoadingPhone } = usePhone()
 
     const [activeImageIndex, setActiveImageIndex] = useState(0)
@@ -197,7 +202,7 @@ export function AdDetail({ adId }: { adId: string }) {
 
                     <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <Info className="h-6 w-6 text-primary" /> Про хвостика
+                            <Info className="h-6 w-6 text-primary" /> Про тваринку
                         </h2>
                         <div className="prose prose-gray max-w-none text-base leading-relaxed text-gray-700 whitespace-pre-wrap">
                             {ad.description}
@@ -211,7 +216,7 @@ export function AdDetail({ adId }: { adId: string }) {
                         <ul className="space-y-3 text-sm text-blue-800/80">
                             <li className="flex gap-2"><div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" /> Зустрічайтеся з власником у безпечних публічних місцях.</li>
                             <li className="flex gap-2"><div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" /> Завжди оглядайте тваринку перед тим, як забрати додому.</li>
-                            <li className="flex gap-2"><div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" /> Розпитайте про наявність щеплень, паспортів та звичок хвостика.</li>
+                            <li className="flex gap-2"><div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" /> Розпитайте про наявність щеплень, паспортів та звичок тваринки.</li>
                         </ul>
                     </section>
                 </div>

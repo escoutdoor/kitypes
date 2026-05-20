@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { AdminUsersList } from "@/components/features/admin-users/admin-users-list"
 
 export const metadata: Metadata = {
-    title: "Користувачі | Kitypes Admin",
+    title: "Користувачі",
     description: "Управління користувачами платформи",
 }
 

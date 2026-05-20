@@ -53,7 +53,7 @@ export function FavoritesList() {
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Обрані</h1>
                     <p className="text-muted-foreground mt-1 text-lg">
-                        Збережені хвостики {!isCompletelyEmpty && `(${total})`}
+                        Збережені тваринки {!isCompletelyEmpty && `(${total})`}
                     </p>
                 </div>
 
@@ -90,7 +90,7 @@ export function FavoritesList() {
                         </p>
                         <Button asChild className="cursor-pointer bg-white shadow-sm rounded-xl px-8" variant="outline">
                             <Link href="/ads">
-                                <Search className="mr-2 h-4 w-4" /> Знайти хвостика
+                                <Search className="mr-2 h-4 w-4" /> Знайти тваринку
                             </Link>
                         </Button>
                     </div>

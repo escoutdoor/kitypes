@@ -2,8 +2,8 @@ import Contacts from "@/components/features/contacts/contacts"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-    title: "Контакти | KityPes",
-    description: "KityPes — платформа для адопції тварин в Україні. Дізнатеся відповіді на свої запитання тут.",
+    title: "Контакти та Підтримка",
+    description: "Маєте питання або пропозиції щодо платформи KityPes? Зв'яжіться з нашою службою підтримки.",
 }
 
 export default function ContactsPage() {

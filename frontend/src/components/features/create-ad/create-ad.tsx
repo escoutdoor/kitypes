@@ -196,7 +196,7 @@ export function CreateAd() {
                 </div>
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Знайти новий дім</h1>
                 <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                    Чим детальніше ви опишете хвостика та чим кращі фото додасте, тим швидше він знайде родину.
+                    Чим детальніше ви опишете тваринку та чим кращі фото додасте, тим швидше він знайде родину.
                 </p>
             </div>
 
@@ -246,7 +246,7 @@ export function CreateAd() {
 
                 <Card className={`border-gray-200/60 shadow-sm overflow-hidden rounded-3xl bg-gray-50/50 ${isSubmitting ? "opacity-60 pointer-events-none" : ""}`}>
                     <CardHeader className="border-b border-gray-100 bg-white pb-4">
-                        <CardTitle className="flex items-center gap-2 text-xl"><Info className="h-5 w-5 text-primary" /> Про хвостика</CardTitle>
+                        <CardTitle className="flex items-center gap-2 text-xl"><Info className="h-5 w-5 text-primary" /> Про тваринку</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6 bg-white space-y-8">
                         <Controller name="petType" control={control} render={({ field, fieldState }) => (

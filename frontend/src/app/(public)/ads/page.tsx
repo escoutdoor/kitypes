@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 import { AdList } from "@/components/features/ad-list/ad-list"
+import { Metadata } from "next"
 
 function AdsPageFallback() {
     return (
@@ -29,6 +30,11 @@ function AdsPageFallback() {
             </div>
         </div>
     )
+}
+
+export const metadata: Metadata = {
+    title: "Каталог тварин",
+    description: "Переглядайте сотні оголошень про тварин, які шукають родину в Україні. Зручний пошук за містом, породою, віком та статтю на KityPes.",
 }
 
 export default function Page() {

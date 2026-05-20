@@ -21,7 +21,7 @@ const Home = () => {
                         </h1>
 
                         <p className="mx-auto max-w-[650px] text-muted-foreground text-lg md:text-xl leading-relaxed">
-                            Kitypes — це затишна платформа, що допомагає тваринам знайти нових люблячих власників. Безпечно, швидко та з турботою про кожного хвостика.
+                            Kitypes — це затишна платформа, що допомагає тваринам знайти нових люблячих власників. Безпечно, швидко та з турботою про кожну тваринку.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 pt-6 w-full sm:w-auto justify-center">
@@ -68,7 +68,7 @@ const Home = () => {
                                 <CardTitle className="text-lg font-bold text-gray-800">З турботою</CardTitle>
                             </CardHeader>
                             <CardContent className="text-center text-gray-500 pb-8 text-sm md:text-base">
-                                Сотні хвостиків чекають на свою родину. Подаруйте їм любов, на яку вони заслуговують.
+                                Сотні тваринок чекають на свою родину. Подаруйте їм любов, на яку вони заслуговують.
                             </CardContent>
                         </Card>
 

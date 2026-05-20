@@ -126,7 +126,7 @@ export function AdList() {
                         Знайдіть свого вірного друга
                     </h1>
                     <p className="text-muted-foreground text-lg max-w-xl">
-                        Сотні хвостиків чекають на свою родину.
+                        Сотні тваринок чекають на свою родину.
                     </p>
                 </div>
 

@@ -30,7 +30,7 @@ export function FavoriteButton({ adId, initialIsFavorite, className = "" }: Favo
         e.stopPropagation()
 
         if (!isAuthenticated) {
-            toast.info("Хочете зберегти хвостика?", {
+            toast.info("Хочете зберегти тваринку?", {
                 description: "Увійдіть у свій акаунт, щоб додавати оголошення в обране.",
                 action: {
                     label: "Увійти",

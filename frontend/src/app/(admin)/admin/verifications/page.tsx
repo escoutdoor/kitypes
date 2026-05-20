@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { AdminVerificationList } from "@/components/features/admin-verification/admin-verification-list"
 
 export const metadata: Metadata = {
-    title: "Модерація верифікацій | Kitypes Admin",
+    title: "Модерація верифікацій",
     description: "Управління заявками на верифікацію користувачів",
 }
 

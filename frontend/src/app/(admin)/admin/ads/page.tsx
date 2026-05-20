@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react"
 import { AdminAdsList } from "@/components/features/admin-ads/admin-ads-list"
 
 export const metadata: Metadata = {
-    title: "Оголошення | Kitypes Admin",
+    title: "Оголошення",
     description: "Управління оголошеннями користувачів",
 }
 
