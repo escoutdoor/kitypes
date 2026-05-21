@@ -2,10 +2,14 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
+RUN apk add --no-cache make git
+
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+RUN make swagger
+
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/app ./cmd/app/main.go
 
 FROM alpine:3.23

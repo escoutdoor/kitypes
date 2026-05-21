@@ -7,7 +7,7 @@ run: build
 	./bin/app
 
 swagger:
-	go tool swag init -g cmd/app/main.go --parseDependency --parseInternal
+	go tool swag init -g main.go -d cmd/app,internal --parseDependency --parseInternal
 
 test:
 	go test -v ./... -count=$(COUNT)
