@@ -1,4 +1,4 @@
-name: CI/CD Pipeline to EC2
+name: ci/cd
 
 on:
   push:
@@ -16,25 +16,25 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend 
+        working-directory: ./backend
 
-  steps:
-    - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v6
-      with:
-        go-version-file: ./backend/go.mod
-        cache: true
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: ./backend/go.mod
+          cache: true
 
-    - name: Download Go modules
-      run: go mod download 
+      - name: Download Go modules
+        run: go mod download
 
-    - name: Build
-      run: make build 
+      - name: Build
+        run: make build
 
-    # - name: Test
-    #   run: make test COUNT=1
+      # - name: Test
+      #   run: make test COUNT=1
 
   build_and_push:
     name: Build Docker Images and Push to GHCR
