@@ -31,8 +31,7 @@ jobs:
         run: go mod download
 
       - name: Generate swagger docs
-        run: |
-          make swagger
+        run: make swagger
 
       - name: Build
         run: make build
@@ -92,7 +91,7 @@ jobs:
 
   deploy:
     name: Deploy to AWS EC2
-    needs: build_and_push
+    needs: build-and-push
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
@@ -118,7 +117,7 @@ jobs:
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
           GH_ACTOR: ${{ github.actor }}
           GH_OWNER: ${{ github.repository_owner }}
-          IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs['build-and-push'].outputs.image_tag }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
