@@ -30,13 +30,17 @@ jobs:
       - name: Download Go modules
         run: go mod download
 
+      - name: Generate swagger docs
+        run: |
+          make swagger
+
       - name: Build
         run: make build
 
       # - name: Test
       #   run: make test COUNT=1
 
-  build_and_push:
+  build-and-push:
     name: Build Docker Images and Push to GHCR
     runs-on: ubuntu-latest
     timeout-minutes: 20
