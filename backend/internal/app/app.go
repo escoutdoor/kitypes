@@ -114,8 +114,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 	e.Use(echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
 		AllowOrigins: []string{
-			"http://localhost:3000",
-			"http://127.0.0.1:3000",
+			config.Config().App.FrontendURL(),
 		},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: true,
