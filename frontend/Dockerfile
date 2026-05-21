@@ -5,7 +5,7 @@ RUN corepack enable
 
 FROM base AS builder
 WORKDIR /app
-COPY package.json pnpm-lock.yaml .npmrc* ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
