@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 
 async function getUserServer(id: string): Promise<PublicUserResponse | null> {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800"
+        const baseUrl = process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800"
         const res = await fetch(`${baseUrl}/v1/users/${id}`, {
             next: { revalidate: 120 }
         })

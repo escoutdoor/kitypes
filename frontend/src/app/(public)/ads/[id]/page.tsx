@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 
 async function getAdServer(id: string): Promise<EnrichedAd | null> {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800"
+        const baseUrl = process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800"
         const res = await fetch(`${baseUrl}/v1/ads/${id}`, {
             next: { revalidate: 60 }
         })
