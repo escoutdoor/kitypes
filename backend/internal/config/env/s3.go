@@ -6,8 +6,8 @@ import (
 
 type s3Config struct {
 	S3Region          string `env:"AWS_REGION,required"`
-	S3AccessKey       string `env:"AWS_ACCESS_KEY,required"`
-	S3SecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY,required"`
+	S3AccessKey       string `env:"AWS_ACCESS_KEY"`
+	S3SecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY"`
 	S3BucketName      string `env:"AWS_S3_BUCKET_NAME,required"`
 	S3PublicBaseURL   string `env:"AWS_PUBLIC_BASE_URL,required"`
 }

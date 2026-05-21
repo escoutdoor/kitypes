@@ -6,8 +6,8 @@ import (
 
 type sesConfig struct {
 	SESRegion          string `env:"AWS_REGION,required"`
-	SESAccessKey       string `env:"AWS_ACCESS_KEY,required"`
-	SESSecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY,required"`
+	SESAccessKey       string `env:"AWS_ACCESS_KEY"`
+	SESSecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY"`
 	SESSenderEmail     string `env:"AWS_SES_SENDER_EMAIL,required"`
 }
 

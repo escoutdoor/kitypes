@@ -17,10 +17,17 @@ type Client struct {
 }
 
 func NewClient(ctx context.Context, region, accessKey, secretKey, senderEmail string) (*Client, error) {
-	cfg, err := config.LoadDefaultConfig(ctx,
+	loaderOpts := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
-	)
+	}
+
+	if accessKey != "" && secretKey != "" {
+		loaderOpts = append(loaderOpts, config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(accessKey, secretKey, ""),
+		))
+	}
+
+	cfg, err := config.LoadDefaultConfig(ctx, loaderOpts...)
 	if err != nil {
 		return nil, errwrap.Wrap("load aws default config for ses", err)
 	}
