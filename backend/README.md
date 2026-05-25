@@ -10,7 +10,7 @@ Backend part of the **KityPes** animal adoption platform. This service provides 
 
 ## 🛠 Tech Stack
 
-* **Language**: Go 1.24+
+* **Language**: Go 1.25+
 * **Framework**: Echo
 * **Database**: PostgreSQL (using `pgx/pgxscan` and `squirrel` for Query Builder)
 * **Caching**: Redis
@@ -36,7 +36,7 @@ The project is built on **Clean Architecture** principles.
 ## ⚙️ Prerequisites
 
 For local execution and development, you will need:
-* **Go** (version 1.24 or higher)
+* **Go** (version 1.25 or higher)
 * **Docker** and **Docker Compose**
 * **Make**
 
@@ -49,16 +49,17 @@ All settings are configured via environment variables.
    ```
 2. Edit the `.env` file. Important variable groups:
    * **PostgreSQL / Redis**: Credentials for local/remote databases.
-   * **AWS**: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, buckets, and regions for S3/SES.
+   * **AWS**: `AWS_REGION`, `AWS_S3_BUCKET_NAME`, `AWS_SES_SENDER_EMAIL`. *Note: `AWS_ACCESS_KEY` and `AWS_SECRET_ACCESS_KEY` are **optional**. When deployed in AWS, omitting them allows the app to automatically use the instance's IAM Role.*
+   * **App & Metrics**: `APP_FRONTEND_URL`, as well as `PROMETHEUS_SERVER_HOST` and `PROMETHEUS_SERVER_PORT` for the metrics server.
    * **JWT**: Secret keys for generating access tokens.
 
-*(Detailed values for local development are usually already provided in `.env.example`, except for AWS secret keys)*
+*(Detailed values for local development are usually already provided in `.env.example`)*
 
 ## 🏃 Running the Project (Local Development)
 
-1. **Infrastructure setup** (Database, Redis):
+1. **Infrastructure setup** (Database, Redis, Prometheus, Grafana):
    ```bash
-   docker-compose up -d pg redis
+   docker compose up -d
    ```
 2. **Launch the application**:
    ```bash

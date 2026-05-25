@@ -38,7 +38,7 @@ The project follows a modular frontend structure built around the Next.js App Ro
 ## ⚙️ Prerequisites
 
 * **Node.js** (version 20 or higher)
-* **pnpm** (preferred package manager)
+* **pnpm** (version 11+)
 * **Make** (optional, for utility commands)
 
 ## 🔧 Configuration
@@ -51,6 +51,7 @@ Application settings are configured via environment variables. Next.js automatic
 2. Configure the following variables:
    * **`NEXT_PUBLIC_API_URL`**: Base URL for KityPes Backend REST API.
    * **`NEXT_PUBLIC_APP_URL`**: Full base URL of the frontend application (e.g., http://localhost:3000). Used for absolute routing, SEO metadata (OpenGraph), sitemaps, and robots.txt.
+   * **`SERVER_API_URL`**: Internal backend API URL (e.g., `http://backend:8080`). Required when running in a Docker network to ensure Server-Side Rendering (SSR) correctly routes requests directly to the backend container.
 
 ## 🏃 Running the Project
 

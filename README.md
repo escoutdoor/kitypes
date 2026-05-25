@@ -25,7 +25,7 @@ The project follows a decoupled Client-Server architecture, divided into indepen
 - PostgreSQL
 - AWS S3 (Media Storage) & AWS SES (Email Service)
 - Docker & Docker Compose
-- Prometheus (Metrics)
+- Prometheus & Grafana (Metrics & Monitoring)
 
 **Frontend:**
 - Next.js / React
@@ -47,6 +47,12 @@ The backend exposes a standardized REST API documented with Swagger (OpenAPI).
 To prevent Git churn, the generated Swagger files (`docs.go`, `swagger.json`, `swagger.yaml`) are ignored in the repository. You must generate them locally by running `make swagger` in the `backend/` directory, which will output the files into the `backend/docs/` folder.
 
 Once generated and the backend service is running locally, the Swagger UI is accessible for interactive API exploration.
+
+## CI/CD & Deployment
+
+The project uses **GitHub Actions** for continuous integration and automated deployment:
+- **Build & Push:** On every push to the `main` branch, Docker images for both frontend and backend are built and published to **GitHub Container Registry (GHCR)**.
+- **Deploy to AWS EC2:** Using the `docker-compose.prod.yaml` environment configuration, the pipeline automatically connects to an AWS EC2 instance via SSH/SCP and updates the running containers to the latest versions.
 
 ## License
 
