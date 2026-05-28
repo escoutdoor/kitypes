@@ -1,4 +1,4 @@
-name: ci/cd
+name: CI/CD Pipeline (AWS ECS)
 
 on:
   push:
@@ -6,23 +6,33 @@ on:
       - main
 
 env:
-  REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/kitypes-backend
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/kitypes-frontend
+  AWS_REGION: eu-north-1
+  ECS_CLUSTER: kitypes-cluster
+  
+  ECR_REPOSITORY_BACKEND: kitypes-backend
+  ECR_REPOSITORY_FRONTEND: kitypes-frontend
+  
+  ECS_SERVICE_BACKEND: kitypes-backend-service
+  ECS_SERVICE_FRONTEND: kitypes-frontend-service
+  ECS_TASK_DEFINITION_BACKEND: kitypes-backend-task
+  ECS_TASK_DEFINITION_FRONTEND: kitypes-frontend-task
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  build-and-test-backend:
-    name: Build and test backend
+  test-backend:
+    name: Build and Test Backend
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./backend
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v5
         with:
           go-version-file: ./backend/go.mod
           cache: true
@@ -36,133 +46,89 @@ jobs:
       - name: Build
         run: make build
 
-      # - name: Test
-      #   run: make test COUNT=1
-
-  build-and-push:
-    name: Build Docker Images and Push to GHCR
+  build-push-deploy:
+    name: Build, Push to ECR, and Deploy to ECS
+    needs: test-backend
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-      packages: write
-
-    outputs:
-      image_tag: ${{ github.sha }}
-
+    timeout-minutes: 30
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          role-to-assume: arn:aws:iam::135501090425:role/kitypes-github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push Backend
+      - name: Build and Push Backend Image
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           push: true
           tags: |
-            ${{ env.BACKEND_IMAGE }}:latest
-            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_BACKEND }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_BACKEND }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and Push Frontend
+      - name: Build and Push Frontend Image
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
           push: true
           tags: |
-            ${{ env.FRONTEND_IMAGE }}:latest
-            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_FRONTEND }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_FRONTEND }}:${{ github.sha }}
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy:
-    name: Deploy to AWS EC2
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    concurrency:
-      group: production-deploy
-      cancel-in-progress: false
+      - name: Download current Backend Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION_BACKEND }} --query taskDefinition > backend-task-def.json
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Copy Compose and Configs via SCP
-        uses: appleboy/scp-action@v0.1.7
+      - name: Render new Backend Task Definition
+        id: render-backend
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.prod.yaml,backend/prometheus.yaml"
-          target: "~/kitypes"
+          task-definition: backend-task-def.json
+          container-name: backend-container
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_BACKEND }}:${{ github.sha }}
 
-      - name: Deploy on EC2
-        uses: appleboy/ssh-action@v1.0.3
-        env:
-          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
-          GH_ACTOR: ${{ github.actor }}
-          GH_OWNER: ${{ github.repository_owner }}
-          IMAGE_TAG: ${{ needs['build-and-push'].outputs.image_tag }}
+      - name: Deploy Backend to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: GHCR_READ_TOKEN,GH_ACTOR,GH_OWNER,IMAGE_TAG
-          script: |
-            set -euo pipefail
+          task-definition: ${{ steps.render-backend.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_BACKEND }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
 
-            echo "==> Logging in to GHCR..."
-            echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+      - name: Download current Frontend Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION_FRONTEND }} --query taskDefinition > frontend-task-def.json
 
-            echo "==> Switching to project directory..."
-            mkdir -p ~/kitypes
-            cd ~/kitypes
+      - name: Render new Frontend Task Definition
+        id: render-frontend
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: frontend-task-def.json
+          container-name: frontend-container
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_FRONTEND }}:${{ github.sha }}
 
-            export GITHUB_REPOSITORY_OWNER=$GH_OWNER
-            export IMAGE_TAG=$IMAGE_TAG
-
-            echo "==> Pulling images (tag: $IMAGE_TAG)..."
-            docker compose -f docker-compose.prod.yaml pull
-
-            echo "==> Starting containers..."
-            docker compose -f docker-compose.prod.yaml up -d --remove-orphans
-
-            echo "==> Waiting for containers to stabilize..."
-            sleep 15
-
-            echo "==> Health check..."
-            RUNNING=$(docker compose -f docker-compose.prod.yaml ps --filter "status=running" --services)
-            for service in backend frontend; do
-              if echo "$RUNNING" | grep -q "$service"; then
-                echo "  ✓ $service is running"
-              else
-                echo "  ✗ $service is NOT running — rolling back..."
-                export IMAGE_TAG=latest
-                docker compose -f docker-compose.prod.yaml up -d
-                docker logout ghcr.io
-                exit 1
-              fi
-            done
-
-            echo "==> Cleaning up old images..."
-            docker image prune -f
-
-            echo "==> Logging out from GHCR..."
-            docker logout ghcr.io
-
-            echo "==> Deploy complete. Tag: $IMAGE_TAG"
+      - name: Deploy Frontend to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-frontend.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_FRONTEND }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true

@@ -15,6 +15,7 @@ import (
 	auth_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/auth/v1"
 	chat_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/chat/v1"
 	fav_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/favorite/v1"
+	observability_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/observability/v1"
 	report_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/report/v1"
 	support_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/support/v1"
 	user_v1 "github.com/escoutdoor/kitypes/backend/internal/handler/user/v1"
@@ -123,7 +124,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	if !config.Config().App.IsProd() {
 		docs.SwaggerInfo.Title = config.Config().App.Name() + " API"
 		docs.SwaggerInfo.Version = "1.0"
-		docs.SwaggerInfo.BasePath = "/v1"
+		docs.SwaggerInfo.BasePath = "/api/v1"
 
 		// docs.SwaggerInfo.Host = config.Config().HttpServer.Address()
 
@@ -133,7 +134,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 
 	authMw := middleware.Auth(a.di.TokenProvider())
 	optionalAuthMw := middleware.OptionalAuth(a.di.TokenProvider())
-	v1Group := e.Group("/v1")
+	v1Group := e.Group("/api/v1")
 
 	ad_v1.RegisterHandlers(v1Group, authMw, optionalAuthMw, a.di.AdService(ctx), cv)
 
@@ -157,6 +158,8 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	report_v1.RegisterHandlers(v1Group, authMw, a.di.ReportService(ctx), cv)
 
 	support_v1.RegisterHandlers(v1Group, optionalAuthMw, a.di.SupportService(ctx), cv)
+
+	observability_v1.RegisterHandlers(v1Group)
 
 	s := &http.Server{
 		Addr:              config.Config().HttpServer.Address(),
