@@ -8,6 +8,7 @@ export const useAd = (id: string, initialData?: EnrichedAd) => {
         queryFn: () => AdService.get(id),
         enabled: !!id,
         initialData,
+        initialDataUpdatedAt: 0,
         staleTime: 60 * 1000,
     })
 }
