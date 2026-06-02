@@ -1,24 +1,26 @@
 services:
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/kitypes-backend:${IMAGE_TAG:-latest}
+    build:
+      context: ./backend
     container_name: kitypes_backend
     restart: always
     ports:
       - "8080:8080"
     env_file:
-      - ./backend/.env.prod
+      - ./backend/.env
     depends_on:
       - postgres
       - redis
 
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/kitypes-frontend:${IMAGE_TAG:-latest}
+    build:
+      context: ./frontend
     container_name: kitypes_frontend
     restart: always
     ports:
       - "80:3000"
     env_file:
-      - ./frontend/.env.prod
+      - ./frontend/.env
 
   postgres:
     image: postgres:18-alpine
@@ -27,9 +29,9 @@ services:
     expose:
       - "5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-kitypes}
+      POSTGRES_USER: ${POSTGRES_USER:-kitypes}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kitypes}
     volumes:
       - pg_data:/var/lib/postgresql
 

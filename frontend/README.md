@@ -1,77 +1,59 @@
 # KityPes Frontend
 
-Frontend part of the **KityPes** animal adoption platform. This web application provides a responsive, interactive user interface for browsing animal ads, chatting with owners, managing favorites, and administrative tools.
+Client app for KityPes: listings, chat, profile, verification, and admin panel.
 
-## 🚀 Key Features
-* **Modern UI/UX**: Fast, accessible, and responsive interface.
-* **Realtime Chats**: WebSocket-based messaging for discussing adoption details.
-* **Role-Based Routing**: Dedicated areas for public users, authenticated users, and administrators.
-* **Optimistic Updates & Caching**: Efficient data fetching and state caching using TanStack Query.
+## Key Features
 
-## 🛠 Tech Stack
+- SSR for public listing pages.
+- Real-time chat.
+- Role-based access (public, user, admin).
+- Caching and optimistic updates via TanStack Query.
 
-* **Framework**: Next.js 16 (App Router)
-* **Library**: React 19
-* **Language**: TypeScript 5
-* **Styling**: Tailwind CSS v4, Shadcn UI (Radix UI)
-* **Data Fetching**: Axios, TanStack Query v5 (React Query)
-* **State Management**: Zustand (for global application state)
-* **Forms & Validation**: React Hook Form + Zod
-* **Package Manager**: pnpm
+## Tech Stack
 
-## 🏗 Architecture & Directory Structure
+- Next.js 16 (App Router), React 19, TypeScript 5
+- Tailwind CSS v4, Shadcn UI (Radix UI)
+- Axios, TanStack Query v5
+- Zustand, React Hook Form, Zod
+- pnpm
 
-The project follows a modular frontend structure built around the Next.js App Router.
+## Structure
 
 ```text
 .
 ├── src/
-│   ├── app/             # Next.js App Router (pages and layouts)
-│   ├── components/      # UI Components (features, shared, ui)
-│   ├── hook/            # Custom React hooks (business logic, data fetching)
-│   ├── lib/             # Utility functions and configurations
-│   ├── provider/        # React Context providers
-│   ├── service/         # API abstraction layer (HTTP requests)
-│   └── store/           # Zustand stores for global state
+│   ├── app/             # App Router (pages and layouts)
+│   ├── components/      # UI components (features, shared, ui)
+│   ├── hook/            # Custom hooks
+│   ├── lib/             # Utilities
+│   ├── provider/        # Context providers
+│   ├── service/         # API clients
+│   └── store/           # Zustand store
 ```
 
-## ⚙️ Prerequisites
+## Configuration
 
-* **Node.js** (version 20 or higher)
-* **pnpm** (version 11+)
-* **Make** (optional, for utility commands)
-
-## 🔧 Configuration
-
-Application settings are configured via environment variables. Next.js automatically reads the `.env` file.
-1. Copy the example configuration file:
+1. Copy env file:
    ```bash
-   cp .env.example .env 
+   cp .env.example .env
    ```
-2. Configure the following variables:
-   * **`NEXT_PUBLIC_API_URL`**: Base URL for KityPes Backend REST API.
-   * **`NEXT_PUBLIC_APP_URL`**: Full base URL of the frontend application (e.g., http://localhost:3000). Used for absolute routing, SEO metadata (OpenGraph), sitemaps, and robots.txt.
-   * **`SERVER_API_URL`**: Internal backend API URL (e.g., `http://backend:8080`). Required when running in a Docker network to ensure Server-Side Rendering (SSR) correctly routes requests directly to the backend container.
+2. Key variables:
+   - `NEXT_PUBLIC_API_URL` — backend URL.
+   - `NEXT_PUBLIC_APP_URL` — public frontend URL.
+   - `SERVER_API_URL` — internal backend URL for SSR in Docker network.
 
-## 🏃 Running the Project
+## Local Run
 
-1. **Install dependencies**:
-   ```bash
-   pnpm install
-   ```
-2. **Launch the development server**:
-   ```bash
-   make dev
-   ```
-   The application will be available at [http://localhost:3000](http://localhost:3000).
+```bash
+pnpm install
+make dev
+```
 
-## 🛠 Useful Commands (Makefile)
-
-We use a `Makefile` to simplify routine commands:
+## Useful Commands
 
 | Command | Description |
-|---------|-------------|
-| `make dev` | Starts the Next.js development server. |
-| `make build` | Compiles the application for production deployment. |
-| `make start` | Runs the compiled production application. |
-| `make lint` | Runs ESLint to check for code quality and formatting issues. |
+|---|---|
+| `make dev` | Start the dev server. |
+| `make build` | Production build. |
+| `make start` | Start production server. |
+| `make lint` | Run ESLint. |

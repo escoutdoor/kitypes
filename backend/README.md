@@ -1,93 +1,79 @@
 # KityPes Backend API
 
-Backend part of the **KityPes** animal adoption platform. This service provides the application's core business logic, data management, real-time communication, and integration with external services.
+Backend of KityPes: REST API, real-time chat, moderation, and AWS integrations.
 
-## 🚀 Key Features
-* **REST API**: Handling client application requests.
-* **Realtime Chats**: Built-in WebSocket-based chats for adoption-related communication.
-* **AWS S3 Integration**: Secure upload and storage of media files (images).
-* **AWS SES**: Transactional email delivery (verification, password recovery, etc.).
+## Key Features
 
-## 🛠 Tech Stack
+- REST API for the client app.
+- Real-time chat (WebSocket + Redis Pub/Sub).
+- Media uploads via S3 pre-signed URLs.
+- Transactional emails via SES.
+- JWT auth (users do not handle tokens directly).
 
-* **Language**: Go 1.25+
-* **Framework**: Echo
-* **Database**: PostgreSQL (using `pgx/pgxscan` and `squirrel` for Query Builder)
-* **Caching**: Redis
-* **Cloud Services**: AWS (S3, SES)
-* **Migrations**: Goose
-* **Documentation**: Swaggo
+## Tech Stack
 
-## 🏗 Architecture & Directory Structure
+- Go 1.25+, Echo
+- PostgreSQL (pgx, squirrel)
+- Redis
+- AWS S3, AWS SES
+- Goose (migrations), Swaggo (Swagger)
 
-The project is built on **Clean Architecture** principles.
+## Architecture & Structure
+
+Built using Clean Architecture principles.
 
 ```text
 .
-├── cmd/app/         # Application entry point (main.go)
-├── internal/        # Business logic (internal packages)
-│   ├── handler/         # HTTP controllers (Delivery layer)
-│   ├── service/         # Business rules and logic (Use Case layer)
-│   └── repository/      # Data access (Data Access layer)
-├── migrations/      # Database migration SQL scripts
-└── pkg/             # Shared utilities and abstractions (logger, DB clients, AWS)
+├── cmd/app/         # Entry point (main.go)
+├── internal/        # Business logic
+│   ├── handler/         # HTTP controllers
+│   ├── service/         # Business rules
+│   └── repository/      # Data access
+├── migrations/      # SQL migrations
+└── pkg/             # Utilities and infrastructure
 ```
 
-## ⚙️ Prerequisites
+## Configuration
 
-For local execution and development, you will need:
-* **Go** (version 1.25 or higher)
-* **Docker** and **Docker Compose**
-* **Make**
-
-## 🔧 Configuration
-
-All settings are configured via environment variables. 
-1. Copy the configuration file example:
+1. Copy env example:
    ```bash
    cp .env.example .env
    ```
-2. Edit the `.env` file. Important variable groups:
-   * **PostgreSQL / Redis**: Credentials for local/remote databases.
-   * **AWS**: `AWS_REGION`, `AWS_S3_BUCKET_NAME`, `AWS_SES_SENDER_EMAIL`. *Note: `AWS_ACCESS_KEY` and `AWS_SECRET_ACCESS_KEY` are **optional**. When deployed in AWS, omitting them allows the app to automatically use the instance's IAM Role.*
-   * **App & Metrics**: `APP_FRONTEND_URL`, as well as `PROMETHEUS_SERVER_HOST` and `PROMETHEUS_SERVER_PORT` for the metrics server.
-   * **JWT**: Secret keys for generating access tokens.
+2. Configure:
+   - PostgreSQL / Redis
+   - AWS: `AWS_REGION`, `AWS_S3_BUCKET_NAME`, `AWS_SES_SENDER_EMAIL`
+   - JWT: `JWT_ACCESS_TOKEN_SECRET_KEY`, `JWT_REFRESH_TOKEN_SECRET_KEY`
+   - `APP_FRONTEND_URL`
 
-*(Detailed values for local development are usually already provided in `.env.example`)*
+## Local Run
 
-## 🏃 Running the Project (Local Development)
-
-1. **Infrastructure setup** (Database, Redis, Prometheus, Grafana):
+1. Infrastructure (PostgreSQL, Redis, Prometheus, Grafana):
    ```bash
-   docker compose up -d
+   docker compose -f compose.yaml up -d
    ```
-2. **Launch the application**:
+2. Run the app:
    ```bash
    make run
    ```
-   The application will start and be available on the port specified in your `.env` (usually `localhost:3800`).
 
-## 🗄 Database Migrations
+## Migrations
 
-Migrations (`migrations/*.sql`) are applied automatically at application startup in the `app.New()` initialization function. 
-* All SQL scripts for database schema changes are located in the `migrations/` directory.
+SQL migrations run on app start. Files are in [migrations](migrations).
 
-## 📚 API Documentation
+## Swagger
 
-Documentation is automatically generated from code comments using **Swaggo**.
-* **View Swagger UI**: `http://localhost:<YOUR_PORT>/swagger/index.html` (e.g., [http://localhost:3800/swagger/index.html](http://localhost:3800/swagger/index.html) by default). Note that the port might be different if the `HTTP_SERVER_PORT` (or corresponding) variable was changed in your `.env` file.
-* **Update Swagger**: If you changed the documentation in the code (`@Summary`, `@Param` comments, etc.), regenerate it with the command:
-  ```bash
-  make swagger
-  ```
+Update docs:
+```bash
+make swagger
+```
 
-## 🛠 Useful Commands (Makefile)
+After launch: `http://localhost:<PORT>/swagger/index.html`.
 
-The project is configured with a `Makefile` to simplify routine tasks:
+## Useful Commands
 
-| Command        | Description |
-|---------------|------|
-| `make run`    | Runs the application on the local machine. |
-| `make build`  | Compiles the application into an executable (`bin/app`). |
-| `make swagger`| Generates/updates Swagger documentation. |
+| Command | Description |
+|---|---|
+| `make run` | Run locally. |
+| `make build` | Build binary. |
+| `make swagger` | Generate Swagger. |
 

@@ -1,60 +1,51 @@
 # KityPes
 
-> A purpose-driven platform connecting loving families with pets in need, featuring real-time communication, intuitive ad management, and robust security systems to ensure a trusted adoption experience.
-
-## About the Project
-
-**KityPes** is a modern, full-stack application on a mission to give every pet a loving family. At its core, the platform serves as a secure bridge between pet shelters, volunteers, and future pet owners. 
-
-Beyond simply listing adoption advertisements, KityPes provides an engaging, deeply personalized environment. Users can instantly communicate through real-time chat to discuss pet details. At the same time, a comprehensive set of trust and safety tools operates behind the scenes. Through user verification, active report handling, and built-in protections against spam or malicious actors, KityPes maintains a clean, secure community—ensuring that everyone's focus remains entirely on what truly matters: finding the perfect companion.
+A pet adoption platform with a full interaction cycle: listings, real-time chat, user verification, and moderation.
 
 ## Key Features
 
-- **Pet Advertisements Management:** Create, browse, update, and delete pet adoption ads.
-- **Real-Time Chat:** Instant messaging between users for ad inquiries and pet details.
-- **User Verification:** Built-in system for profile verification to build trust and safety within the community.
-- **Reports & Moderation:** Comprehensive reporting system and an Admin panel for managing users, handling reports, and content moderation (blocking ads / banning accounts).
-- **Favorites:** Save and keep track of favorite pet advertisements.
+- Pet listings: create, edit, archive, delete.
+- Real-time chat between listing owners and adopters.
+- Roles and verification: user, volunteer, shelter, admin.
+- Reports and moderation: ad blocking, user bans, content control.
+- Favorites for quick access to saved listings.
 
-## Architecture & Tech Stack
+## Architecture
 
-The project follows a decoupled Client-Server architecture, divided into independent frontend and backend modules.
+- Next.js (SSR) for public pages, Go API for `/api/*`.
+- ECS on EC2 behind ALB; TLS via ACM.
+- RDS Postgres, ElastiCache Redis, S3, SES.
 
-**Backend:**
-- Go (Golang)
-- PostgreSQL
-- AWS S3 (Media Storage) & AWS SES (Email Service)
-- Docker & Docker Compose
-- Prometheus & Grafana (Metrics & Monitoring)
+## Tech Stack
 
-**Frontend:**
-- Next.js / React
-- Tailwind CSS
+**Backend:** Go, Echo, PostgreSQL, Redis, AWS S3, AWS SES, JWT, Goose, Swaggo.
 
-## Repository Structure & Navigation
+**Frontend:** Next.js, React, TypeScript, Tailwind CSS, Shadcn UI, TanStack Query, Zustand.
 
-This repository is structured as a monorepo containing both the backend API and the frontend application. 
+## Repository
 
-For detailed setup, installation, and deployment instructions, please refer to the specific documentation for each module:
+- [backend/README.md](backend/README.md) — API server, migrations, integrations.
+- [frontend/README.md](frontend/README.md) — client app, UI, state, data fetching.
 
-- 📁 **[`/backend`](./backend/README.md)** — Go server, REST API, database migrations, and Docker configurations.
-- 📁 **[`/frontend`](./frontend/README.md)** — Next.js client, UI components, and state management.
+## Local Run (Quick)
 
-## API Documentation
-
-The backend exposes a standardized REST API documented with Swagger (OpenAPI). 
-
-To prevent Git churn, the generated Swagger files (`docs.go`, `swagger.json`, `swagger.yaml`) are ignored in the repository. You must generate them locally by running `make swagger` in the `backend/` directory, which will output the files into the `backend/docs/` folder.
-
-Once generated and the backend service is running locally, the Swagger UI is accessible for interactive API exploration.
+1. Copy env files:
+	- [backend/.env.example](backend/.env.example) -> backend/.env
+	- [frontend/.env.example](frontend/.env.example) -> frontend/.env
+2. Run the full stack with Docker:
+	```bash
+	docker compose -f docker-compose.dev.yaml up --build
+	```
+3. Or run separately:
+	- infrastructure: `docker compose -f backend/compose.yaml up -d`
+	- backend: `make -C backend run`
+	- frontend: `make -C frontend dev`
 
 ## CI/CD & Deployment
 
-The project uses **GitHub Actions** for continuous integration and automated deployment:
-- **Build & Push:** On every push to the `main` branch, Docker images for both frontend and backend are built and published to **GitHub Container Registry (GHCR)**.
-- **Deploy to AWS EC2:** Using the `docker-compose.prod.yaml` environment configuration, the pipeline automatically connects to an AWS EC2 instance via SSH/SCP and updates the running containers to the latest versions.
+GitHub Actions builds the backend, builds Docker images, pushes them to ECR, and updates ECS Task Definitions with a rolling update.
 
 ## License
 
-Distributed under the MIT License. See [`LICENSE`](./LICENSE) for more information.
+MIT License — see [LICENSE](LICENSE).
 
