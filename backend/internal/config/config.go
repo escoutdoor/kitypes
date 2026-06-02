@@ -8,6 +8,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// config агрегує конфігурацію всіх підсистем.
+// Використання інтерфейсів дозволяє підміняти реалізації при тестуванні.
 type config struct {
 	App              App
 	HttpServer       HttpServer
@@ -25,6 +27,7 @@ func Config() *config {
 	return cfg
 }
 
+// App описує загальні параметри застосунку: назва, середовище, таймаут graceful shutdown.
 type App interface {
 	Name() string
 	Stage() string
@@ -33,15 +36,18 @@ type App interface {
 	FrontendURL() string
 }
 
+// HttpServer описує параметри HTTP-сервера (адреса прослуховування).
 type HttpServer interface {
 	Address() string
 }
 
+// Postgres описує параметри підключення до PostgreSQL та шлях до міграцій.
 type Postgres interface {
 	Dsn() string
 	MigrationsDir() string
 }
 
+// JwtToken описує секрети та TTL для access/refresh токенів.
 type JwtToken interface {
 	AccessTokenSecretKey() string
 	AccessTokenTTL() time.Duration
@@ -50,6 +56,7 @@ type JwtToken interface {
 	RefreshTokenTTL() time.Duration
 }
 
+// Redis описує параметри кешування сесій та токенів.
 type Redis interface {
 	Addr() string
 	DB() int
@@ -60,6 +67,7 @@ type Redis interface {
 	TTL() time.Duration
 }
 
+// S3 описує параметри хмарного сховища для завантаження зображень тварин.
 type S3 interface {
 	Region() string
 	AccessKey() string
@@ -68,6 +76,7 @@ type S3 interface {
 	PublicBaseURL() string
 }
 
+// SES описує параметри Amazon SES для відправки службових листів.
 type SES interface {
 	Region() string
 	AccessKey() string
@@ -75,11 +84,12 @@ type SES interface {
 	SenderEmail() string
 }
 
+// Load завантажує конфігурацію з .env файлу або змінних середовища.
+// Параметр paths дозволяє вказати додаткові шляхи до .env файлів.
+// Повертає помилку, якщо обов'язкові змінні відсутні.
 func Load(paths ...string) error {
 	if len(paths) > 0 {
-		// Ignore error: if `.env` file does not exist, the system will use
-		// system environment variables (passed via Docker).
-		// If any required variable is missing, env.Parse() below will throw an error.
+		// Якщо .env файл відсутній, використовуються системні змінні (Docker).
 		_ = godotenv.Load(paths...)
 	}
 

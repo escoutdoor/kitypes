@@ -21,7 +21,7 @@ func (h *handler) logout(c echo.Context) error {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, // TODO: change to TRUE IF HTTPS
+		Secure:   true,
 		MaxAge:   -1,
 		Expires:  time.Unix(0, 0),
 	}

@@ -2,6 +2,10 @@ package entity
 
 import "time"
 
+// Ad описує оголошення про тварину для адопції.
+// Поле ImageKeys зберігає масив ключів S3 для зображень (підтримка кількох фото).
+// PetAgeMonth використовує *int32 для можливості залишити вік невказаним.
+// Status керує видимістю оголошення (відкрите, закрите, заблоковане).
 type Ad struct {
 	ID string
 
@@ -30,6 +34,7 @@ type Ad struct {
 	UpdatedAt time.Time
 }
 
+// EnrichedAd розширює Ad даними автора для відображення у списку без додаткового запиту.
 type EnrichedAd struct {
 	Ad
 
@@ -37,6 +42,7 @@ type EnrichedAd struct {
 	AuthorAvatarKey *string
 }
 
+// Перелічувані типи реалізовано через iota+1 для сумісності з БД (0 зарезервовано).
 type (
 	AdStatus  int32
 	PetGender int32
@@ -60,6 +66,7 @@ const (
 	PetTypeOther
 )
 
+// CreateAdInput — DTO для створення оголошення. Поле Status дозволяє створювати чернетки.
 type CreateAdInput struct {
 	UserID      string
 	Title       string
@@ -78,6 +85,7 @@ type CreateAdInput struct {
 	Status AdStatus
 }
 
+// UpdateAdInput — DTO для оновлення оголошення. Всі поля опціональні для часткового оновлення.
 type UpdateAdInput struct {
 	ID     string
 	UserID string
@@ -97,11 +105,15 @@ type UpdateAdInput struct {
 	Status *AdStatus
 }
 
+// UpdateAdStatusInput — DTO для зміни статусу оголошення (для адміністраторів/модерації).
 type UpdateAdStatusInput struct {
 	ID     string
 	Status AdStatus
 }
 
+// ListAdsInput — параметри фільтрації, сортування та пагінації оголошень.
+// Поле ViewerID використовується для визначення IsFavorite для поточного користувача.
+// VerifiedOnly фільтрує оголошення від верифікованих авторів.
 type ListAdsInput struct {
 	Limit  int
 	Offset int
@@ -129,11 +141,13 @@ type ListAdsInput struct {
 	VerifiedOnly *bool
 }
 
+// ListAdsOutput — результат пошуку з оголошеннями та загальною кількістю.
 type ListAdsOutput struct {
 	Ads   []Ad
 	Total int
 }
 
+// AdImageUploadTarget містить препідписаний URL для прямого завантаження у S3.
 type AdImageUploadTarget struct {
 	UploadURL string
 	ImageKey  string

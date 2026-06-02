@@ -55,7 +55,7 @@ func createRefreshCookie(refreshToken string) *http.Cookie {
 		Name:     refreshTokenCookieKey,
 		Value:    refreshToken,
 		HttpOnly: true,
-		Secure:   false, // TODO: change to TRUE IF HTTPS
+		Secure:   true,
 		Path:     "/",
 		MaxAge:   int(config.Config().JwtToken.RefreshTokenTTL().Seconds()),
 		SameSite: http.SameSiteLaxMode,

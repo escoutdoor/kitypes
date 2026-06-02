@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn, formatChatDate } from "@/lib/utils"
 import { VerificationBadge } from "@/components/shared/verification-badge/verification-badge"
-import { ReportDialog } from "@/components/shared/report-dialog/report-dialog" // <--- ДОДАНО
+import { ReportDialog } from "@/components/shared/report-dialog/report-dialog"
 
 const messageSchema = z.object({
     content: z.string().min(1, "Повідомлення не може бути порожнім").max(2000, "Максимум 2000 символів"),
@@ -29,6 +29,8 @@ interface ChatRoomProps {
     conversationId: string
 }
 
+// ChatRoom реалізує інтерфейс чату з нескінченним скролом, WebSocket-публікацією
+// та автоматичним маркуванням повідомлень як прочитаних.
 export function ChatRoom({ conversationId }: ChatRoomProps) {
     const { user } = useProfile()
     const { data: convData } = useConversations()
@@ -49,12 +51,17 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
     })
     const currentContent = watch("content")
 
+    // Пошук поточного діалогу у списку для відображення заголовка (ім'я, аватар, оголошення).
     const currentChat = convData?.pages
         .flatMap(p => p.conversations)
         .find(c => c.id === conversationId)
 
     const messages = msgData?.pages.flatMap(p => p.messages) || []
 
+    // Ефект автоматичного маркування повідомлень як прочитаних.
+    // Спрацьовує при зміні messages або зміні користувача.
+    // Алгоритм: знаходимо найновіше непрочитане повідомлення від співрозмовника
+    // та надсилаємо запит markAsRead з його ID.
     useEffect(() => {
         if (!user?.id || messages.length === 0) return
 
@@ -70,6 +77,9 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
         }
     }, [messages, user?.id, conversationId, markAsRead])
 
+    // Обробник скролу для нескінченного завантаження історії повідомлень.
+    // Використовується зворотний скрол (flex-col-reverse), тому перевірка 
+    // scrollTop + clientHeight >= scrollHeight - 50.
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const { scrollTop, clientHeight, scrollHeight } = e.currentTarget
         if (Math.abs(scrollTop) + clientHeight >= scrollHeight - 50 && hasNextPage && !isFetchingNextPage) {
@@ -77,6 +87,8 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
         }
     }
 
+    // Відправка повідомлення. Форма очищається одразу (optimistic UI).
+    // При помилці текст відновлюється через setValue для повторної відправки.
     const onSubmit = (data: MessageFormValues) => {
         const text = data.content.trim()
         if (!text) return
@@ -94,6 +106,7 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
         )
     }
 
+    // Гаряча клавіша Enter для відправки, Shift+Enter для нового рядка.
     const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault()
@@ -111,6 +124,8 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
 
     return (
         <div className="flex flex-col h-full bg-white relative">
+            {/* Заголовок чату: аватар, ім'я співрозмовника, бейдж верифікації, 
+                посилання на оголошення та кнопка скарги. */}
             <div className="flex items-center gap-4 px-5 py-3.5 border-b border-gray-100 bg-white z-10 shrink-0">
                 {currentChat && (
                     <>
@@ -165,6 +180,7 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                 )}
             </div>
 
+            {/* Область повідомлень з reverse scroll для нескінченного завантаження історії.*/}
             <div
                 className="flex-1 overflow-y-auto flex flex-col-reverse p-5 gap-3 custom-scrollbar bg-slate-50/50"
                 onScroll={handleScroll}
@@ -184,6 +200,8 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                                     {msg.content}
                                 </div>
 
+                                {/* Кнопка скарги на повідомлення з'являється при наведенні 
+                                    (group-hover/msg) для економії місця інтерфейсу. */}
                                 {!isMine && (
                                     <div className="opacity-0 group-hover/msg:opacity-100 transition-opacity shrink-0 pb-1">
                                         <ReportDialog
@@ -201,6 +219,7 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                                 <span className="text-[10px] font-medium text-gray-400">
                                     {formatChatDate(msg.createdAt)}
                                 </span>
+                                {/* Індикатор прочитання */}
                                 {isMine && (
                                     <span className={cn("text-[10px] font-bold", msg.isRead ? "text-primary" : "text-primary/40")}>
                                         {msg.isRead ? "✓✓" : "✓"}
@@ -218,6 +237,8 @@ export function ChatRoom({ conversationId }: ChatRoomProps) {
                 )}
             </div>
 
+            {/* Форма вводу з авто-збільшенням висоти Textarea та кнопкою відправки.
+                focus-within забезпечує візуальний фідбек при наборі тексту. */}
             <div className="p-3 bg-white border-t border-gray-100 shrink-0">
                 <form
                     onSubmit={handleSubmit(onSubmit)}

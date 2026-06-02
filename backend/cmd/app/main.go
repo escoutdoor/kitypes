@@ -10,6 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// main є точкою входу в програму.
+// Алгоритм ініціалізації: завантаження конфігурації з .env, налаштування рівня логування
+// залежно від середовища (prod/dev), створення застосунку та запуск серверів.
+// Graceful shutdown реалізовано через closer для коректного завершення роботи.
 //	@title			KityPes API
 //	@version		1.0
 //	@description	Pet adoption platform API.

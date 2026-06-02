@@ -34,6 +34,8 @@ import (
 	echoswagger "github.com/swaggo/echo-swagger"
 )
 
+// App інкапсулює DI-контейнер та HTTP/Metrics сервери.
+// Структура використовує патерн Dependency Injection для розподілу залежностей.
 type App struct {
 	di *di
 
@@ -41,6 +43,9 @@ type App struct {
 	metricsServer *http.Server
 }
 
+// New створює новий екземпляр застосунку, ініціалізує залежності та виконує міграції БД.
+// Параметр ctx використовується для контролю таймаутів при міграціях.
+// Повертає помилку, якщо ініціалізація сервера або міграції не вдалася.
 func New(ctx context.Context) (*App, error) {
 	app := &App{di: newDiContainer()}
 	if err := app.initDeps(ctx); err != nil {
@@ -51,6 +56,7 @@ func New(ctx context.Context) (*App, error) {
 		return nil, errwrap.Wrap("set migrations dialect", err)
 	}
 
+	// Відкриваємо пул з'єднань PostgreSQL для виконання міграцій goose.
 	db := stdlib.OpenDBFromPool(app.di.DBClient(ctx).DB().Pool())
 	if err := goose.UpContext(ctx, db, config.Config().Postgres.MigrationsDir()); err != nil {
 		return nil, errwrap.Wrap("migrate up", err)
@@ -63,6 +69,8 @@ func New(ctx context.Context) (*App, error) {
 	return app, nil
 }
 
+// Run запускає ChatHub (WebSocket), HTTP-сервер та сервер метрик Prometheus.
+// Сервера працюють у окремих goroutine для паралельної обробки запитів.
 func (a *App) Run(ctx context.Context) error {
 	go a.di.ChatHub(ctx).Run(ctx)
 
@@ -83,6 +91,7 @@ func (a *App) Run(ctx context.Context) error {
 	return nil
 }
 
+// initDeps послідовно ініціалізує залежності застосунку.
 func (a *App) initDeps(ctx context.Context) error {
 	deps := []func(ctx context.Context) error{
 		a.initHttpServer,
@@ -97,19 +106,23 @@ func (a *App) initDeps(ctx context.Context) error {
 	return nil
 }
 
+// initHttpServer налаштовує Echo-фреймворк: middleware (CORS, recover, request ID),
+// валідатор, Prometheus-метрики, Swagger-документацію та маршрутизацію API
+// Реєструє обробники для всіх доменів
 func (a *App) initHttpServer(ctx context.Context) error {
 	e := echo.New()
 
 	cv := validator.New()
 	e.Validator = cv
 
+	// Кастомний обробник HTTP-помилок, що транслює apperror у відповідні HTTP-статуси.
 	e.HTTPErrorHandler = customHttpErrorHandler
 
 	e.Use(echo_middleware.RequestID())
 	e.Use(echo_middleware.RequestLogger())
 	e.Use(echo_middleware.Recover())
 
-	// init prometheus middleware
+	// Ініціалізація middleware для збору метрик Prometheus.
 	prometheusMiddleware := echoprometheus.NewMiddleware(config.Config().App.Name())
 	e.Use(prometheusMiddleware)
 
@@ -125,8 +138,6 @@ func (a *App) initHttpServer(ctx context.Context) error {
 		docs.SwaggerInfo.Title = config.Config().App.Name() + " API"
 		docs.SwaggerInfo.Version = "1.0"
 		docs.SwaggerInfo.BasePath = "/api/v1"
-
-		// docs.SwaggerInfo.Host = config.Config().HttpServer.Address()
 
 		e.GET("/swagger/*", echoswagger.WrapHandler)
 		logger.Info(ctx, "Swagger UI is available at http://", config.Config().HttpServer.Address(), "/swagger/index.html")
@@ -181,6 +192,7 @@ func (a *App) initHttpServer(ctx context.Context) error {
 	}
 	a.metricsServer = metricsServer
 
+	// Реєстрація функції graceful shutdown для коректного закриття серверів.
 	closer.Add(func(ctx context.Context) error {
 		var errs []error
 
@@ -217,6 +229,9 @@ func (a *App) runMetricsServer() error {
 	return nil
 }
 
+// customHttpErrorHandler транслює внутрішні apperror у HTTP-статуси.
+// Використовує мапінг code -> HTTP status для типових помилок (NotFound, Conflict, Unauthorized тощо).
+// Нелоговані помилки рівня Internal Server Error фіксуються у логері.
 func customHttpErrorHandler(err error, c echo.Context) {
 	ctx := c.Request().Context()
 	respCode := http.StatusInternalServerError

@@ -2,6 +2,9 @@ import { create } from "zustand"
 import { LoginRequest, RegisterRequest } from '@/service/auth/auth.interface';
 import { AuthService } from "@/service/auth/auth.service";
 
+// AuthState описує глобальний стан автентифікації.
+// isInitializing використовується для уникнення миготіння інтерфейсу при старті 
+// під час перевірки валідності refresh-токена.
 interface AuthState {
     accessToken: string | null;
     isAuthenticated: boolean;
@@ -14,6 +17,8 @@ interface AuthState {
     setAccessToken: (token: string | null) => void;
 }
 
+// useAuthStore реалізує патерн Flux через Zustand
+// checkAuth виконує silent-refresh токена при завантаженні сторінки.
 export const useAuthStore = create<AuthState>((set) => ({
     accessToken: null,
     isAuthenticated: false,

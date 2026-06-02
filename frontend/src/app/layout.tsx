@@ -9,6 +9,8 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 
 const inter = Inter({ subsets: ["latin"] })
 
+// viewport та metadata відповідають за SEO та PWA-оптимізацію.
+// metadataBase використовується для формування абсолютних OpenGraph/Twitter URL.
 export const viewport: Viewport = {
     themeColor: "#ffffff",
     colorScheme: "light",
@@ -59,7 +61,11 @@ export const metadata: Metadata = {
     },
 }
 
-
+// RootLayout обгортає застосунок провайдерами:
+// QueryProvider — кешування серверного стану (React Query);
+// AuthProvider — глобальний стан автентифікації;
+// ChatWsProvider — WebSocket-з'єднання для чату (ініціалізується глобально);
+// TooltipProvider — система підказок Radix UI.
 export default function RootLayout({
     children,
 }: Readonly<{

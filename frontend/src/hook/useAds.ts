@@ -2,6 +2,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { AdService } from "@/service/ad/ad.service"
 import { ListAdsParams } from "@/service/ad/ad.interface"
 
+// useAds реалізує серверний стан оголошень з пагінацією та фільтрацією.
+// keepPreviousData зберігає попередні дані під час зміни фільтрів для зменшення миготіння UI.
+// staleTime: 60_000 запобігає надмірним повторним запитам при перемиканні вкладок.
 export const useAds = (params: ListAdsParams) => {
     const {
         limit,
